@@ -1,7 +1,7 @@
 /*
  * SPISLAVE.c
  * Created: 23-jul
- * Author: Miguel Donis
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
  * Description: Libreria SPI esclavo
  */
 
