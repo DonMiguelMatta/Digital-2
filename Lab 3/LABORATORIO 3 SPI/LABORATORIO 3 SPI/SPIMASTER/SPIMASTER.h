@@ -2,7 +2,7 @@
  * SPIMASTER.h
  *
  * Created: 23/07/2026
- *  Author: migue
+ *  Author: Miguel Donis 22993 - Ian Farrington 21952
  */
 
 #ifndef SPIMASTER_H_
