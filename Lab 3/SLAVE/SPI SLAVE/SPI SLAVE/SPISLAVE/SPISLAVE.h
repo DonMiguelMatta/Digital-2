@@ -2,7 +2,7 @@
  * SPISLAVE.h
  *
  * Created: 23/07/2026 05:43:49 p. m.
- *  Author: migue
+ *  Author: Miguel Donis 22993 - Ian Farrington 21952
  */
 
 #ifndef SPISLAVE_H_
