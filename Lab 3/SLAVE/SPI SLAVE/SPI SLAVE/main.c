@@ -1,7 +1,7 @@
 /*
  * Laboratorio 3 SPI SLAVE
  * Created: 23-jul
- * Author: Miguel Donis
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
  * Description: SPI - ADC - contador LEDs
  */
 
