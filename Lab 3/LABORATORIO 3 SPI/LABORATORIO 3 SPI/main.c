@@ -1,7 +1,7 @@
 /*
  * Laboratorio 3 SPI MASTER
  * Created: 23-jul
- * Author: Miguel Donis
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
  * Description: UART - SPI - ADC - contador LEDs
  */
 
