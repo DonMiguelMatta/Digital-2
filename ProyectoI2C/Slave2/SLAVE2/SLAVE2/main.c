@@ -238,11 +238,6 @@ static void Slave2_HandleValidatedRequest(const ProtocolRequest *request)
                 if (Slave2_SendStatus(request, ACCEPTED) != 0U)
                 {
                     Stepper_Stop(1U);
-                    if (request->device ==
-                        (uint8_t)ALL_LOCAL_ACTUATORS)
-                    {
-                        (void)Servo_SetAngle(140U);
-                    }
                 }
             }
             else
@@ -330,10 +325,6 @@ int main(void)
     stepper_initialized = Stepper_Init(&stepper_config,
                                        STEPPER_MODE_HALF_STEP);
     servo_door_initialized = Servo_Init(&DDRD, &PORTD, PD6);
-    if (servo_door_initialized != 0U)
-    {
-        (void)Servo_SetAngle(140U);
-    }
 
     (void)I2C_Slave_Init(SLAVE2_I2C_ADDRESS);
     sei();

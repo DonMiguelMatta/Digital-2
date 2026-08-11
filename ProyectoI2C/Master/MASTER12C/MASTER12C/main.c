@@ -33,10 +33,12 @@
 #define SLAVE1_I2C_ADDRESS              0x11U
 #define SLAVE2_I2C_ADDRESS              0x12U
 
-#define CARWASH_SERVO_CLOSED_ANGLE      0U
-#define CARWASH_SERVO_OPEN_ANGLE        90U
+#define CARWASH_WATER_CLOSED_ANGLE      0U
+#define CARWASH_WATER_OPEN_ANGLE        90U
+#define CARWASH_DOOR_CLOSED_ANGLE       145U
+#define CARWASH_DOOR_OPEN_ANGLE         50U
 #define CARWASH_STEPPER_SPEED           800U
-#define CARWASH_DC_PWM                  255U
+#define CARWASH_DC_PWM                  128U
 
 #define CARWASH_IR_INTERVAL_MS          100UL
 #define CARWASH_HCSR04_INTERVAL_MS      100UL
@@ -57,7 +59,7 @@
 #define CARWASH_SOAP_MAX_MM             270U
 #define CARWASH_WASH_MIN_MM             125U
 #define CARWASH_WASH_MAX_MM             130U
-#define CARWASH_FINISH_MAX_MM           60U
+#define CARWASH_FINISH_MAX_MM           70U
 
 typedef enum
 {
@@ -628,12 +630,24 @@ static uint8_t Master_ApplySafeActions(void)
 {
     uint8_t slave1_ok;
     uint8_t slave2_ok;
+    uint8_t water_ok;
+    uint8_t door_ok;
 
     slave1_ok = Master_StopDevice(SLAVE1_I2C_ADDRESS,
                                   (uint8_t)ALL_LOCAL_ACTUATORS);
     slave2_ok = Master_StopDevice(SLAVE2_I2C_ADDRESS,
                                   (uint8_t)ALL_LOCAL_ACTUATORS);
-    return (uint8_t)((slave1_ok != 0U) && (slave2_ok != 0U));
+    water_ok = Master_SetServo(SLAVE1_I2C_ADDRESS,
+                               (uint8_t)SERVO_WATER,
+                               CARWASH_WATER_CLOSED_ANGLE);
+    door_ok = Master_SetServo(SLAVE2_I2C_ADDRESS,
+                              (uint8_t)SERVO_DOOR,
+                              CARWASH_DOOR_CLOSED_ANGLE);
+
+    return (uint8_t)((slave1_ok != 0U) &&
+                     (slave2_ok != 0U) &&
+                     (water_ok != 0U) &&
+                     (door_ok != 0U));
 }
 
 // Apaga el VL53L0X mediante XSHUT.
@@ -669,10 +683,16 @@ static uint8_t Master_RunStartupI2CCheck(void)
     uint8_t vl_ok;
     uint8_t stop1_ok;
     uint8_t stop2_ok;
+    uint8_t water_ok;
+    uint8_t door_ok;
     uint8_t stop1_error;
     uint8_t stop1_twi;
     uint8_t stop2_error;
     uint8_t stop2_twi;
+    uint8_t water_error;
+    uint8_t water_twi;
+    uint8_t door_error;
+    uint8_t door_twi;
 
     // Primero exige una respuesta Protocol completa de ambos Slaves.
     UART_WriteString("Revision I2C inicial:\r\n");
@@ -715,9 +735,22 @@ static uint8_t Master_RunStartupI2CCheck(void)
                                  (uint8_t)ALL_LOCAL_ACTUATORS);
     stop2_error = (uint8_t)I2C_Master_GetLastError();
     stop2_twi = I2C_Master_GetLastStatus();
+    water_ok = Master_SetServo(SLAVE1_I2C_ADDRESS,
+                               (uint8_t)SERVO_WATER,
+                               CARWASH_WATER_CLOSED_ANGLE);
+    water_error = (uint8_t)I2C_Master_GetLastError();
+    water_twi = I2C_Master_GetLastStatus();
+    door_ok = Master_SetServo(SLAVE2_I2C_ADDRESS,
+                              (uint8_t)SERVO_DOOR,
+                              CARWASH_DOOR_CLOSED_ANGLE);
+    door_error = (uint8_t)I2C_Master_GetLastError();
+    door_twi = I2C_Master_GetLastStatus();
 
     UART_WriteString("  STOP seguro: ");
-    if ((stop1_ok != 0U) && (stop2_ok != 0U))
+    if ((stop1_ok != 0U) &&
+        (stop2_ok != 0U) &&
+        (water_ok != 0U) &&
+        (door_ok != 0U))
     {
         UART_WriteString("OK\r\n");
     }
@@ -736,13 +769,27 @@ static uint8_t Master_RunStartupI2CCheck(void)
             Master_PrintI2CErrorValues(stop2_error, stop2_twi);
             UART_WriteString("\r\n");
         }
+        if (water_ok == 0U)
+        {
+            UART_WriteString("    Servo agua: ");
+            Master_PrintI2CErrorValues(water_error, water_twi);
+            UART_WriteString("\r\n");
+        }
+        if (door_ok == 0U)
+        {
+            UART_WriteString("    Servo puerta: ");
+            Master_PrintI2CErrorValues(door_error, door_twi);
+            UART_WriteString("\r\n");
+        }
     }
 
     return (uint8_t)((slave1_ok != 0U) &&
                       (slave2_ok != 0U) &&
                       (vl_ok != 0U) &&
                       (stop1_ok != 0U) &&
-                      (stop2_ok != 0U));
+                      (stop2_ok != 0U) &&
+                      (water_ok != 0U) &&
+                      (door_ok != 0U));
 }
 
 // Atiende una medicion no bloqueante del VL53L0X.
@@ -1154,10 +1201,10 @@ static void CarWash_StartEntry(uint32_t now)
 {
     if (Master_SetServo(SLAVE2_I2C_ADDRESS,
                         (uint8_t)SERVO_DOOR,
-                        CARWASH_SERVO_OPEN_ANGLE) == 0U)
+                        CARWASH_DOOR_OPEN_ANGLE) == 0U)
     {
         CarWash_EnterError(Timebase_Millis(),
-                           PSTR("puerta no acepto 90 grados"));
+                           PSTR("puerta no acepto 50 grados"));
         return;
     }
 
@@ -1204,10 +1251,10 @@ static void CarWash_EnterSoap(void)
                                    (uint8_t)STEPPER);
     door_ok = Master_SetServo(SLAVE2_I2C_ADDRESS,
                               (uint8_t)SERVO_DOOR,
-                              CARWASH_SERVO_CLOSED_ANGLE);
+                              CARWASH_DOOR_CLOSED_ANGLE);
     water_ok = Master_SetServo(SLAVE1_I2C_ADDRESS,
                                (uint8_t)SERVO_WATER,
-                               CARWASH_SERVO_CLOSED_ANGLE);
+                               CARWASH_WATER_CLOSED_ANGLE);
 
     if ((stepper_ok == 0U) || (door_ok == 0U) || (water_ok == 0U))
     {
@@ -1230,7 +1277,7 @@ static void CarWash_CompleteSoap(void)
 {
     if (Master_SetServo(SLAVE1_I2C_ADDRESS,
                         (uint8_t)SERVO_WATER,
-                        CARWASH_SERVO_CLOSED_ANGLE) == 0U)
+                        CARWASH_WATER_CLOSED_ANGLE) == 0U)
     {
         CarWash_EnterError(Timebase_Millis(),
                            PSTR("agua no cerro"));
@@ -1250,7 +1297,7 @@ static void CarWash_CompleteSoap(void)
     CarWash_LogTransition(PSTR("Buscando lavado"));
 }
 
-// Inicia el ciclo alternado del motor DC.
+// Inicia el motor DC hacia adelante con velocidad media fija.
 static void CarWash_EnterWash(void)
 {
     if (Master_StopDevice(SLAVE2_I2C_ADDRESS,
@@ -1280,11 +1327,23 @@ static void CarWash_EnterWash(void)
 // Detiene el motor y termina el lavado.
 static void CarWash_CompleteWash(void)
 {
+    VL53L0X_Status_t vl_status;
+    uint32_t now;
+
     if (Master_StopDevice(SLAVE1_I2C_ADDRESS,
                           (uint8_t)DC_MOTOR) == 0U)
     {
         CarWash_EnterError(Timebase_Millis(),
                            PSTR("motor DC no se detuvo"));
+        return;
+    }
+
+    // Reinicia el ciclo de medicion antes de buscar la salida.
+    vl_status = VL53L0X_ClearInterrupt(&vl53l0x_sensor);
+    if (vl_status != VL53L0X_OK)
+    {
+        CarWash_EnterError(Timebase_Millis(),
+                           PSTR("VL53 no reinicio tras lavado"));
         return;
     }
 
@@ -1295,10 +1354,20 @@ static void CarWash_CompleteWash(void)
         return;
     }
 
+    vl_status = VL53L0X_StartSingle(&vl53l0x_sensor);
+    if (vl_status != VL53L0X_OK)
+    {
+        CarWash_EnterError(Timebase_Millis(),
+                           PSTR("VL53 no inicio tras lavado"));
+        return;
+    }
+
+    now = Timebase_Millis();
     carwash.state = CARWASH_SEEK_FINISH;
-    carwash.vl_pending = 0U;
-    carwash.next_vl_start_ms = Timebase_Millis();
-    CarWash_LogTransition(PSTR("Buscando finalizacion"));
+    carwash.vl_pending = 1U;
+    carwash.vl_started_ms = now;
+    carwash.next_vl_start_ms = now + CARWASH_VL_START_INTERVAL_MS;
+    carwash.next_vl_ready_ms = now + CARWASH_VL_READY_INTERVAL_MS;
 }
 
 // Asegura actuadores y devuelve el vehiculo durante cinco segundos.
@@ -1434,7 +1503,7 @@ static void CarWash_ServiceHCSR04(uint32_t now)
         {
             if (Master_SetServo(SLAVE1_I2C_ADDRESS,
                                 (uint8_t)SERVO_WATER,
-                                CARWASH_SERVO_CLOSED_ANGLE) == 0U)
+                                CARWASH_WATER_CLOSED_ANGLE) == 0U)
             {
                 CarWash_EnterError(Timebase_Millis(),
                                    PSTR("agua no cerro tras NO_SAMPLE"));
@@ -1453,7 +1522,7 @@ static void CarWash_ServiceHCSR04(uint32_t now)
         carwash.soap_reference_mm = distance_mm;
         if (Master_SetServo(SLAVE1_I2C_ADDRESS,
                             (uint8_t)SERVO_WATER,
-                            CARWASH_SERVO_OPEN_ANGLE) == 0U)
+                            CARWASH_WATER_OPEN_ANGLE) == 0U)
         {
             CarWash_EnterError(Timebase_Millis(),
                                PSTR("agua no abrio"));
@@ -1488,15 +1557,8 @@ static void CarWash_ServiceVL(uint32_t now)
         return;
     }
 
-    // Mantiene visible la distancia, incluida la busqueda de finalizacion.
-    if (carwash.state == CARWASH_SEEK_FINISH)
-    {
-        UART_WriteString("VL53 final: ");
-    }
-    else
-    {
-        UART_WriteString("VL53L0X: ");
-    }
+    // Mantiene visible la distancia durante todas las busquedas.
+    UART_WriteString("VL53L0X: ");
     UART_WriteUInt16(distance_mm);
     UART_WriteString(" mm\r\n");
 
@@ -1530,15 +1592,14 @@ static void CarWash_ServiceVL(uint32_t now)
     else if ((carwash.state == CARWASH_SEEK_FINISH) &&
              (distance_mm <= CARWASH_FINISH_MAX_MM))
     {
+        UART_WriteString("FIN\r\n");
         CarWash_EnterFinal();
     }
 }
 
-// Alterna la direccion del motor cada segundo.
+// Mantiene el motor a velocidad fija durante cinco segundos.
 static void CarWash_ServiceWash(uint32_t now)
 {
-    uint8_t direction;
-
     if (Master_TimeReached(now, carwash.deadline_ms) == 0U)
     {
         return;
@@ -1549,18 +1610,6 @@ static void CarWash_ServiceWash(uint32_t now)
     if (carwash.wash_phase >= 5U)
     {
         CarWash_CompleteWash();
-        return;
-    }
-
-    // Las fases pares avanzan y las impares invierten la direccion.
-    direction = ((carwash.wash_phase & 1U) == 0U) ?
-                (uint8_t)PROTOCOL_DIRECTION_FORWARD :
-                (uint8_t)PROTOCOL_DIRECTION_REVERSE;
-
-    if (Master_SetDCMotor(direction, CARWASH_DC_PWM) == 0U)
-    {
-        CarWash_EnterError(Timebase_Millis(),
-                           PSTR("motor DC rechazo cambio"));
         return;
     }
 
@@ -1822,6 +1871,10 @@ static void Master_ServiceDiagnostics(void)
 // Inicializa perifericos y ejecuta el ciclo principal.
 int main(void)
 {
+    uint8_t reset_cause = MCUSR;
+
+    MCUSR = 0U;
+
     // Configura interfaces, sensor ToF apagado y base de tiempo.
     UART_Init();
     initLCD8bits();
@@ -1836,6 +1889,9 @@ int main(void)
     sei();
 
     UART_WriteString("MASTER12C listo.\r\n");
+    UART_WriteString("Reset MCUSR: ");
+    UART_WriteHexByte(reset_cause);
+    UART_WriteString("\r\n");
     UART_WriteString("p: estado  s: escaneo I2C\r\n");
     CarWash_EnterStartupCheck(Timebase_Millis());
 

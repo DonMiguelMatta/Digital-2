@@ -251,7 +251,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000     0x1172
+.text           0x00000000     0x115c
  *(.vectors)
  .vectors       0x00000000       0x68 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
                 0x00000000                __vector_default
@@ -372,90 +372,90 @@ END GROUP
  .text.Slave2_HandleStepperMove
                 0x0000068c       0x60 main.o
  .text.Slave2_HandleValidatedRequest
-                0x000006ec       0xbe main.o
+                0x000006ec       0xb2 main.o
  .text.Slave2_ServiceI2C
-                0x000007aa       0x76 main.o
- .text.main     0x00000820       0x94 main.o
-                0x00000820                main
+                0x0000079e       0x76 main.o
+ .text.main     0x00000814       0x8a main.o
+                0x00000814                main
  .text.Protocol_Clear
-                0x000008b4       0x16 PROTOCOL/Protocol.o
+                0x0000089e       0x16 PROTOCOL/Protocol.o
  .text.Protocol_Copy
-                0x000008ca       0x2a PROTOCOL/Protocol.o
+                0x000008b4       0x2a PROTOCOL/Protocol.o
  .text.Protocol_IsKnownCommand
-                0x000008f4        0xe PROTOCOL/Protocol.o
-                0x000008f4                Protocol_IsKnownCommand
+                0x000008de        0xe PROTOCOL/Protocol.o
+                0x000008de                Protocol_IsKnownCommand
  .text.Protocol_IsKnownDevice
-                0x00000902       0x18 PROTOCOL/Protocol.o
-                0x00000902                Protocol_IsKnownDevice
+                0x000008ec       0x18 PROTOCOL/Protocol.o
+                0x000008ec                Protocol_IsKnownDevice
  .text.Protocol_IsKnownStatus
-                0x0000091a        0xc PROTOCOL/Protocol.o
-                0x0000091a                Protocol_IsKnownStatus
+                0x00000904        0xc PROTOCOL/Protocol.o
+                0x00000904                Protocol_IsKnownStatus
  .text.Protocol_ValidateRequest
-                0x00000926      0x136 PROTOCOL/Protocol.o
-                0x00000926                Protocol_ValidateRequest
+                0x00000910      0x136 PROTOCOL/Protocol.o
+                0x00000910                Protocol_ValidateRequest
  .text.Protocol_CreateResponse
-                0x00000a5c       0x7c PROTOCOL/Protocol.o
-                0x00000a5c                Protocol_CreateResponse
+                0x00000a46       0x7c PROTOCOL/Protocol.o
+                0x00000a46                Protocol_CreateResponse
  .text.Protocol_EncodeResponse
-                0x00000ad8       0x56 PROTOCOL/Protocol.o
-                0x00000ad8                Protocol_EncodeResponse
+                0x00000ac2       0x56 PROTOCOL/Protocol.o
+                0x00000ac2                Protocol_EncodeResponse
  .text.Protocol_DecodeRequest
-                0x00000b2e       0x52 PROTOCOL/Protocol.o
-                0x00000b2e                Protocol_DecodeRequest
+                0x00000b18       0x52 PROTOCOL/Protocol.o
+                0x00000b18                Protocol_DecodeRequest
  .text.Servo_AngleToTicks
-                0x00000b80       0x26 SERVO/Servo.o
+                0x00000b6a       0x26 SERVO/Servo.o
  .text.Servo_Init
-                0x00000ba6       0x90 SERVO/Servo.o
-                0x00000ba6                Servo_Init
+                0x00000b90       0x90 SERVO/Servo.o
+                0x00000b90                Servo_Init
  .text.Servo_SetAngle
-                0x00000c36       0x3e SERVO/Servo.o
-                0x00000c36                Servo_SetAngle
+                0x00000c20       0x3e SERVO/Servo.o
+                0x00000c20                Servo_SetAngle
  .text.Servo_GetAngle
-                0x00000c74       0x16 SERVO/Servo.o
-                0x00000c74                Servo_GetAngle
+                0x00000c5e       0x16 SERVO/Servo.o
+                0x00000c5e                Servo_GetAngle
  .text.__vector_13
-                0x00000c8a       0x3a SERVO/Servo.o
-                0x00000c8a                __vector_13
+                0x00000c74       0x3a SERVO/Servo.o
+                0x00000c74                __vector_13
  .text.__vector_11
-                0x00000cc4       0x3c SERVO/Servo.o
-                0x00000cc4                __vector_11
+                0x00000cae       0x3c SERVO/Servo.o
+                0x00000cae                __vector_11
  .text.Stepper_ConfigureRate
-                0x00000d00       0x82 STEPPER/Stepper.o
+                0x00000cea       0x82 STEPPER/Stepper.o
  .text.Stepper_WritePattern
-                0x00000d82       0x6e STEPPER/Stepper.o
+                0x00000d6c       0x6e STEPPER/Stepper.o
  .text.Stepper_ApplyCurrentStep
-                0x00000df0       0x28 STEPPER/Stepper.o
+                0x00000dda       0x28 STEPPER/Stepper.o
  .text.Stepper_Start
-                0x00000e18       0x9a STEPPER/Stepper.o
+                0x00000e02       0x9a STEPPER/Stepper.o
  .text.Stepper_Init
-                0x00000eb2      0x102 STEPPER/Stepper.o
-                0x00000eb2                Stepper_Init
+                0x00000e9c      0x102 STEPPER/Stepper.o
+                0x00000e9c                Stepper_Init
  .text.Stepper_RunContinuous
-                0x00000fb4        0xe STEPPER/Stepper.o
-                0x00000fb4                Stepper_RunContinuous
+                0x00000f9e        0xe STEPPER/Stepper.o
+                0x00000f9e                Stepper_RunContinuous
  .text.Stepper_Move
-                0x00000fc2        0x8 STEPPER/Stepper.o
-                0x00000fc2                Stepper_Move
+                0x00000fac        0x8 STEPPER/Stepper.o
+                0x00000fac                Stepper_Move
  .text.Stepper_Stop
-                0x00000fca       0x42 STEPPER/Stepper.o
-                0x00000fca                Stepper_Stop
+                0x00000fb4       0x42 STEPPER/Stepper.o
+                0x00000fb4                Stepper_Stop
  .text.Stepper_GetState
-                0x0000100c       0x26 STEPPER/Stepper.o
-                0x0000100c                Stepper_GetState
+                0x00000ff6       0x26 STEPPER/Stepper.o
+                0x00000ff6                Stepper_GetState
  .text.__vector_7
-                0x00001032       0xda STEPPER/Stepper.o
-                0x00001032                __vector_7
+                0x0000101c       0xda STEPPER/Stepper.o
+                0x0000101c                __vector_7
  .text.libgcc.div
-                0x0000110c       0x44 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_udivmodsi4.o)
-                0x0000110c                __udivmodsi4
+                0x000010f6       0x44 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_udivmodsi4.o)
+                0x000010f6                __udivmodsi4
  .text.libgcc.mul
-                0x00001150       0x1e d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_umulhisi3.o)
-                0x00001150                __umulhisi3
-                0x0000116e                . = ALIGN (0x2)
+                0x0000113a       0x1e d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_umulhisi3.o)
+                0x0000113a                __umulhisi3
+                0x00001158                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x0000116e        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
-                0x0000116e                _exit
-                0x0000116e                exit
+ .fini9         0x00001158        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
+                0x00001158                _exit
+                0x00001158                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -474,11 +474,11 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x0000116e        0x4 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
+ .fini0         0x00001158        0x4 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
  *(.fini0)
-                0x00001172                _etext = .
+                0x0000115c                _etext = .
 
-.data           0x00800100       0x3a load address 0x00001172
+.data           0x00800100       0x3a load address 0x0000115c
                 0x00800100                PROVIDE (__data_start, .)
  *(.data)
  *(.data*)
@@ -561,8 +561,8 @@ END GROUP
                 0x0080017e       0x14 STEPPER/Stepper.o
  *(COMMON)
                 0x00800192                PROVIDE (__bss_end, .)
-                0x00001172                __data_load_start = LOADADDR (.data)
-                0x000011ac                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x0000115c                __data_load_start = LOADADDR (.data)
+                0x00001196                __data_load_end = (__data_load_start + SIZEOF (.data))
 
 .noinit         0x00800192        0x0
                 [!provide]                PROVIDE (__noinit_start, .)
@@ -656,15 +656,15 @@ END GROUP
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000     0x2881
+.debug_info     0x00000000     0x2859
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x00000000      0x5f4 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
  .debug_info    0x000005f4      0x396 I2CLIB/I2CLIB.o
  .debug_info    0x0000098a      0x128 IR-FLYINGFISH/InfraRojo.o
- .debug_info    0x00000ab2      0xc03 main.o
- .debug_info    0x000016b5      0x75c PROTOCOL/Protocol.o
- .debug_info    0x00001e11      0x2dc SERVO/Servo.o
- .debug_info    0x000020ed      0x794 STEPPER/Stepper.o
+ .debug_info    0x00000ab2      0xbdb main.o
+ .debug_info    0x0000168d      0x75c PROTOCOL/Protocol.o
+ .debug_info    0x00001de9      0x2dc SERVO/Servo.o
+ .debug_info    0x000020c5      0x794 STEPPER/Stepper.o
 
 .debug_abbrev   0x00000000      0xf20
  *(.debug_abbrev)
@@ -676,15 +676,15 @@ END GROUP
  .debug_abbrev  0x00000b8b      0x195 SERVO/Servo.o
  .debug_abbrev  0x00000d20      0x200 STEPPER/Stepper.o
 
-.debug_line     0x00000000     0x1c77
+.debug_line     0x00000000     0x1c5f
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x00000000      0x134 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
  .debug_line    0x00000134      0x4f7 I2CLIB/I2CLIB.o
  .debug_line    0x0000062b      0x132 IR-FLYINGFISH/InfraRojo.o
- .debug_line    0x0000075d      0x4c6 main.o
- .debug_line    0x00000c23      0x75a PROTOCOL/Protocol.o
- .debug_line    0x0000137d      0x2d3 SERVO/Servo.o
- .debug_line    0x00001650      0x627 STEPPER/Stepper.o
+ .debug_line    0x0000075d      0x4ae main.o
+ .debug_line    0x00000c0b      0x75a PROTOCOL/Protocol.o
+ .debug_line    0x00001365      0x2d3 SERVO/Servo.o
+ .debug_line    0x00001638      0x627 STEPPER/Stepper.o
 
 .debug_frame    0x00000000      0x5fc
  *(.debug_frame)

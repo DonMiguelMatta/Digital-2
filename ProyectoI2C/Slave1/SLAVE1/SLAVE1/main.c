@@ -218,11 +218,6 @@ static void Slave1_HandleValidatedRequest(const ProtocolRequest *request)
                 if (Slave1_SendStatus(request, ACCEPTED) != 0U)
                 {
                     L298N_Stop();
-                    if (request->device ==
-                        (uint8_t)ALL_LOCAL_ACTUATORS)
-                    {
-                        (void)Servo_SetAngle(0U);
-                    }
                 }
             }
             else
@@ -312,7 +307,6 @@ int main(void)
                       PC2);
 
     (void)Servo_Init(&DDRB, &PORTB, PB3);
-    (void)Servo_SetAngle(0U);
 
     // L298N: ENA=D9, IN1=D7 e IN2=D8 en la placa Arduino Nano.
     dc_motor_initialized = L298N_Init(&DDRB,
