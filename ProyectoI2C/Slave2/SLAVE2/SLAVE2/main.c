@@ -1,3 +1,12 @@
+/*
+ * Proyecto CarWash automatico - Slave 2
+ *
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
+ * Description: Lectura IR y control de stepper y servo de puerta
+ */
+/****************************************/
+// Encabezado (Libraries)
+
 #ifndef F_CPU
 #define F_CPU 16000000UL
 #endif
@@ -5,189 +14,346 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <stdint.h>
-#include <util/atomic.h>
 #include <util/delay.h>
 
 #include "I2CLIB/I2CLIB.h"
 #include "IR-FLYINGFISH/InfraRojo.h"
+#include "PROTOCOL/Protocol.h"
+#include "SERVO/Servo.h"
 #include "STEPPER/Stepper.h"
 
-#define SLAVE2_I2C_ADDRESS           0x12U
-#define SLAVE2_RESPONSE_BYTES        4U
-#define SLAVE2_STATUS_IR_OK          0x01U
-#define SLAVE2_STATUS_STEPPER_OK     0x02U
-#define SLAVE2_STEPS_PER_SECOND      500U
-#define SLAVE2_CMD_STEPPER_FORWARD   'f'
-#define SLAVE2_CMD_STEPPER_REVERSE   'b'
-#define SLAVE2_CMD_STEPPER_STOP      'x'
+#define SLAVE2_I2C_ADDRESS 0x12U
+#define SLAVE2_SAMPLE_INTERVAL_MS 10U
 
-#define SLAVE2_TWI_ACK() \
-    do { \
-        TWCR = (1U << TWINT) | (1U << TWEA) | \
-               (1U << TWEN)  | (1U << TWIE); \
-    } while (0)
-
-static volatile uint8_t slave2_tx_buffer[SLAVE2_RESPONSE_BYTES] =
+typedef struct
 {
-    0U,
-    1U,
-    0U,
-    (uint8_t)STEPPER_DIRECTION_FORWARD
-};
+    uint8_t valid;
+    uint8_t raw_level;
+    uint8_t counter;
+} InfraredRawSample;
 
-static volatile uint8_t slave2_tx_index = 0U;
-static volatile uint8_t slave2_command = 0U;
-static volatile uint8_t slave2_command_pending = 0U;
+static InfraredRawSample infrared_sample = {0U, 1U, 0U};
+static uint8_t infrared_initialized = 0U;
+static uint8_t stepper_initialized = 0U;
+static uint8_t servo_door_initialized = 0U;
 
-static void Slave2_UpdateResponse(uint8_t status,
-                                  uint8_t infrared_level,
-                                  const StepperState *stepper_state)
+/****************************************/
+// Function prototypes
+// No se requieren prototipos locales.
+
+/****************************************/
+// NON-Interrupt subroutines
+
+// Codifica y publica una respuesta I2C.
+static uint8_t Slave2_SendResponse(const ProtocolResponse *response)
 {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
-    {
-        slave2_tx_buffer[0] = status;
-        slave2_tx_buffer[1] = infrared_level;
-        slave2_tx_buffer[2] = stepper_state->running;
-        slave2_tx_buffer[3] = (uint8_t)stepper_state->direction;
-    }
+    uint8_t frame[PROTOCOL_FRAME_SIZE];
+
+    Protocol_EncodeResponse(response, frame);
+    return I2C_Slave_SetResponse(frame);
 }
 
-static void Slave2_ExecutePendingCommand(void)
+// Responde unicamente con un estado Protocol.
+static uint8_t Slave2_SendStatus(const ProtocolRequest *request,
+                                 ProtocolStatus status)
 {
-    uint8_t command = 0U;
-    uint8_t has_command = 0U;
+    ProtocolResponse response;
 
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    (void)Protocol_CreateResponse(&response,
+                                  request->command,
+                                  request->device,
+                                  status,
+                                  0U,
+                                  0);
+    return Slave2_SendResponse(&response);
+}
+
+// Devuelve el estado local solicitado.
+static void Slave2_HandlePing(const ProtocolRequest *request)
+{
+    ProtocolResponse response;
+    StepperState stepper_state;
+    uint8_t data[PROTOCOL_RESPONSE_DATA_SIZE] = {0U, 0U, 0U, 0U};
+    uint8_t length = 0U;
+    ProtocolStatus status = OK;
+
+    switch ((ProtocolDevice)request->device)
     {
-        if (slave2_command_pending != 0U)
-        {
-            command = slave2_command;
-            slave2_command_pending = 0U;
-            has_command = 1U;
-        }
+        case IR:
+        case ALL_LOCAL_ACTUATORS:
+            break;
+
+        case STEPPER:
+            if (stepper_initialized == 0U)
+            {
+                status = UNSUPPORTED;
+                break;
+            }
+
+            Stepper_GetState(&stepper_state);
+            data[0] = stepper_state.running;
+            data[1] = (uint8_t)stepper_state.direction;
+            data[2] = (uint8_t)(stepper_state.remaining_steps >> 8U);
+            data[3] = (uint8_t)stepper_state.remaining_steps;
+            length = PROTOCOL_RESPONSE_DATA_SIZE;
+            break;
+
+        case SERVO_DOOR:
+            if (servo_door_initialized == 0U)
+            {
+                status = UNSUPPORTED;
+                break;
+            }
+
+            data[0] = Servo_GetAngle();
+            length = 1U;
+            break;
+
+        case HCSR04:
+        case SERVO_WATER:
+        case DC_MOTOR:
+        default:
+            status = UNKNOWN_DEVICE;
+            break;
     }
 
-    if (has_command == 0U)
+    (void)Protocol_CreateResponse(&response,
+                                  request->command,
+                                  request->device,
+                                  status,
+                                  length,
+                                  data);
+    (void)Slave2_SendResponse(&response);
+}
+
+// Entrega la ultima muestra cruda del sensor IR.
+static void Slave2_HandleSensorRead(const ProtocolRequest *request)
+{
+    ProtocolResponse response;
+    uint8_t data[PROTOCOL_RESPONSE_DATA_SIZE];
+    ProtocolStatus status;
+
+    if (request->device != (uint8_t)IR)
+    {
+        (void)Slave2_SendStatus(request, UNKNOWN_DEVICE);
+        return;
+    }
+
+    data[0] = infrared_sample.valid;
+    data[1] = infrared_sample.raw_level;
+    data[2] = 0U;
+    data[3] = infrared_sample.counter;
+    status = (infrared_sample.valid != 0U) ? OK : NO_SAMPLE;
+
+    (void)Protocol_CreateResponse(&response,
+                                  request->command,
+                                  request->device,
+                                  status,
+                                  PROTOCOL_RESPONSE_DATA_SIZE,
+                                  data);
+    (void)Slave2_SendResponse(&response);
+}
+
+// Ejecuta el movimiento solicitado al stepper.
+static void Slave2_HandleStepperMove(const ProtocolRequest *request)
+{
+    uint16_t steps;
+    uint16_t speed;
+    StepperDirection direction;
+
+    if (stepper_initialized == 0U)
+    {
+        (void)Slave2_SendStatus(request, UNSUPPORTED);
+        return;
+    }
+
+    if (Slave2_SendStatus(request, ACCEPTED) == 0U)
     {
         return;
     }
 
-    if ((command == (uint8_t)SLAVE2_CMD_STEPPER_FORWARD) ||
-        (command == (uint8_t)'F'))
+    direction = (request->data[0] ==
+                 (uint8_t)PROTOCOL_DIRECTION_FORWARD) ?
+                STEPPER_DIRECTION_FORWARD : STEPPER_DIRECTION_REVERSE;
+    steps = ((uint16_t)request->data[1] << 8U) |
+            (uint16_t)request->data[2];
+    speed = ((uint16_t)request->data[3] << 8U) |
+            (uint16_t)request->data[4];
+
+    if (steps == 0U)
     {
-        (void)Stepper_RunContinuous(
-            STEPPER_DIRECTION_FORWARD,
-            SLAVE2_STEPS_PER_SECOND);
+        (void)Stepper_RunContinuous(direction, speed);
     }
-    else if ((command == (uint8_t)SLAVE2_CMD_STEPPER_REVERSE) ||
-             (command == (uint8_t)'B'))
+    else
     {
-        (void)Stepper_RunContinuous(
-            STEPPER_DIRECTION_REVERSE,
-            SLAVE2_STEPS_PER_SECOND);
-    }
-    else if ((command == (uint8_t)SLAVE2_CMD_STEPPER_STOP) ||
-             (command == (uint8_t)'X'))
-    {
-        Stepper_Stop(1U);
+        (void)Stepper_Move(direction, steps, speed);
     }
 }
 
+// Ejecuta una solicitud Protocol ya validada.
+static void Slave2_HandleValidatedRequest(const ProtocolRequest *request)
+{
+    // Selecciona sensor o actuador sin ejecutar trabajo dentro de la ISR TWI.
+    switch ((ProtocolCommand)request->command)
+    {
+        case CMD_PING:
+            Slave2_HandlePing(request);
+            break;
+
+        case CMD_READ_SENSOR:
+            Slave2_HandleSensorRead(request);
+            break;
+
+        case CMD_SERVO_POSITION:
+            if (request->device == (uint8_t)SERVO_DOOR)
+            {
+                if (servo_door_initialized == 0U)
+                {
+                    (void)Slave2_SendStatus(request, UNSUPPORTED);
+                }
+                // Publica ACCEPTED antes de aplicar fisicamente el nuevo angulo.
+                else if (Slave2_SendStatus(request, ACCEPTED) != 0U)
+                {
+                    (void)Servo_SetAngle(request->data[0]);
+                }
+            }
+            else
+            {
+                (void)Slave2_SendStatus(request, UNKNOWN_DEVICE);
+            }
+            break;
+
+        case CMD_DC_MOTOR:
+            (void)Slave2_SendStatus(request, UNKNOWN_DEVICE);
+            break;
+
+        case CMD_STEPPER_MOVE:
+            Slave2_HandleStepperMove(request);
+            break;
+
+        case CMD_STOP:
+            if ((request->device == (uint8_t)STEPPER) ||
+                (request->device == (uint8_t)ALL_LOCAL_ACTUATORS))
+            {
+                if (Slave2_SendStatus(request, ACCEPTED) != 0U)
+                {
+                    Stepper_Stop(1U);
+                    if (request->device ==
+                        (uint8_t)ALL_LOCAL_ACTUATORS)
+                    {
+                        (void)Servo_SetAngle(140U);
+                    }
+                }
+            }
+            else
+            {
+                (void)Slave2_SendStatus(request, UNKNOWN_DEVICE);
+            }
+            break;
+
+        default:
+            (void)Slave2_SendStatus(request, UNKNOWN_COMMAND);
+            break;
+    }
+}
+
+// Recibe, valida y responde solicitudes I2C.
+static void Slave2_ServiceI2C(void)
+{
+    uint8_t frame[PROTOCOL_FRAME_SIZE];
+    I2CSlaveRequestState request_state;
+    ProtocolRequest request;
+    ProtocolStatus validation;
+
+    if (I2C_Slave_RequestAvailable() == 0U)
+    {
+        return;
+    }
+
+    request_state = I2C_Slave_GetRequest(frame);
+    if (request_state == I2C_SLAVE_REQUEST_NONE)
+    {
+        return;
+    }
+
+    // Decodifica y valida la trama congelada fuera de la interrupcion.
+    validation = Protocol_DecodeRequest(frame, &request);
+
+    // Una segunda solicitud conservada recibe BUSY y no reemplaza la primera.
+    if (request_state == I2C_SLAVE_REQUEST_REJECTED_BUSY)
+    {
+        (void)Slave2_SendStatus(&request, BUSY);
+        return;
+    }
+
+    if (validation != OK)
+    {
+        (void)Slave2_SendStatus(&request, validation);
+        return;
+    }
+
+    Slave2_HandleValidatedRequest(&request);
+}
+
+// Actualiza periodicamente la muestra infrarroja.
+static void Slave2_UpdateSensor(void)
+{
+    infrared_sample.valid = infrared_initialized;
+    if (infrared_initialized != 0U)
+    {
+        infrared_sample.raw_level = InfraRojo_ReadPinLevel();
+    }
+    // El contador permite al Master distinguir una muestra nueva.
+    infrared_sample.counter++;
+}
+
+/****************************************/
+// Main Function
+
+// Inicializa el Slave2 y atiende sensor e I2C.
 int main(void)
 {
     const StepperConfig stepper_config =
     {
-        { &DDRD, &DDRD, &DDRD, &DDRD },
-        { &PORTD, &PORTD, &PORTD, &PORTD },
-        { PD2, PD3, PD4, PD5 }
+        {&DDRD, &DDRD, &DDRD, &DDRD},
+        {&PORTD, &PORTD, &PORTD, &PORTD},
+        {PD2, PD3, PD4, PD5}
     };
-    StepperState stepper_state;
-    uint8_t status = 0U;
-    uint8_t infrared_level = 1U;
+    uint8_t delay_ms;
 
-    if (InfraRojo_Init(
-            &DDRC,
-            &PORTC,
-            &PINC,
-            PC0,
-            0U) != 0U)
+    // Configura IR, stepper, servo de puerta e I2C Slave.
+    infrared_initialized = InfraRojo_Init(&DDRC,
+                                          &PORTC,
+                                          &PINC,
+                                          PC0,
+                                          0U);
+    stepper_initialized = Stepper_Init(&stepper_config,
+                                       STEPPER_MODE_HALF_STEP);
+    servo_door_initialized = Servo_Init(&DDRD, &PORTD, PD6);
+    if (servo_door_initialized != 0U)
     {
-        status |= SLAVE2_STATUS_IR_OK;
-    }
-
-    if (Stepper_Init(&stepper_config, STEPPER_MODE_HALF_STEP) != 0U)
-    {
-        status |= SLAVE2_STATUS_STEPPER_OK;
+        (void)Servo_SetAngle(140U);
     }
 
     (void)I2C_Slave_Init(SLAVE2_I2C_ADDRESS);
     sei();
 
+    // Actualiza el IR y atiende solicitudes sin bloquear el stepper.
     while (1)
     {
-        Slave2_ExecutePendingCommand();
+        Slave2_ServiceI2C();
+        Slave2_UpdateSensor();
 
-        if ((status & SLAVE2_STATUS_IR_OK) != 0U)
+        for (delay_ms = 0U;
+             delay_ms < SLAVE2_SAMPLE_INTERVAL_MS;
+             delay_ms++)
         {
-            infrared_level = InfraRojo_ReadPinLevel();
+            Slave2_ServiceI2C();
+            _delay_ms(1);
         }
-
-        Stepper_GetState(&stepper_state);
-        Slave2_UpdateResponse(status, infrared_level, &stepper_state);
-        _delay_ms(10);
     }
 }
 
-ISR(TWI_vect)
-{
-    uint8_t twi_status = (uint8_t)(TWSR & 0xF8U);
-
-    switch (twi_status)
-    {
-        case 0x60U:
-        case 0x68U:
-        case 0x70U:
-        case 0x78U:
-            slave2_tx_index = 0U;
-            SLAVE2_TWI_ACK();
-            break;
-
-        case 0x80U:
-        case 0x90U:
-            slave2_command = TWDR;
-            slave2_command_pending = 1U;
-            SLAVE2_TWI_ACK();
-            break;
-
-        case 0xA0U:
-            SLAVE2_TWI_ACK();
-            break;
-
-        case 0xA8U:
-        case 0xB0U:
-            slave2_tx_index = 0U;
-            TWDR = slave2_tx_buffer[slave2_tx_index];
-            slave2_tx_index++;
-            SLAVE2_TWI_ACK();
-            break;
-
-        case 0xB8U:
-            if (slave2_tx_index < SLAVE2_RESPONSE_BYTES)
-            {
-                TWDR = slave2_tx_buffer[slave2_tx_index];
-                slave2_tx_index++;
-            }
-            else
-            {
-                TWDR = 0U;
-            }
-            SLAVE2_TWI_ACK();
-            break;
-
-        case 0xC0U:
-        case 0xC8U:
-        default:
-            SLAVE2_TWI_ACK();
-            break;
-    }
-}
+/****************************************/
+// Interrupt routines
+// Las interrupciones TWI y Timer2 estan en sus librerias.

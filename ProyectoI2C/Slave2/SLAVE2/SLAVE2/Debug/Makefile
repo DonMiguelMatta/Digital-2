@@ -35,6 +35,8 @@ LINKER_SCRIPT_DEP:=
 SUBDIRS :=  \
 ../I2CLIB \
 ../IR-FLYINGFISH \
+../PROTOCOL \
+../SERVO \
 ../STEPPER
 
 
@@ -43,6 +45,8 @@ C_SRCS +=  \
 ../I2CLIB/I2CLIB.c \
 ../IR-FLYINGFISH/InfraRojo.c \
 ../main.c \
+../PROTOCOL/Protocol.c \
+../SERVO/Servo.c \
 ../STEPPER/Stepper.c
 
 
@@ -56,24 +60,32 @@ OBJS +=  \
 I2CLIB/I2CLIB.o \
 IR-FLYINGFISH/InfraRojo.o \
 main.o \
+PROTOCOL/Protocol.o \
+SERVO/Servo.o \
 STEPPER/Stepper.o
 
 OBJS_AS_ARGS +=  \
 I2CLIB/I2CLIB.o \
 IR-FLYINGFISH/InfraRojo.o \
 main.o \
+PROTOCOL/Protocol.o \
+SERVO/Servo.o \
 STEPPER/Stepper.o
 
 C_DEPS +=  \
 I2CLIB/I2CLIB.d \
 IR-FLYINGFISH/InfraRojo.d \
 main.d \
+PROTOCOL/Protocol.d \
+SERVO/Servo.d \
 STEPPER/Stepper.d
 
 C_DEPS_AS_ARGS +=  \
 I2CLIB/I2CLIB.d \
 IR-FLYINGFISH/InfraRojo.d \
 main.d \
+PROTOCOL/Protocol.d \
+SERVO/Servo.d \
 STEPPER/Stepper.d
 
 OUTPUT_FILE_PATH +=SLAVE2.elf
@@ -105,6 +117,20 @@ IR-FLYINGFISH/InfraRojo.o: ../IR-FLYINGFISH/InfraRojo.c
 	
 
 ./main.o: .././main.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)D:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=16000000UL  -I"D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328p -B "D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega328p" -c -Wextra -Werror -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+PROTOCOL/Protocol.o: ../PROTOCOL/Protocol.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)D:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=16000000UL  -I"D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328p -B "D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega328p" -c -Wextra -Werror -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+SERVO/Servo.o: ../SERVO/Servo.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)D:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=16000000UL  -I"D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328p -B "D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega328p" -c -Wextra -Werror -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

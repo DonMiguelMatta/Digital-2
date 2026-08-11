@@ -139,6 +139,18 @@
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="PROTOCOL\Protocol.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="PROTOCOL\Protocol.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="TIMEBASE\Timebase.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="TIMEBASE\Timebase.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="UART\ascii_binario.c">
       <SubType>compile</SubType>
     </Compile>
@@ -161,6 +173,8 @@
   <ItemGroup>
     <Folder Include="I2CLIB" />
     <Folder Include="LCD" />
+    <Folder Include="PROTOCOL" />
+    <Folder Include="TIMEBASE" />
     <Folder Include="UART" />
     <Folder Include="VL53L0X" />
   </ItemGroup>

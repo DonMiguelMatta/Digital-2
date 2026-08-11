@@ -1,18 +1,12 @@
 /*
- * VL53L0X.c
+ * Biblioteca VL53L0X
  *
- * Libreria compacta VL53L0X para ATmega328P.
- *
- * Dependencias:
- *      I2C.h
- *      I2C.c
- *
- * No requiere Arduino, Wire, STSW-IMG005 ni otra API externa.
- *
- * Nota:
- * La secuencia de inicializacion usa configuraciones del VL53L0X
- * conocidas a partir de implementaciones compactas derivadas del API ST.
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
+ * Description: Control local del sensor ToF mediante registros I2C
+ * No utiliza Arduino, Wire, STSW-IMG005 ni otra API externa.
  */
+/****************************************/
+// Encabezado (Libraries)
 
 #include "VL53L0X.h"
 #include "../I2CLIB/I2CLIB.h"
@@ -199,9 +193,8 @@ static const uint8_t VL53_tuning[][2] PROGMEM =
 };
 
 
-/******************************************************************************
- * Prototipos internos
- ******************************************************************************/
+/****************************************/
+// Function prototypes
 
 static VL53L0X_Status_t VL53_WriteReg(
     VL53L0X_t *sensor,
@@ -266,9 +259,10 @@ static uint32_t VL53_TimeoutUsToMclks(uint32_t timeout_us, uint8_t vcsel_pclks);
 static uint8_t VL53_GetVcselPeriod(VL53L0X_t *sensor, uint8_t final_range);
 
 
-/******************************************************************************
- * Inicializar estructura
- ******************************************************************************/
+/****************************************/
+// NON-Interrupt subroutines
+
+// Inicializa la estructura local sin comunicarse con el sensor.
 void VL53L0X_ObjectInit(VL53L0X_t *sensor)
 {
     if (sensor == NULL)
@@ -359,6 +353,27 @@ VL53L0X_Status_t VL53L0X_AttachGPIO1(
      */
     *port &= (uint8_t)~sensor->gpio1.mask;
     *ddr  &= (uint8_t)~sensor->gpio1.mask;
+
+    return VL53L0X_OK;
+}
+
+
+/******************************************************************************
+ * Apagar mediante XSHUT
+ ******************************************************************************/
+VL53L0X_Status_t VL53L0X_Shutdown(VL53L0X_t *sensor)
+{
+    if ((sensor == NULL) || (sensor->xshut.enabled == 0U))
+    {
+        return VL53L0X_ERROR_PARAMETER;
+    }
+
+    *(sensor->xshut.port) &= (uint8_t)~sensor->xshut.mask;
+    *(sensor->xshut.ddr) |= sensor->xshut.mask;
+    _delay_ms(1);
+
+    sensor->address = VL53L0X_DEFAULT_ADDRESS;
+    sensor->initialized = 0U;
 
     return VL53L0X_OK;
 }
@@ -520,7 +535,7 @@ VL53L0X_Status_t VL53L0X_Init(VL53L0X_t *sensor)
     }
 
     /*
-     * Limite de señal = 0.25 MCPS.
+     * Limite de seÃ±al = 0.25 MCPS.
      * Registro usa formato fijo Q9.7:
      * 0.25 * 128 = 32.
      */
@@ -1720,3 +1735,7 @@ static uint32_t VL53_TimeoutUsToMclks(
         (macro_period_ns / 2UL)) /
         macro_period_ns;
 }
+
+/****************************************/
+// Interrupt routines
+// Esta biblioteca consulta el sensor por I2C y no utiliza ISR propias.

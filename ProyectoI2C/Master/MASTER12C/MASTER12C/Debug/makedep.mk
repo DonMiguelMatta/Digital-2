@@ -8,6 +8,10 @@ LCD\lcd.c
 
 main.c
 
+PROTOCOL\Protocol.c
+
+TIMEBASE\Timebase.c
+
 UART\ascii_binario.c
 
 UART\usart.c

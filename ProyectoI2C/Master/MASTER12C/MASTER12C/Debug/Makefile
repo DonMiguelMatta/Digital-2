@@ -35,6 +35,8 @@ LINKER_SCRIPT_DEP:=
 SUBDIRS :=  \
 ../I2CLIB \
 ../LCD \
+../PROTOCOL \
+../TIMEBASE \
 ../UART \
 ../VL53L0X
 
@@ -44,6 +46,8 @@ C_SRCS +=  \
 ../I2CLIB/I2CLIB.c \
 ../LCD/lcd.c \
 ../main.c \
+../PROTOCOL/Protocol.c \
+../TIMEBASE/Timebase.c \
 ../UART/ascii_binario.c \
 ../UART/usart.c \
 ../VL53L0X/VL53L0X.c
@@ -59,6 +63,8 @@ OBJS +=  \
 I2CLIB/I2CLIB.o \
 LCD/lcd.o \
 main.o \
+PROTOCOL/Protocol.o \
+TIMEBASE/Timebase.o \
 UART/ascii_binario.o \
 UART/usart.o \
 VL53L0X/VL53L0X.o
@@ -67,6 +73,8 @@ OBJS_AS_ARGS +=  \
 I2CLIB/I2CLIB.o \
 LCD/lcd.o \
 main.o \
+PROTOCOL/Protocol.o \
+TIMEBASE/Timebase.o \
 UART/ascii_binario.o \
 UART/usart.o \
 VL53L0X/VL53L0X.o
@@ -75,6 +83,8 @@ C_DEPS +=  \
 I2CLIB/I2CLIB.d \
 LCD/lcd.d \
 main.d \
+PROTOCOL/Protocol.d \
+TIMEBASE/Timebase.d \
 UART/ascii_binario.d \
 UART/usart.d \
 VL53L0X/VL53L0X.d
@@ -83,6 +93,8 @@ C_DEPS_AS_ARGS +=  \
 I2CLIB/I2CLIB.d \
 LCD/lcd.d \
 main.d \
+PROTOCOL/Protocol.d \
+TIMEBASE/Timebase.d \
 UART/ascii_binario.d \
 UART/usart.d \
 VL53L0X/VL53L0X.d
@@ -116,6 +128,20 @@ LCD/lcd.o: ../LCD/lcd.c
 	
 
 ./main.o: .././main.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)D:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=16000000UL  -I"D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328p -B "D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega328p" -c -Wextra -Werror -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+PROTOCOL/Protocol.o: ../PROTOCOL/Protocol.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)D:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=16000000UL  -I"D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328p -B "D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega328p" -c -Wextra -Werror -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+TIMEBASE/Timebase.o: ../TIMEBASE/Timebase.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)D:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=16000000UL  -I"D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328p -B "D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega328p" -c -Wextra -Werror -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

@@ -4,8 +4,12 @@ d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/g
                               I2CLIB/I2CLIB.o (__udivmodsi4)
 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
                               D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o (exit)
+d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
+                              main.o (__tablejump2__)
 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
                               I2CLIB/I2CLIB.o (__do_copy_data)
+d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
+                              I2CLIB/I2CLIB.o (__do_clear_bss)
 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_umulhisi3.o)
                               LCD/lcd.o (__umulhisi3)
 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_muluhisi3.o)
@@ -18,11 +22,11 @@ Discarded input sections
  .text          0x00000000        0x0 I2CLIB/I2CLIB.o
  .data          0x00000000        0x0 I2CLIB/I2CLIB.o
  .bss           0x00000000        0x0 I2CLIB/I2CLIB.o
- .text.I2C_Slave_Init
-                0x00000000       0x14 I2CLIB/I2CLIB.o
  .text          0x00000000        0x0 LCD/lcd.o
  .data          0x00000000        0x0 LCD/lcd.o
  .bss           0x00000000        0x0 LCD/lcd.o
+ .text.LCD_Write_String
+                0x00000000       0x1a LCD/lcd.o
  .text.LCD_WriteUint16
                 0x00000000       0xe8 LCD/lcd.o
  .text.LCD_WriteInt16
@@ -30,6 +34,18 @@ Discarded input sections
  .text          0x00000000        0x0 main.o
  .data          0x00000000        0x0 main.o
  .bss           0x00000000        0x0 main.o
+ .text          0x00000000        0x0 PROTOCOL/Protocol.o
+ .data          0x00000000        0x0 PROTOCOL/Protocol.o
+ .bss           0x00000000        0x0 PROTOCOL/Protocol.o
+ .text.Protocol_CreateResponse
+                0x00000000       0x7c PROTOCOL/Protocol.o
+ .text.Protocol_EncodeResponse
+                0x00000000       0x56 PROTOCOL/Protocol.o
+ .text.Protocol_DecodeRequest
+                0x00000000       0x52 PROTOCOL/Protocol.o
+ .text          0x00000000        0x0 TIMEBASE/Timebase.o
+ .data          0x00000000        0x0 TIMEBASE/Timebase.o
+ .bss           0x00000000        0x0 TIMEBASE/Timebase.o
  .text          0x00000000        0x0 UART/ascii_binario.o
  .data          0x00000000        0x0 UART/ascii_binario.o
  .bss           0x00000000        0x0 UART/ascii_binario.o
@@ -70,17 +86,17 @@ Discarded input sections
  .debug_aranges
                 0x00000000       0x50 UART/usart.o
  .debug_ranges  0x00000000       0x40 UART/usart.o
- .debug_line    0x00000000      0x1ee UART/usart.o
- .debug_str     0x00000000      0x24d UART/usart.o
+ .debug_line    0x00000000      0x1f0 UART/usart.o
+ .debug_str     0x00000000      0x242 UART/usart.o
  .comment       0x00000000       0x31 UART/usart.o
  .debug_frame   0x00000000       0xb4 UART/usart.o
  .text          0x00000000        0x0 VL53L0X/VL53L0X.o
  .data          0x00000000        0x0 VL53L0X/VL53L0X.o
  .bss           0x00000000        0x0 VL53L0X/VL53L0X.o
- .text.VL53L0X_AttachXSHUT
-                0x00000000       0x6e VL53L0X/VL53L0X.o
  .text.VL53L0X_AttachGPIO1
                 0x00000000       0x72 VL53L0X/VL53L0X.o
+ .text.VL53L0X_ReadDistance
+                0x00000000       0xd4 VL53L0X/VL53L0X.o
  .text.VL53L0X_SetAddress
                 0x00000000       0x36 VL53L0X/VL53L0X.o
  .text.VL53L0X_SetTimeout
@@ -115,6 +131,21 @@ Discarded input sections
                 0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
  .text.libgcc.fixed
                 0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
+ .text          0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
+ .data          0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
+ .bss           0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
+ .text.libgcc.mul
+                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
+ .text.libgcc.div
+                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
+ .text.libgcc.prologue
+                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
+ .text.libgcc.builtins
+                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
+ .text.libgcc.fmul
+                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
+ .text.libgcc.fixed
+                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
  .text          0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
  .data          0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
  .bss           0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
@@ -131,6 +162,22 @@ Discarded input sections
                 0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
  .text.libgcc.fixed
                 0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
+ .text          0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
+ .data          0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
+ .bss           0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
+ .text.libgcc.mul
+                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
+ .text.libgcc.div
+                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
+ .text.libgcc   0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
+ .text.libgcc.prologue
+                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
+ .text.libgcc.builtins
+                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
+ .text.libgcc.fmul
+                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
+ .text.libgcc.fixed
+                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
  .text          0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_umulhisi3.o)
  .data          0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_umulhisi3.o)
  .bss           0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_umulhisi3.o)
@@ -179,6 +226,8 @@ LOAD D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/at
 LOAD I2CLIB/I2CLIB.o
 LOAD LCD/lcd.o
 LOAD main.o
+LOAD PROTOCOL/Protocol.o
+LOAD TIMEBASE/Timebase.o
 LOAD UART/ascii_binario.o
 LOAD UART/usart.o
 LOAD VL53L0X/VL53L0X.o
@@ -291,51 +340,353 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000     0x1ed2
+.text           0x00000000     0x4072
  *(.vectors)
  .vectors       0x00000000       0x68 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
                 0x00000000                __vector_default
                 0x00000000                __vectors
  *(.vectors)
  *(.progmem.gcc*)
-                0x00000068                . = ALIGN (0x2)
-                0x00000068                __trampolines_start = .
+ .progmem.gcc_sw_table.CarWash_PrintStateName
+                0x00000068       0x1a main.o
+ .progmem.gcc_sw_table.CarWash_Service
+                0x00000082       0x1a main.o
+                0x0000009c                . = ALIGN (0x2)
+                0x0000009c                __trampolines_start = .
  *(.trampolines)
- .trampolines   0x00000068        0x0 linker stubs
+ .trampolines   0x0000009c        0x0 linker stubs
  *(.trampolines*)
-                0x00000068                __trampolines_end = .
+                0x0000009c                __trampolines_end = .
  *libprintf_flt.a:*(.progmem.data)
  *libc.a:*(.progmem.data)
  *(.progmem*)
+ .progmem.data.__c.2423
+                0x0000009c       0x15 main.o
+ .progmem.data.__c.2421
+                0x000000b1       0x21 main.o
+ .progmem.data.__c.2419
+                0x000000d2       0x20 main.o
+ .progmem.data.__c.2417
+                0x000000f2        0x3 main.o
+ .progmem.data.__c.2415
+                0x000000f5        0xe main.o
+ .progmem.data.__c.2403
+                0x00000103        0x3 main.o
+ .progmem.data.__c.2401
+                0x00000106        0x7 main.o
+ .progmem.data.__c.2399
+                0x0000010d        0x7 main.o
+ .progmem.data.__c.2397
+                0x00000114        0x5 main.o
+ .progmem.data.__c.2395
+                0x00000119        0x3 main.o
+ .progmem.data.__c.2393
+                0x0000011c        0x7 main.o
+ .progmem.data.__c.2391
+                0x00000123        0x7 main.o
+ .progmem.data.__c.2389
+                0x0000012a        0x5 main.o
+ .progmem.data.__c.2387
+                0x0000012f        0x7 main.o
+ .progmem.data.__c.2385
+                0x00000136       0x10 main.o
+ .progmem.data.__c.2383
+                0x00000146        0xc main.o
+ .progmem.data.__c.2381
+                0x00000152        0xd main.o
+ .progmem.data.__c.2379
+                0x0000015f        0xb main.o
+ .progmem.data.__c.2377
+                0x0000016a        0x9 main.o
+ .progmem.data.__c.2410
+                0x00000173       0x22 main.o
+ .progmem.data.__c.2408
+                0x00000195       0x19 main.o
+ .progmem.data.__c.2331
+                0x000001ae        0xc main.o
+ .progmem.data.__c.2328
+                0x000001ba       0x1a main.o
+ .progmem.data.__c.2325
+                0x000001d4       0x1b main.o
+ .progmem.data.__c.2322
+                0x000001ef       0x11 main.o
+ .progmem.data.__c.2319
+                0x00000200        0xe main.o
+ .progmem.data.__c.2316
+                0x0000020e       0x10 main.o
+ .progmem.data.__c.2313
+                0x0000021e        0x7 main.o
+ .progmem.data.__c.2310
+                0x00000225       0x10 main.o
+ .progmem.data.__c.2307
+                0x00000235        0xb main.o
+ .progmem.data.__c.2304
+                0x00000240       0x13 main.o
+ .progmem.data.__c.2301
+                0x00000253       0x14 main.o
+ .progmem.data.__c.2298
+                0x00000267        0x8 main.o
+ .progmem.data.__c.2295
+                0x0000026f        0x7 main.o
+ .progmem.data.__c.2291
+                0x00000276        0xd main.o
+ .progmem.data.__c.2368
+                0x00000283       0x10 main.o
+ .progmem.data.__c.2366
+                0x00000293        0xc main.o
+ .progmem.data.__c.2364
+                0x0000029f        0x4 main.o
+ .progmem.data.__c.2362
+                0x000002a3       0x11 main.o
+ .progmem.data.__c.2360
+                0x000002b4        0xa main.o
+ .progmem.data.__c.2358
+                0x000002be        0x3 main.o
+ .progmem.data.__c.2356
+                0x000002c1        0x9 main.o
+ .progmem.data.__c.2354
+                0x000002ca        0x7 main.o
+ .progmem.data.__c.2352
+                0x000002d1        0x6 main.o
+ .progmem.data.__c.2350
+                0x000002d7        0xc main.o
+ .progmem.data.__c.2348
+                0x000002e3       0x15 main.o
+ .progmem.data.__c.2346
+                0x000002f8        0x4 main.o
+ .progmem.data.__c.2344
+                0x000002fc        0x6 main.o
+ .progmem.data.__c.2342
+                0x00000302        0xa main.o
+ .progmem.data.__c.2340
+                0x0000030c        0xc main.o
+ .progmem.data.__c.2338
+                0x00000318       0x15 main.o
+ .progmem.data.__c.2336
+                0x0000032d        0xb main.o
+ .progmem.data.__c.2659
+                0x00000338       0x2d main.o
+ .progmem.data.__c.2466
+                0x00000365        0xa main.o
+ .progmem.data.__c.2468
+                0x0000036f        0xd main.o
+ .progmem.data.__c.2464
+                0x0000037c        0x3 main.o
+ .progmem.data.__c.2462
+                0x0000037f        0x8 main.o
+ .progmem.data.__c.2629
+                0x00000387       0x24 main.o
+ .progmem.data.__c.2622
+                0x000003ab       0x2b main.o
+ .progmem.data.__c.2620
+                0x000003d6       0x1d main.o
+ .progmem.data.__c.2613
+                0x000003f3       0x1a main.o
+ .progmem.data.__c.2430
+                0x0000040d        0x3 main.o
+ .progmem.data.__c.2428
+                0x00000410        0xc main.o
+ .progmem.data.__c.2545
+                0x0000041c       0x16 main.o
+ .progmem.data.__c.2543
+                0x00000432       0x14 main.o
+ .progmem.data.__c.2541
+                0x00000446       0x16 main.o
+ .progmem.data.__c.2605
+                0x0000045c       0x18 main.o
+ .progmem.data.__c.2523
+                0x00000474       0x10 main.o
+ .progmem.data.__c.2521
+                0x00000484       0x14 main.o
+ .progmem.data.__c.2519
+                0x00000498        0xe main.o
+ .progmem.data.__c.2586
+                0x000004a6        0xe main.o
+ .progmem.data.__c.2584
+                0x000004b4       0x1d main.o
+ .progmem.data.__c.2582
+                0x000004d1       0x1b main.o
+ .progmem.data.__c.2558
+                0x000004ec       0x12 main.o
+ .progmem.data.__c.2554
+                0x000004fe        0xc main.o
+ .progmem.data.__c.2556
+                0x0000050a        0xa main.o
+ .progmem.data.__c.2552
+                0x00000514       0x1a main.o
+ .progmem.data.__c.2550
+                0x0000052e       0x16 main.o
+ .progmem.data.__c.2536
+                0x00000544        0x7 main.o
+ .progmem.data.__c.2532
+                0x0000054b        0x8 main.o
+ .progmem.data.__c.2534
+                0x00000553        0x8 main.o
+ .progmem.data.__c.2530
+                0x0000055b       0x19 main.o
+ .progmem.data.__c.2528
+                0x00000574       0x15 main.o
+ .progmem.data.__c.2514
+                0x00000589        0xb main.o
+ .progmem.data.__c.2510
+                0x00000594        0xc main.o
+ .progmem.data.__c.2512
+                0x000005a0        0x8 main.o
+ .progmem.data.__c.2508
+                0x000005a8       0x1d main.o
+ .progmem.data.__c.2599
+                0x000005c5        0x6 main.o
+ .progmem.data.__c.2597
+                0x000005cb        0xa main.o
+ .progmem.data.__c.2595
+                0x000005d5        0xd main.o
+ .progmem.data.__c.2593
+                0x000005e2       0x16 main.o
+ .progmem.data.__c.2500
+                0x000005f8       0x14 main.o
+ .progmem.data.__c.2498
+                0x0000060c       0x19 main.o
+ .progmem.data.__c.2496
+                0x00000625       0x1d main.o
+ .progmem.data.__c.2490
+                0x00000642        0x8 main.o
+ .progmem.data.__c.2486
+                0x0000064a        0xb main.o
+ .progmem.data.__c.2488
+                0x00000655        0x8 main.o
+ .progmem.data.__c.2484
+                0x0000065d       0x1b main.o
+ .progmem.data.__c.2573
+                0x00000678       0x14 main.o
+ .progmem.data.__c.2479
+                0x0000068c        0x7 main.o
+ .progmem.data.__c.2475
+                0x00000693        0xe main.o
+ .progmem.data.__c.2477
+                0x000006a1        0x8 main.o
+ .progmem.data.__c.2473
+                0x000006a9       0x1e main.o
+ .progmem.data.__c.2110
+                0x000006c7        0x2 main.o
+ .progmem.data.__c.2108
+                0x000006c9        0x7 main.o
+ .progmem.data.__c.2106
+                0x000006d0        0xc main.o
+ .progmem.data.__c.2100
+                0x000006dc        0x3 main.o
+ .progmem.data.__c.2185
+                0x000006df        0x3 main.o
+ .progmem.data.__c.2183
+                0x000006e2        0x4 main.o
+ .progmem.data.__c.2181
+                0x000006e6        0x7 main.o
+ .progmem.data.__c.2179
+                0x000006ed       0x18 main.o
+ .progmem.data.__c.2177
+                0x00000705        0x5 main.o
+ .progmem.data.__c.2175
+                0x0000070a        0x3 main.o
+ .progmem.data.__c.2173
+                0x0000070d        0x2 main.o
+ .progmem.data.__c.2171
+                0x0000070f        0x3 main.o
+ .progmem.data.__c.2279
+                0x00000712        0x3 main.o
+ .progmem.data.__c.2277
+                0x00000715       0x12 main.o
+ .progmem.data.__c.2275
+                0x00000727        0x3 main.o
+ .progmem.data.__c.2273
+                0x0000072a       0x12 main.o
+ .progmem.data.__c.2271
+                0x0000073c        0x8 main.o
+ .progmem.data.__c.2269
+                0x00000744        0x5 main.o
+ .progmem.data.__c.2267
+                0x00000749       0x10 main.o
+ .progmem.data.__c.2265
+                0x00000759        0x4 main.o
+ .progmem.data.__c.2263
+                0x0000075d        0x7 main.o
+ .progmem.data.__c.2261
+                0x00000764        0x7 main.o
+ .progmem.data.__c.2259
+                0x0000076b        0xb main.o
+ .progmem.data.__c.2257
+                0x00000776        0x5 main.o
+ .progmem.data.__c.2255
+                0x0000077b        0x3 main.o
+ .progmem.data.__c.2253
+                0x0000077e        0xb main.o
+ .progmem.data.__c.2251
+                0x00000789        0x7 main.o
+ .progmem.data.__c.2249
+                0x00000790        0x7 main.o
+ .progmem.data.__c.2247
+                0x00000797       0x18 main.o
+ .progmem.data.__c.2456
+                0x000007af       0x1d main.o
+ .progmem.data.__c.2454
+                0x000007cc       0x16 main.o
+ .progmem.data.__c.2450
+                0x000007e2        0xa main.o
+ .progmem.data.__c.2452
+                0x000007ec        0xd main.o
+ .progmem.data.__c.2448
+                0x000007f9       0x21 main.o
+ .progmem.data.__c.2446
+                0x0000081a       0x18 main.o
+ .progmem.data.__c.2442
+                0x00000832        0xe main.o
+ .progmem.data.__c.2444
+                0x00000840        0xa main.o
+ .progmem.data.__c.2565
+                0x0000084a       0x13 main.o
+ .progmem.data.__c.2653
+                0x0000085d       0x1b main.o
+ .progmem.data.__c.2647
+                0x00000878       0x11 main.o
+ .progmem.data.__c.2645
+                0x00000889       0x1a main.o
+ .progmem.data.__c.2435
+                0x000008a3        0xe main.o
+ .progmem.data.__c.2437
+                0x000008b1        0xa main.o
+ .progmem.data.__c.2669
+                0x000008bb       0x1c main.o
+ .progmem.data.__c.2667
+                0x000008d7       0x13 main.o
  .progmem.data.VL53_tuning
-                0x00000068       0xa0 VL53L0X/VL53L0X.o
-                0x00000108                . = ALIGN (0x2)
+                0x000008ea       0xa0 VL53L0X/VL53L0X.o
+                0x0000098a                . = ALIGN (0x2)
  *(.jumptables)
  *(.jumptables*)
  *(.lowtext)
  *(.lowtext*)
-                0x00000108                __ctors_start = .
+                0x0000098a                __ctors_start = .
  *(.ctors)
-                0x00000108                __ctors_end = .
-                0x00000108                __dtors_start = .
+                0x0000098a                __ctors_end = .
+                0x0000098a                __dtors_start = .
  *(.dtors)
-                0x00000108                __dtors_end = .
+                0x0000098a                __dtors_end = .
  SORT(*)(.ctors)
  SORT(*)(.dtors)
  *(.init0)
- .init0         0x00000108        0x0 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
-                0x00000108                __init
+ .init0         0x0000098a        0x0 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
+                0x0000098a                __init
  *(.init0)
  *(.init1)
  *(.init1)
  *(.init2)
- .init2         0x00000108        0xc D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
+ .init2         0x0000098a        0xc D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
  *(.init2)
  *(.init3)
  *(.init3)
  *(.init4)
- .init4         0x00000114       0x16 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
-                0x00000114                __do_copy_data
+ .init4         0x00000996       0x16 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
+                0x00000996                __do_copy_data
+ .init4         0x000009ac       0x10 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
+                0x000009ac                __do_clear_bss
  *(.init4)
  *(.init5)
  *(.init5)
@@ -346,221 +697,338 @@ END GROUP
  *(.init8)
  *(.init8)
  *(.init9)
- .init9         0x0000012a        0x8 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
+ .init9         0x000009bc        0x8 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
  *(.init9)
  *(.text)
- .text          0x00000132        0x4 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
-                0x00000132                __vector_22
-                0x00000132                __vector_1
-                0x00000132                __vector_24
-                0x00000132                __vector_12
-                0x00000132                __bad_interrupt
-                0x00000132                __vector_6
-                0x00000132                __vector_3
-                0x00000132                __vector_23
-                0x00000132                __vector_25
-                0x00000132                __vector_11
-                0x00000132                __vector_13
-                0x00000132                __vector_17
-                0x00000132                __vector_19
-                0x00000132                __vector_7
-                0x00000132                __vector_5
-                0x00000132                __vector_4
-                0x00000132                __vector_9
-                0x00000132                __vector_2
-                0x00000132                __vector_21
-                0x00000132                __vector_15
-                0x00000132                __vector_8
-                0x00000132                __vector_14
-                0x00000132                __vector_10
-                0x00000132                __vector_16
-                0x00000132                __vector_18
-                0x00000132                __vector_20
-                0x00000136                . = ALIGN (0x2)
+ .text          0x000009c4        0x4 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
+                0x000009c4                __vector_22
+                0x000009c4                __vector_1
+                0x000009c4                __vector_24
+                0x000009c4                __vector_12
+                0x000009c4                __bad_interrupt
+                0x000009c4                __vector_6
+                0x000009c4                __vector_3
+                0x000009c4                __vector_23
+                0x000009c4                __vector_25
+                0x000009c4                __vector_11
+                0x000009c4                __vector_13
+                0x000009c4                __vector_17
+                0x000009c4                __vector_7
+                0x000009c4                __vector_5
+                0x000009c4                __vector_4
+                0x000009c4                __vector_9
+                0x000009c4                __vector_2
+                0x000009c4                __vector_21
+                0x000009c4                __vector_15
+                0x000009c4                __vector_8
+                0x000009c4                __vector_10
+                0x000009c4                __vector_16
+                0x000009c4                __vector_18
+                0x000009c4                __vector_20
+                0x000009c8                . = ALIGN (0x2)
  *(.text.*)
  .text.I2C_WaitForTWINT
-                0x00000136       0x38 I2CLIB/I2CLIB.o
- .text.I2C_Master_GetLastStatus
-                0x0000016e        0x6 I2CLIB/I2CLIB.o
-                0x0000016e                I2C_Master_GetLastStatus
+                0x000009c8       0x3a I2CLIB/I2CLIB.o
  .text.I2C_Master_Init
-                0x00000174       0xc0 I2CLIB/I2CLIB.o
-                0x00000174                I2C_Master_Init
+                0x00000a02       0xd6 I2CLIB/I2CLIB.o
+                0x00000a02                I2C_Master_Init
  .text.I2C_Master_Start
-                0x00000234       0x22 I2CLIB/I2CLIB.o
-                0x00000234                I2C_Master_Start
+                0x00000ad8       0x2e I2CLIB/I2CLIB.o
+                0x00000ad8                I2C_Master_Start
  .text.I2C_Master_RepeatedStart
-                0x00000256       0x22 I2CLIB/I2CLIB.o
-                0x00000256                I2C_Master_RepeatedStart
+                0x00000b06       0x2a I2CLIB/I2CLIB.o
+                0x00000b06                I2C_Master_RepeatedStart
  .text.I2C_Master_Stop
-                0x00000278       0x3e I2CLIB/I2CLIB.o
-                0x00000278                I2C_Master_Stop
+                0x00000b30       0x40 I2CLIB/I2CLIB.o
+                0x00000b30                I2C_Master_Stop
  .text.I2C_Master_Write
-                0x000002b6       0x38 I2CLIB/I2CLIB.o
-                0x000002b6                I2C_Master_Write
+                0x00000b70       0x3e I2CLIB/I2CLIB.o
+                0x00000b70                I2C_Master_Write
+ .text.I2C_SendAddress
+                0x00000bae       0x1a I2CLIB/I2CLIB.o
+ .text.I2C_WriteFrame
+                0x00000bc8       0x4a I2CLIB/I2CLIB.o
  .text.I2C_Master_Read
-                0x000002ee       0x60 I2CLIB/I2CLIB.o
-                0x000002ee                I2C_Master_Read
+                0x00000c12       0x68 I2CLIB/I2CLIB.o
+                0x00000c12                I2C_Master_Read
+ .text.I2C_ReadFrame
+                0x00000c7a       0x5e I2CLIB/I2CLIB.o
+ .text.I2C_Master_ProbeAddress
+                0x00000cd8       0x36 I2CLIB/I2CLIB.o
+                0x00000cd8                I2C_Master_ProbeAddress
+ .text.I2C_Master_Exchange
+                0x00000d0e      0x128 I2CLIB/I2CLIB.o
+                0x00000d0e                I2C_Master_Exchange
+ .text.I2C_Master_Ping
+                0x00000e36        0x8 I2CLIB/I2CLIB.o
+                0x00000e36                I2C_Master_Ping
+ .text.I2C_Master_GetLastStatus
+                0x00000e3e        0x6 I2CLIB/I2CLIB.o
+                0x00000e3e                I2C_Master_GetLastStatus
+ .text.I2C_Master_GetLastError
+                0x00000e44        0x6 I2CLIB/I2CLIB.o
+                0x00000e44                I2C_Master_GetLastError
  .text.LCD_EnablePulse
-                0x0000034e       0x22 LCD/lcd.o
+                0x00000e4a       0x22 LCD/lcd.o
  .text.LCD_Port
-                0x00000370       0x5e LCD/lcd.o
-                0x00000370                LCD_Port
- .text.LCD_CMD  0x000003ce       0x1c LCD/lcd.o
-                0x000003ce                LCD_CMD
+                0x00000e6c       0x5e LCD/lcd.o
+                0x00000e6c                LCD_Port
+ .text.LCD_CMD  0x00000eca       0x1c LCD/lcd.o
+                0x00000eca                LCD_CMD
  .text.LCD_Write_Char
-                0x000003ea       0x1c LCD/lcd.o
-                0x000003ea                LCD_Write_Char
- .text.LCD_Write_String
-                0x00000406       0x1a LCD/lcd.o
-                0x00000406                LCD_Write_String
+                0x00000ee6       0x1c LCD/lcd.o
+                0x00000ee6                LCD_Write_Char
  .text.LCD_Set_Cursor
-                0x00000420       0x14 LCD/lcd.o
-                0x00000420                LCD_Set_Cursor
+                0x00000f02       0x14 LCD/lcd.o
+                0x00000f02                LCD_Set_Cursor
  .text.LCD_Clear
-                0x00000434       0x14 LCD/lcd.o
-                0x00000434                LCD_Clear
+                0x00000f16       0x14 LCD/lcd.o
+                0x00000f16                LCD_Clear
  .text.initLCD8bits
-                0x00000448       0x5a LCD/lcd.o
-                0x00000448                initLCD8bits
- .text.Master_HCSR04_EchoToCm
-                0x000004a2       0x18 main.o
- .text.Master_IsOpenCommand
-                0x000004ba       0x14 main.o
- .text.Master_IsCloseCommand
-                0x000004ce       0x14 main.o
- .text.Master_I2C_WriteByte
-                0x000004e2       0x4a main.o
- .text.Master_SendSlave1Command
-                0x0000052c        0xa main.o
- .text.Master_SendSlave2Command
-                0x00000536        0xa main.o
- .text.Master_I2C_Ping
-                0x00000540       0x24 main.o
- .text.Master_I2C_ReadBytes
-                0x00000564       0x84 main.o
- .text.Master_ReadSlave1
-                0x000005e8       0x86 main.o
- .text.Master_ReadSlave2
-                0x0000066e       0x94 main.o
+                0x00000f2a       0x5a LCD/lcd.o
+                0x00000f2a                initLCD8bits
  .text.UART_Init
-                0x00000702       0x18 main.o
-                0x00000702                UART_Init
+                0x00000f84       0x18 main.o
  .text.UART_WriteChar
-                0x0000071a        0xe main.o
-                0x0000071a                UART_WriteChar
- .text.UART_WriteString
-                0x00000728       0x1a main.o
-                0x00000728                UART_WriteString
- .text.Master_PrintMenu
-                0x00000742       0x62 main.o
+                0x00000f9c       0x2a main.o
+ .text.UART_WriteFlashString
+                0x00000fc6       0x20 main.o
  .text.UART_Available
-                0x000007a4       0x10 main.o
-                0x000007a4                UART_Available
+                0x00000fe6        0xc main.o
  .text.UART_ReadChar
-                0x000007b4        0x6 main.o
-                0x000007b4                UART_ReadChar
- .text.UART_ReadCharBlocking
-                0x000007ba        0xe main.o
-                0x000007ba                UART_ReadCharBlocking
+                0x00000ff2        0x6 main.o
  .text.UART_WriteUInt16
-                0x000007c8       0xb4 main.o
-                0x000007c8                UART_WriteUInt16
- .text.Master_PrintSlave1Reading
-                0x0000087c       0x6e main.o
- .text.Master_PrintSlave2Reading
-                0x000008ea       0xa0 main.o
+                0x00000ff8       0xae main.o
  .text.UART_WriteHexNibble
-                0x0000098a       0x16 main.o
-                0x0000098a                UART_WriteHexNibble
+                0x000010a6       0x12 main.o
  .text.UART_WriteHexByte
-                0x000009a0       0x20 main.o
-                0x000009a0                UART_WriteHexByte
- .text.Master_PrintI2CPing
-                0x000009c0       0x56 main.o
- .text.Master_PrintSlaveStatus
-                0x00000a16       0x28 main.o
- .text.Master_ScanI2CBus
-                0x00000a3e       0x5c main.o
- .text.main     0x00000a9a      0x2f6 main.o
-                0x00000a9a                main
+                0x000010b8       0x20 main.o
+ .text.Master_PrintI2CErrorValues
+                0x000010d8       0x34 main.o
+ .text.Master_TimeReached
+                0x0000110c       0x22 main.o
+ .text.Master_IsNewCounter
+                0x0000112e       0x22 main.o
+ .text.Master_HCSR04EchoToMillimeters
+                0x00001150       0x44 main.o
+ .text.CarWash_PrintStateName
+                0x00001194       0xa6 main.o
+ .text.Master_PrintCachedStatus
+                0x0000123a       0xfe main.o
+ .text.Master_StartI2CScan
+                0x00001338       0x2a main.o
+ .text.CarWash_LogTransition
+                0x00001362       0x22 main.o
+ .text.Master_ServiceUART
+                0x00001384       0x40 main.o
+ .text.Master_ShutdownVL53L0X
+                0x000013c4       0x12 main.o
+ .text.LCD_WriteFlashString
+                0x000013d6       0x20 main.o
+ .text.Master_SetLCD
+                0x000013f6       0x36 main.o
+ .text.CarWash_EnterStartupCheck
+                0x0000142c       0x20 main.o
+ .text.Master_ExchangeProtocol
+                0x0000144c       0xbc main.o
+ .text.Master_SendRequest
+                0x00001508       0x5a main.o
+ .text.Master_NodePing
+                0x00001562       0x58 main.o
+ .text.Master_GetInfrared
+                0x000015ba       0xb2 main.o
+ .text.Master_CommandAccepted
+                0x0000166c       0x4e main.o
+ .text.Master_SetServo
+                0x000016ba       0x2c main.o
+ .text.Master_StartStepper
+                0x000016e6       0x46 main.o
+ .text.Master_SetDCMotor
+                0x0000172c       0x32 main.o
+ .text.Master_StopDevice
+                0x0000175e       0x18 main.o
+ .text.Master_ApplySafeActions
+                0x00001776       0x28 main.o
+ .text.CarWash_EnterError
+                0x0000179e       0x74 main.o
+ .text.CarWash_CheckNormalHealth
+                0x00001812       0x76 main.o
+ .text.CarWash_StartEntry
+                0x00001888       0x5c main.o
+ .text.CarWash_ServiceIdleIR
+                0x000018e4       0xc0 main.o
+ .text.CarWash_CompleteSoap
+                0x000019a4       0x5c main.o
+ .text.CarWash_EnterIdle
+                0x00001a00       0x6a main.o
+ .text.CarWash_ServiceFinishWait
+                0x00001a6a       0xc0 main.o
+ .text.CarWash_ServiceErrorWaitClear
+                0x00001b2a       0x7a main.o
+ .text.CarWash_EnterFinal
+                0x00001ba4       0x70 main.o
+ .text.CarWash_EnterSoap
+                0x00001c14       0x74 main.o
+ .text.CarWash_EnterWash
+                0x00001c88       0x76 main.o
+ .text.CarWash_CompleteWash
+                0x00001cfe       0x5a main.o
+ .text.CarWash_ServiceWash
+                0x00001d58       0x6c main.o
+ .text.Master_GetHCSR04
+                0x00001dc4       0xc4 main.o
+ .text.CarWash_ServiceHCSR04
+                0x00001e88      0x134 main.o
+ .text.Master_PrintActuatorReportStep
+                0x00001fbc      0x174 main.o
+ .text.Master_InitializeVL53L0X
+                0x00002130       0x44 main.o
+ .text.CarWash_FinishEntry
+                0x00002174       0x58 main.o
+ .text.CarWash_ServiceErrorLinks
+                0x000021cc       0xe6 main.o
+ .text.Master_PrintCurrentI2CError
+                0x000022b2       0x16 main.o
+ .text.Master_PrintStartupNodeCheck
+                0x000022c8       0xcc main.o
+ .text.Master_RunStartupI2CCheck
+                0x00002394      0x172 main.o
+ .text.CarWash_ServiceStartupCheck
+                0x00002506       0x88 main.o
+ .text.Master_PollVL53L0X
+                0x0000258e      0x18c main.o
+ .text.CarWash_ServiceVL
+                0x0000271a       0xac main.o
+ .text.CarWash_Service
+                0x000027c6      0x122 main.o
+ .text.Master_ServiceI2CScan
+                0x000028e8       0x78 main.o
+ .text.Master_ServiceDiagnostics
+                0x00002960       0x14 main.o
+ .text.__vector_19
+                0x00002974       0x56 main.o
+                0x00002974                __vector_19
+ .text.main     0x000029ca       0x68 main.o
+                0x000029ca                main
+ .text.Protocol_Clear
+                0x00002a32       0x16 PROTOCOL/Protocol.o
+ .text.Protocol_Copy
+                0x00002a48       0x2a PROTOCOL/Protocol.o
+ .text.Protocol_IsKnownCommand
+                0x00002a72        0xe PROTOCOL/Protocol.o
+                0x00002a72                Protocol_IsKnownCommand
+ .text.Protocol_IsKnownDevice
+                0x00002a80       0x18 PROTOCOL/Protocol.o
+                0x00002a80                Protocol_IsKnownDevice
+ .text.Protocol_IsKnownStatus
+                0x00002a98        0xc PROTOCOL/Protocol.o
+                0x00002a98                Protocol_IsKnownStatus
+ .text.Protocol_ValidateRequest
+                0x00002aa4      0x136 PROTOCOL/Protocol.o
+                0x00002aa4                Protocol_ValidateRequest
+ .text.Protocol_CreateRequest
+                0x00002bda       0x70 PROTOCOL/Protocol.o
+                0x00002bda                Protocol_CreateRequest
+ .text.Protocol_EncodeRequest
+                0x00002c4a       0x4e PROTOCOL/Protocol.o
+                0x00002c4a                Protocol_EncodeRequest
+ .text.Protocol_DecodeResponse
+                0x00002c98       0x72 PROTOCOL/Protocol.o
+                0x00002c98                Protocol_DecodeResponse
+ .text.Protocol_ValidateResponse
+                0x00002d0a      0x1a0 PROTOCOL/Protocol.o
+                0x00002d0a                Protocol_ValidateResponse
+ .text.Timebase_Init
+                0x00002eaa       0x1a TIMEBASE/Timebase.o
+                0x00002eaa                Timebase_Init
+ .text.Timebase_Millis
+                0x00002ec4       0x22 TIMEBASE/Timebase.o
+                0x00002ec4                Timebase_Millis
+ .text.__vector_14
+                0x00002ee6       0x4a TIMEBASE/Timebase.o
+                0x00002ee6                __vector_14
  .text.VL53_DecodeTimeout
-                0x00000d90       0x16 VL53L0X/VL53L0X.o
+                0x00002f30       0x16 VL53L0X/VL53L0X.o
  .text.VL53_EncodeTimeout
-                0x00000da6       0x5a VL53L0X/VL53L0X.o
+                0x00002f46       0x5a VL53L0X/VL53L0X.o
  .text.VL53_MacroPeriodNs
-                0x00000e00       0x2a VL53L0X/VL53L0X.o
+                0x00002fa0       0x2a VL53L0X/VL53L0X.o
  .text.VL53_TimeoutMclksToUs
-                0x00000e2a       0x34 VL53L0X/VL53L0X.o
+                0x00002fca       0x34 VL53L0X/VL53L0X.o
  .text.VL53_TimeoutUsToMclks
-                0x00000e5e       0x5c VL53L0X/VL53L0X.o
+                0x00002ffe       0x5c VL53L0X/VL53L0X.o
  .text.VL53_WriteMulti
-                0x00000eba       0x94 VL53L0X/VL53L0X.o
+                0x0000305a       0x94 VL53L0X/VL53L0X.o
  .text.VL53_WriteReg16
-                0x00000f4e       0x24 VL53L0X/VL53L0X.o
+                0x000030ee       0x24 VL53L0X/VL53L0X.o
  .text.VL53_WriteReg
-                0x00000f72       0x6a VL53L0X/VL53L0X.o
+                0x00003112       0x6a VL53L0X/VL53L0X.o
  .text.VL53_ReadMulti
-                0x00000fdc       0xd0 VL53L0X/VL53L0X.o
+                0x0000317c       0xd0 VL53L0X/VL53L0X.o
  .text.VL53_ReadReg
-                0x000010ac        0x8 VL53L0X/VL53L0X.o
+                0x0000324c        0x8 VL53L0X/VL53L0X.o
  .text.VL53_GetSpadInfo
-                0x000010b4      0x230 VL53L0X/VL53L0X.o
+                0x00003254      0x230 VL53L0X/VL53L0X.o
  .text.VL53_GetSequenceEnables
-                0x000012e4       0x56 VL53L0X/VL53L0X.o
+                0x00003484       0x56 VL53L0X/VL53L0X.o
  .text.VL53_GetVcselPeriod
-                0x0000133a       0x38 VL53L0X/VL53L0X.o
+                0x000034da       0x38 VL53L0X/VL53L0X.o
  .text.VL53_ReferenceCalibration
-                0x00001372       0x9c VL53L0X/VL53L0X.o
+                0x00003512       0x9c VL53L0X/VL53L0X.o
  .text.VL53_ReadReg16
-                0x0000140e       0x4c VL53L0X/VL53L0X.o
+                0x000035ae       0x4c VL53L0X/VL53L0X.o
  .text.VL53_GetSequenceTimeouts
-                0x0000145a       0xf0 VL53L0X/VL53L0X.o
+                0x000035fa       0xf0 VL53L0X/VL53L0X.o
  .text.VL53_GetTimingBudget
-                0x0000154a      0x10a VL53L0X/VL53L0X.o
+                0x000036ea      0x10a VL53L0X/VL53L0X.o
  .text.VL53_SetTimingBudget
-                0x00001654      0x13c VL53L0X/VL53L0X.o
+                0x000037f4      0x13c VL53L0X/VL53L0X.o
  .text.VL53L0X_ObjectInit
-                0x00001790       0x38 VL53L0X/VL53L0X.o
-                0x00001790                VL53L0X_ObjectInit
+                0x00003930       0x38 VL53L0X/VL53L0X.o
+                0x00003930                VL53L0X_ObjectInit
+ .text.VL53L0X_AttachXSHUT
+                0x00003968       0x6e VL53L0X/VL53L0X.o
+                0x00003968                VL53L0X_AttachXSHUT
+ .text.VL53L0X_Shutdown
+                0x000039d6       0x5a VL53L0X/VL53L0X.o
+                0x000039d6                VL53L0X_Shutdown
  .text.VL53L0X_Reset
-                0x000017c8       0x76 VL53L0X/VL53L0X.o
-                0x000017c8                VL53L0X_Reset
+                0x00003a30       0x76 VL53L0X/VL53L0X.o
+                0x00003a30                VL53L0X_Reset
  .text.VL53L0X_IsConnected
-                0x0000183e       0x38 VL53L0X/VL53L0X.o
-                0x0000183e                VL53L0X_IsConnected
+                0x00003aa6       0x38 VL53L0X/VL53L0X.o
+                0x00003aa6                VL53L0X_IsConnected
  .text.VL53L0X_Init
-                0x00001876      0x38a VL53L0X/VL53L0X.o
-                0x00001876                VL53L0X_Init
+                0x00003ade      0x38a VL53L0X/VL53L0X.o
+                0x00003ade                VL53L0X_Init
  .text.VL53L0X_StartSingle
-                0x00001c00       0xac VL53L0X/VL53L0X.o
-                0x00001c00                VL53L0X_StartSingle
+                0x00003e68       0xac VL53L0X/VL53L0X.o
+                0x00003e68                VL53L0X_StartSingle
  .text.VL53L0X_DataReady
-                0x00001cac       0x88 VL53L0X/VL53L0X.o
-                0x00001cac                VL53L0X_DataReady
+                0x00003f14       0x88 VL53L0X/VL53L0X.o
+                0x00003f14                VL53L0X_DataReady
  .text.VL53L0X_ClearInterrupt
-                0x00001d34       0x12 VL53L0X/VL53L0X.o
-                0x00001d34                VL53L0X_ClearInterrupt
+                0x00003f9c       0x12 VL53L0X/VL53L0X.o
+                0x00003f9c                VL53L0X_ClearInterrupt
  .text.VL53L0X_ReadResult
-                0x00001d46       0x3c VL53L0X/VL53L0X.o
-                0x00001d46                VL53L0X_ReadResult
- .text.VL53L0X_ReadDistance
-                0x00001d82       0xd4 VL53L0X/VL53L0X.o
-                0x00001d82                VL53L0X_ReadDistance
+                0x00003fae       0x3c VL53L0X/VL53L0X.o
+                0x00003fae                VL53L0X_ReadResult
  .text.libgcc.div
-                0x00001e56       0x44 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_udivmodsi4.o)
-                0x00001e56                __udivmodsi4
+                0x00003fea       0x44 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_udivmodsi4.o)
+                0x00003fea                __udivmodsi4
+ .text.libgcc   0x0000402e        0xc d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
+                0x0000402e                __tablejump2__
  .text.libgcc.mul
-                0x00001e9a       0x1e d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_umulhisi3.o)
-                0x00001e9a                __umulhisi3
+                0x0000403a       0x1e d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_umulhisi3.o)
+                0x0000403a                __umulhisi3
  .text.libgcc.mul
-                0x00001eb8       0x16 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_muluhisi3.o)
-                0x00001eb8                __muluhisi3
-                0x00001ece                . = ALIGN (0x2)
+                0x00004058       0x16 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_muluhisi3.o)
+                0x00004058                __muluhisi3
+                0x0000406e                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x00001ece        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
-                0x00001ece                _exit
-                0x00001ece                exit
+ .fini9         0x0000406e        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
+                0x0000406e                _exit
+                0x0000406e                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -579,41 +1047,60 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x00001ece        0x4 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
+ .fini0         0x0000406e        0x4 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
  *(.fini0)
-                0x00001ed2                _etext = .
+                0x00004072                _etext = .
 
-.data           0x00800100      0x4da load address 0x00001ed2
+.data           0x00800100        0x8 load address 0x00004072
                 0x00800100                PROVIDE (__data_start, .)
  *(.data)
  *(.data*)
  .data.i2c_last_status
                 0x00800100        0x1 I2CLIB/I2CLIB.o
+ .data.i2c_scan
+                0x00800101        0x3 main.o
+ .data.last_infrared_sample
+                0x00800104        0x3 main.o
  *(.gnu.linkonce.d*)
  *(.rodata)
  *(.rodata*)
- .rodata.str1.1
-                0x00800101      0x4d9 main.o
-                                0x4ed (size before relaxing)
  *(.gnu.linkonce.r*)
-                0x008005da                . = ALIGN (0x2)
-                0x008005da                _edata = .
-                0x008005da                PROVIDE (__data_end, .)
+                0x00800108                . = ALIGN (0x2)
+ *fill*         0x00800107        0x1 
+                0x00800108                _edata = .
+                0x00800108                PROVIDE (__data_end, .)
 
-.bss            0x008005da        0x0
-                [!provide]                PROVIDE (__bss_start, .)
+.bss            0x00800108      0x155
+                0x00800108                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
+ .bss.i2c_last_error
+                0x00800108        0x1 I2CLIB/I2CLIB.o
+ .bss.status_report_step
+                0x00800109        0x1 main.o
+ .bss.carwash   0x0080010a       0x34 main.o
+ .bss.last_hcsr04_sample
+                0x0080013e        0x4 main.o
+ .bss.vl53l0x_sensor
+                0x00800142       0x15 main.o
+ .bss.uart_tx_tail
+                0x00800157        0x1 main.o
+ .bss.uart_tx_head
+                0x00800158        0x1 main.o
+ .bss.uart_tx_buffer
+                0x00800159      0x100 main.o
+ .bss.timebase_milliseconds
+                0x00800259        0x4 TIMEBASE/Timebase.o
  *(COMMON)
-                [!provide]                PROVIDE (__bss_end, .)
-                0x00001ed2                __data_load_start = LOADADDR (.data)
-                0x000023ac                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x0080025d                PROVIDE (__bss_end, .)
+                0x00004072                __data_load_start = LOADADDR (.data)
+                0x0000407a                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x008005da        0x0
+.noinit         0x0080025d        0x0
                 [!provide]                PROVIDE (__noinit_start, .)
  *(.noinit*)
                 [!provide]                PROVIDE (__noinit_end, .)
-                0x008005da                _end = .
+                0x0080025d                _end = .
                 [!provide]                PROVIDE (__heap_start, .)
 
 .eeprom         0x00810000        0x0
@@ -659,6 +1146,8 @@ END GROUP
                                  0x31 (size before relaxing)
  .comment       0x00000030       0x31 LCD/lcd.o
  .comment       0x00000030       0x31 main.o
+ .comment       0x00000030       0x31 PROTOCOL/Protocol.o
+ .comment       0x00000030       0x31 TIMEBASE/Timebase.o
  .comment       0x00000030       0x31 VL53L0X/VL53L0X.o
 
 .note.gnu.avr.deviceinfo
@@ -681,69 +1170,87 @@ END GROUP
 .debug_sfnames
  *(.debug_sfnames)
 
-.debug_aranges  0x00000000      0x2c0
+.debug_aranges  0x00000000      0x4c0
  *(.debug_aranges)
  .debug_aranges
-                0x00000000       0x60 I2CLIB/I2CLIB.o
+                0x00000000       0x90 I2CLIB/I2CLIB.o
  .debug_aranges
-                0x00000060       0x68 LCD/lcd.o
+                0x00000090       0x68 LCD/lcd.o
  .debug_aranges
-                0x000000c8       0xe8 main.o
+                0x000000f8      0x200 main.o
  .debug_aranges
-                0x000001b0      0x110 VL53L0X/VL53L0X.o
+                0x000002f8       0x80 PROTOCOL/Protocol.o
+ .debug_aranges
+                0x00000378       0x30 TIMEBASE/Timebase.o
+ .debug_aranges
+                0x000003a8      0x118 VL53L0X/VL53L0X.o
 
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000     0x446a
+.debug_info     0x00000000     0x736b
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x00000000      0x5f4 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
- .debug_info    0x000005f4      0x250 I2CLIB/I2CLIB.o
- .debug_info    0x00000844      0x554 LCD/lcd.o
- .debug_info    0x00000d98     0x16a4 main.o
- .debug_info    0x0000243c     0x202e VL53L0X/VL53L0X.o
+ .debug_info    0x000005f4      0x776 I2CLIB/I2CLIB.o
+ .debug_info    0x00000d6a      0x554 LCD/lcd.o
+ .debug_info    0x000012be     0x374b main.o
+ .debug_info    0x00004a09      0x75c PROTOCOL/Protocol.o
+ .debug_info    0x00005165      0x172 TIMEBASE/Timebase.o
+ .debug_info    0x000052d7     0x2094 VL53L0X/VL53L0X.o
 
-.debug_abbrev   0x00000000      0xdfa
+.debug_abbrev   0x00000000     0x1217
  *(.debug_abbrev)
  .debug_abbrev  0x00000000      0x5a2 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
- .debug_abbrev  0x000005a2      0x152 I2CLIB/I2CLIB.o
- .debug_abbrev  0x000006f4      0x1ce LCD/lcd.o
- .debug_abbrev  0x000008c2      0x2a2 main.o
- .debug_abbrev  0x00000b64      0x296 VL53L0X/VL53L0X.o
+ .debug_abbrev  0x000005a2      0x260 I2CLIB/I2CLIB.o
+ .debug_abbrev  0x00000802      0x1ce LCD/lcd.o
+ .debug_abbrev  0x000009d0      0x2a3 main.o
+ .debug_abbrev  0x00000c73      0x1f5 PROTOCOL/Protocol.o
+ .debug_abbrev  0x00000e68      0x119 TIMEBASE/Timebase.o
+ .debug_abbrev  0x00000f81      0x296 VL53L0X/VL53L0X.o
 
-.debug_line     0x00000000     0x211b
+.debug_line     0x00000000     0x3aa6
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x00000000      0x134 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
- .debug_line    0x00000134      0x314 I2CLIB/I2CLIB.o
- .debug_line    0x00000448      0x36c LCD/lcd.o
- .debug_line    0x000007b4      0x9be main.o
- .debug_line    0x00001172      0xfa9 VL53L0X/VL53L0X.o
+ .debug_line    0x00000134      0x669 I2CLIB/I2CLIB.o
+ .debug_line    0x0000079d      0x36b LCD/lcd.o
+ .debug_line    0x00000b08     0x16ab main.o
+ .debug_line    0x000021b3      0x75a PROTOCOL/Protocol.o
+ .debug_line    0x0000290d      0x197 TIMEBASE/Timebase.o
+ .debug_line    0x00002aa4     0x1002 VL53L0X/VL53L0X.o
 
-.debug_frame    0x00000000      0x900
+.debug_frame    0x00000000     0x1130
  *(.debug_frame)
- .debug_frame   0x00000000       0xc4 I2CLIB/I2CLIB.o
- .debug_frame   0x000000c4       0xe4 LCD/lcd.o
- .debug_frame   0x000001a8      0x2c8 main.o
- .debug_frame   0x00000470      0x490 VL53L0X/VL53L0X.o
+ .debug_frame   0x00000000      0x178 I2CLIB/I2CLIB.o
+ .debug_frame   0x00000178       0xe4 LCD/lcd.o
+ .debug_frame   0x0000025c      0x838 main.o
+ .debug_frame   0x00000a94      0x198 PROTOCOL/Protocol.o
+ .debug_frame   0x00000c2c       0x64 TIMEBASE/Timebase.o
+ .debug_frame   0x00000c90      0x4a0 VL53L0X/VL53L0X.o
 
-.debug_str      0x00000000      0xeb1
+.debug_str      0x00000000     0x1a51
  *(.debug_str)
  .debug_str     0x00000000      0x208 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
- .debug_str     0x00000208      0x251 I2CLIB/I2CLIB.o
-                                0x28d (size before relaxing)
- .debug_str     0x00000459      0x11a LCD/lcd.o
+ .debug_str     0x00000208      0x460 I2CLIB/I2CLIB.o
+                                0x4b9 (size before relaxing)
+ .debug_str     0x00000668       0xbd LCD/lcd.o
                                 0x2c4 (size before relaxing)
- .debug_str     0x00000573      0x48f main.o
-                                0x759 (size before relaxing)
- .debug_str     0x00000a02      0x4af VL53L0X/VL53L0X.o
-                                0x85a (size before relaxing)
+ .debug_str     0x00000725      0xd5c main.o
+                               0x1079 (size before relaxing)
+ .debug_str     0x00001481      0x13d PROTOCOL/Protocol.o
+                                0x4c7 (size before relaxing)
+ .debug_str     0x000015be       0x62 TIMEBASE/Timebase.o
+                                0x21c (size before relaxing)
+ .debug_str     0x00001620      0x431 VL53L0X/VL53L0X.o
+                                0x86b (size before relaxing)
 
-.debug_loc      0x00000000     0x3732
+.debug_loc      0x00000000     0x5cfc
  *(.debug_loc)
- .debug_loc     0x00000000      0x30f I2CLIB/I2CLIB.o
- .debug_loc     0x0000030f      0x482 LCD/lcd.o
- .debug_loc     0x00000791      0xe5a main.o
- .debug_loc     0x000015eb     0x2147 VL53L0X/VL53L0X.o
+ .debug_loc     0x00000000      0x7f3 I2CLIB/I2CLIB.o
+ .debug_loc     0x000007f3      0x482 LCD/lcd.o
+ .debug_loc     0x00000c75     0x222a main.o
+ .debug_loc     0x00002e9f      0xbb2 PROTOCOL/Protocol.o
+ .debug_loc     0x00003a51       0xb8 TIMEBASE/Timebase.o
+ .debug_loc     0x00003b09     0x21f3 VL53L0X/VL53L0X.o
 
 .debug_macinfo
  *(.debug_macinfo)
@@ -763,12 +1270,14 @@ END GROUP
 .debug_pubtypes
  *(.debug_pubtypes)
 
-.debug_ranges   0x00000000      0x298
+.debug_ranges   0x00000000      0x478
  *(.debug_ranges)
- .debug_ranges  0x00000000       0x50 I2CLIB/I2CLIB.o
- .debug_ranges  0x00000050       0x58 LCD/lcd.o
- .debug_ranges  0x000000a8       0xd8 main.o
- .debug_ranges  0x00000180      0x118 VL53L0X/VL53L0X.o
+ .debug_ranges  0x00000000       0x80 I2CLIB/I2CLIB.o
+ .debug_ranges  0x00000080       0x58 LCD/lcd.o
+ .debug_ranges  0x000000d8      0x1f0 main.o
+ .debug_ranges  0x000002c8       0x70 PROTOCOL/Protocol.o
+ .debug_ranges  0x00000338       0x20 TIMEBASE/Timebase.o
+ .debug_ranges  0x00000358      0x120 VL53L0X/VL53L0X.o
 
 .debug_macro
  *(.debug_macro)

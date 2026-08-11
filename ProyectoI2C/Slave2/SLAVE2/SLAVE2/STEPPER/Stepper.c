@@ -1,8 +1,11 @@
 /*
- * Stepper.c
+ * Biblioteca Stepper
  *
- * Secuenciador no bloqueante por Timer2 para ULN2003 y motor 28BYJ-48.
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
+ * Description: Secuencia no bloqueante para 28BYJ-48 y ULN2003
  */
+/****************************************/
+// Encabezado (Libraries)
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
@@ -33,6 +36,7 @@ static uint8_t stepper_sequence_length = 8u;
 static StepperMode stepper_mode = STEPPER_MODE_HALF_STEP;
 static uint8_t stepper_initialized = 0u;
 
+// Calcula el prescaler y OCR2A para obtener la velocidad solicitada.
 static uint8_t Stepper_ConfigureRate(uint16_t steps_per_second)
 {
     static const uint16_t prescalers[7] =
@@ -73,6 +77,7 @@ static uint8_t Stepper_ConfigureRate(uint16_t steps_per_second)
     return 0u;
 }
 
+// Escribe en IN1-IN4 el patron correspondiente a las bobinas.
 static void Stepper_WritePattern(uint8_t pattern)
 {
     uint8_t phase;
@@ -92,6 +97,7 @@ static void Stepper_WritePattern(uint8_t pattern)
     }
 }
 
+// Aplica el patron de la posicion actual en paso completo o medio paso.
 static void Stepper_ApplyCurrentStep(void)
 {
     uint8_t pattern =
@@ -102,6 +108,7 @@ static void Stepper_ApplyCurrentStep(void)
     Stepper_WritePattern(pattern);
 }
 
+// Valida parametros y prepara un movimiento continuo o limitado.
 static uint8_t Stepper_Start(StepperDirection direction,
                              uint16_t steps,
                              uint16_t steps_per_second,
@@ -138,6 +145,10 @@ static uint8_t Stepper_Start(StepperDirection direction,
     return 1u;
 }
 
+/****************************************/
+// NON-Interrupt subroutines
+
+// Configura los cuatro pines, Timer2 y el modo de secuencia.
 uint8_t Stepper_Init(const StepperConfig *config, StepperMode mode)
 {
     uint8_t phase;
@@ -186,12 +197,14 @@ uint8_t Stepper_Init(const StepperConfig *config, StepperMode mode)
     return 1u;
 }
 
+// Inicia giro continuo en la direccion y velocidad indicadas.
 uint8_t Stepper_RunContinuous(StepperDirection direction,
                               uint16_t steps_per_second)
 {
     return Stepper_Start(direction, 0u, steps_per_second, 1u);
 }
 
+// Inicia un movimiento con una cantidad exacta de pasos.
 uint8_t Stepper_Move(StepperDirection direction,
                      uint16_t steps,
                      uint16_t steps_per_second)
@@ -199,6 +212,7 @@ uint8_t Stepper_Move(StepperDirection direction,
     return Stepper_Start(direction, steps, steps_per_second, 0u);
 }
 
+// Detiene Timer2 y libera las bobinas cuando se solicita.
 void Stepper_Stop(uint8_t release_coils)
 {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
@@ -217,6 +231,7 @@ void Stepper_Stop(uint8_t release_coils)
     }
 }
 
+// Devuelve si existe un movimiento activo.
 uint8_t Stepper_IsRunning(void)
 {
     uint8_t running;
@@ -229,6 +244,7 @@ uint8_t Stepper_IsRunning(void)
     return running;
 }
 
+// Copia de forma atomica el estado actual del motor.
 void Stepper_GetState(StepperState *state)
 {
     if (state == NULL)
@@ -242,6 +258,10 @@ void Stepper_GetState(StepperState *state)
     }
 }
 
+/****************************************/
+// Interrupt routines
+
+// Avanza una posicion y descuenta los pasos en cada interrupcion.
 ISR(TIMER2_COMPA_vect)
 {
     if (stepper_state.running == 0u)

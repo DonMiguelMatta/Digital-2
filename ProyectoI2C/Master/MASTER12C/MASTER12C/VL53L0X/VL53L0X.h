@@ -1,15 +1,12 @@
 /*
- * VL53L0X.h
+ * Biblioteca VL53L0X
  *
- * Libreria sencilla para VL53L0X
- * ATmega328P - Microchip Studio - C
- *
- * NO requiere STSW-IMG005 ni Arduino.
- * Depende unicamente de I2C.h / I2C.c.
- *
- * La inicializacion compacta sigue la secuencia de configuracion
- * comunmente utilizada para VL53L0X, derivada de la API de ST.
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
+ * Description: Interfaz local del sensor ToF para ATmega328P
+ * No utiliza Arduino, Wire, STSW-IMG005 ni otra API externa.
  */
+/****************************************/
+// Encabezado (Libraries)
 
 #ifndef VL53L0X_H_
 #define VL53L0X_H_
@@ -72,10 +69,10 @@ typedef struct
 } VL53L0X_t;
 
 
-/******************************************************************************
- * Inicializa solamente la estructura en RAM.
- * Todavia no comunica con el sensor.
- ******************************************************************************/
+/****************************************/
+// Function prototypes
+
+// Inicializa solamente la estructura en RAM; no comunica con el sensor.
 void VL53L0X_ObjectInit(VL53L0X_t *sensor);
 
 
@@ -106,6 +103,13 @@ VL53L0X_Status_t VL53L0X_AttachGPIO1(
     volatile uint8_t *port,
     volatile uint8_t *pin,
     uint8_t bit);
+
+
+/******************************************************************************
+ * Apaga el sensor manteniendo XSHUT en LOW.
+ * XSHUT debe haberse asociado previamente.
+ ******************************************************************************/
+VL53L0X_Status_t VL53L0X_Shutdown(VL53L0X_t *sensor);
 
 
 /******************************************************************************

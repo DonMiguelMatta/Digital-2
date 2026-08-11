@@ -8,5 +8,9 @@ IR-FLYINGFISH\InfraRojo.c
 
 main.c
 
+PROTOCOL\Protocol.c
+
+SERVO\Servo.c
+
 STEPPER\Stepper.c
 

@@ -136,7 +136,19 @@
     <Compile Include="I2CLIB\I2CLIB.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="L298N\L298N.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="L298N\L298N.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="PROTOCOL\Protocol.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="PROTOCOL\Protocol.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="SERVO\Servo.c">
@@ -149,6 +161,8 @@
   <ItemGroup>
     <Folder Include="HCR" />
     <Folder Include="I2CLIB" />
+    <Folder Include="L298N" />
+    <Folder Include="PROTOCOL" />
     <Folder Include="SERVO" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />

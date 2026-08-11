@@ -35,6 +35,8 @@ LINKER_SCRIPT_DEP:=
 SUBDIRS :=  \
 ../HCR \
 ../I2CLIB \
+../L298N \
+../PROTOCOL \
 ../SERVO
 
 
@@ -42,7 +44,9 @@ SUBDIRS :=  \
 C_SRCS +=  \
 ../HCR/HC_SR04.c \
 ../I2CLIB/I2CLIB.c \
+../L298N/L298N.c \
 ../main.c \
+../PROTOCOL/Protocol.c \
 ../SERVO/Servo.c
 
 
@@ -55,25 +59,33 @@ ASM_SRCS +=
 OBJS +=  \
 HCR/HC_SR04.o \
 I2CLIB/I2CLIB.o \
+L298N/L298N.o \
 main.o \
+PROTOCOL/Protocol.o \
 SERVO/Servo.o
 
 OBJS_AS_ARGS +=  \
 HCR/HC_SR04.o \
 I2CLIB/I2CLIB.o \
+L298N/L298N.o \
 main.o \
+PROTOCOL/Protocol.o \
 SERVO/Servo.o
 
 C_DEPS +=  \
 HCR/HC_SR04.d \
 I2CLIB/I2CLIB.d \
+L298N/L298N.d \
 main.d \
+PROTOCOL/Protocol.d \
 SERVO/Servo.d
 
 C_DEPS_AS_ARGS +=  \
 HCR/HC_SR04.d \
 I2CLIB/I2CLIB.d \
+L298N/L298N.d \
 main.d \
+PROTOCOL/Protocol.d \
 SERVO/Servo.d
 
 OUTPUT_FILE_PATH +=SLAVE1.elf
@@ -104,7 +116,21 @@ I2CLIB/I2CLIB.o: ../I2CLIB/I2CLIB.c
 	@echo Finished building: $<
 	
 
+L298N/L298N.o: ../L298N/L298N.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)D:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=16000000UL  -I"D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328p -B "D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega328p" -c -Wextra -Werror -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
 ./main.o: .././main.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)D:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=16000000UL  -I"D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328p -B "D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega328p" -c -Wextra -Werror -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+PROTOCOL/Protocol.o: ../PROTOCOL/Protocol.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)D:\Program Files\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG -DF_CPU=16000000UL  -I"D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega328p -B "D:\Program Files\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\gcc\dev\atmega328p" -c -Wextra -Werror -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

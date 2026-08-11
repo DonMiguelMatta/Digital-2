@@ -1,58 +1,36 @@
 /*
- * I2C.h
+ * Biblioteca I2C Slave
  *
- * Libreria I2C/TWI para ATmega328P
- * Microchip Studio - C
- *
- * SDA = PC4
- * SCL = PC5
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
+ * Description: Interfaz de transporte TWI para tramas fijas de ocho bytes
  */
+/****************************************/
+// Encabezado (Libraries)
 
-#ifndef I2C_H_
-#define I2C_H_
+#ifndef I2CLIB_H_
+#define I2CLIB_H_
 
-#include <avr/io.h>
 #include <stdint.h>
 
-/******************************************************************************/
-// Funcion para inicializar I2C Maestro
-/******************************************************************************/
-void I2C_Master_Init(unsigned long SCL_Clock, uint8_t Prescaler);
+#define I2C_FRAME_SIZE 8U
 
-/******************************************************************************/
-// Funcion de inicio de la comunicacion I2C
-/******************************************************************************/
-uint8_t I2C_Master_Start(void);
+typedef enum
+{
+    I2C_SLAVE_REQUEST_NONE = 0,
+    I2C_SLAVE_REQUEST_READY,
+    I2C_SLAVE_REQUEST_REJECTED_BUSY
+} I2CSlaveRequestState;
 
-/******************************************************************************/
-// Funcion de reinicio de la comunicacion I2C
-/******************************************************************************/
-uint8_t I2C_Master_RepeatedStart(void);
+/****************************************/
+// Function prototypes
 
-/******************************************************************************/
-// Funcion de parada de la comunicacion I2C
-/******************************************************************************/
-void I2C_Master_Stop(void);
+// Configura TWI con la direccion de siete bits indicada.
+uint8_t I2C_Slave_Init(uint8_t address);
+// Devuelve 1 cuando existe una solicitud lista para main.
+uint8_t I2C_Slave_RequestAvailable(void);
+// Copia la solicitud e indica si fue normal o rechazada por BUSY.
+I2CSlaveRequestState I2C_Slave_GetRequest(uint8_t frame[I2C_FRAME_SIZE]);
+// Deja preparada una respuesta completa para la siguiente lectura del Master.
+uint8_t I2C_Slave_SetResponse(const uint8_t frame[I2C_FRAME_SIZE]);
 
-/******************************************************************************/
-// Funcion de transmision de datos del maestro al esclavo
-// Retorna 1 si el byte fue transmitido correctamente con ACK.
-/******************************************************************************/
-uint8_t I2C_Master_Write(uint8_t dato);
-
-/******************************************************************************/
-// Funcion de recepcion de datos enviados por el esclavo al maestro
-//
-// ack = 1 -> el maestro responde ACK porque desea recibir mas datos
-// ack = 0 -> el maestro responde NACK porque es el ultimo byte
-//
-// Retorna 1 si la lectura fue correcta.
-/******************************************************************************/
-uint8_t I2C_Master_Read(uint8_t *buffer, uint8_t ack);
-
-/******************************************************************************/
-// Funcion para inicializar I2C Esclavo
-/******************************************************************************/
-void I2C_Slave_Init(uint8_t address);
-
-#endif /* I2C_H_ */	
+#endif /* I2CLIB_H_ */

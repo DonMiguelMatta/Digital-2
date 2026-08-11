@@ -1,8 +1,11 @@
 /*
- * Servo.c
+ * Biblioteca Servo
  *
- * Timer1 genera una senal de 50 Hz sobre un pin digital configurable.
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
+ * Description: Control de posicion con pulsos de 50 Hz generados por Timer1
  */
+/****************************************/
+// Encabezado (Libraries)
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
@@ -24,6 +27,7 @@ static uint8_t servo_pin_mask = 0u;
 static volatile uint8_t servo_angle = SERVO_MIN_ANGLE;
 static volatile uint8_t servo_initialized = 0u;
 
+// Convierte un angulo de 0 a 180 grados al ancho de pulso de Timer1.
 static uint16_t Servo_AngleToTicks(uint8_t angle)
 {
     uint32_t pulse_ticks = SERVO_MIN_PULSE_TICKS;
@@ -36,6 +40,10 @@ static uint16_t Servo_AngleToTicks(uint8_t angle)
     return (uint16_t)pulse_ticks;
 }
 
+/****************************************/
+// NON-Interrupt subroutines
+
+// Configura el pin de salida y Timer1 para producir periodos de 20 ms.
 uint8_t Servo_Init(volatile uint8_t *ddr,
                    volatile uint8_t *port,
                    uint8_t pin)
@@ -67,6 +75,7 @@ uint8_t Servo_Init(volatile uint8_t *ddr,
     return 1u;
 }
 
+// Actualiza de forma atomica el angulo y el ancho del siguiente pulso.
 uint8_t Servo_SetAngle(uint8_t angle)
 {
     uint16_t ticks;
@@ -87,6 +96,7 @@ uint8_t Servo_SetAngle(uint8_t angle)
     return 1u;
 }
 
+// Devuelve de forma atomica el ultimo angulo solicitado.
 uint8_t Servo_GetAngle(void)
 {
     uint8_t angle;
@@ -99,6 +109,10 @@ uint8_t Servo_GetAngle(void)
     return angle;
 }
 
+/****************************************/
+// Interrupt routines
+
+// Coloca el pin en alto al iniciar cada periodo de 20 ms.
 ISR(TIMER1_OVF_vect)
 {
     if (servo_port != NULL)
@@ -107,6 +121,7 @@ ISR(TIMER1_OVF_vect)
     }
 }
 
+// Coloca el pin en bajo al completar el ancho de pulso programado.
 ISR(TIMER1_COMPA_vect)
 {
     if (servo_port != NULL)

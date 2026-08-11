@@ -1,3 +1,12 @@
+/*
+ * Biblioteca LCD
+ *
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
+ * Description: Control paralelo de pantalla LCD en modo de ocho bits
+ */
+/****************************************/
+// Encabezado (Libraries)
+
 #ifndef F_CPU
 #define F_CPU 16000000UL
 #endif
@@ -5,8 +14,15 @@
 #include "lcd.h"
 #include <util/delay.h>
 
+/****************************************/
+// Function prototypes
+
 static void LCD_EnablePulse(void);
 
+/****************************************/
+// NON-Interrupt subroutines
+
+// Configura D2-D9 como bus de datos y A0/A1 como control de la LCD.
 void initLCD8bits(void)
 {
     DDRD |= (1 << DDD2) | (1 << DDD3) | (1 << DDD4) | (1 << DDD5) | (1 << DDD6) | (1 << DDD7);
@@ -26,6 +42,7 @@ void initLCD8bits(void)
     LCD_Clear();
 }
 
+// Coloca cada bit recibido sobre las ocho lineas de datos de la LCD.
 void LCD_Port(uint8_t data)
 {
     PORTD &= ~((1 << PORTD2) | (1 << PORTD3) | (1 << PORTD4) | (1 << PORTD5) | (1 << PORTD6) | (1 << PORTD7));
@@ -65,6 +82,7 @@ void LCD_Port(uint8_t data)
     }
 }
 
+// Envia un byte como comando con RS en bajo.
 void LCD_CMD(uint8_t command)
 {
     LCD_RS_PORT &= ~(1 << LCD_RS_PIN);
@@ -73,6 +91,7 @@ void LCD_CMD(uint8_t command)
     _delay_ms(2);
 }
 
+// Envia un caracter con RS en alto.
 void LCD_Write_Char(char data)
 {
     LCD_RS_PORT |= (1 << LCD_RS_PIN);
@@ -81,6 +100,7 @@ void LCD_Write_Char(char data)
     _delay_us(100);
 }
 
+// Escribe caracteres consecutivos hasta encontrar el terminador nulo.
 void LCD_Write_String(const char *text)
 {
     while (*text)
@@ -90,6 +110,7 @@ void LCD_Write_String(const char *text)
     }
 }
 
+// Calcula la direccion DDRAM y posiciona el cursor.
 void LCD_Set_Cursor(uint8_t column, uint8_t row)
 {
     if (row == 1)
@@ -102,12 +123,14 @@ void LCD_Set_Cursor(uint8_t column, uint8_t row)
     }
 }
 
+// Borra la pantalla y regresa el cursor al inicio.
 void LCD_Clear(void)
 {
     LCD_CMD(0x01);
     _delay_ms(2);
 }
 
+// Convierte un entero sin signo a decimal y lo escribe en pantalla.
 void LCD_WriteUint16(uint16_t numero)
 {
     char buffer[6];
@@ -139,6 +162,7 @@ void LCD_WriteUint16(uint16_t numero)
     LCD_Write_String(buffer);
 }
 
+// Escribe signo y magnitud decimal de un entero con signo.
 void LCD_WriteInt16(int16_t numero)
 {
     uint16_t valor;
@@ -156,6 +180,7 @@ void LCD_WriteInt16(int16_t numero)
     LCD_WriteUint16(valor);
 }
 
+// Genera el pulso E que confirma cada comando o dato.
 static void LCD_EnablePulse(void)
 {
     LCD_E_PORT |= (1 << LCD_E_PIN);
@@ -163,3 +188,7 @@ static void LCD_EnablePulse(void)
     LCD_E_PORT &= ~(1 << LCD_E_PIN);
     _delay_us(100);
 }
+
+/****************************************/
+// Interrupt routines
+// La comunicacion LCD es bloqueante y no utiliza interrupciones.

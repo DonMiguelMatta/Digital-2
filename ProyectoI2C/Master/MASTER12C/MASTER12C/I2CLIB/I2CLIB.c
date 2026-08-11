@@ -1,271 +1,428 @@
 /*
- * I2C.c
+ * Biblioteca I2C Master
  *
- * Libreria I2C/TWI para ATmega328P
- * Microchip Studio - C
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
+ * Description: Transporte TWI con timeout para tramas y registros I2C
  */
+/****************************************/
+// Encabezado (Libraries)
 
 #include "I2CLIB.h"
 
+#include <avr/io.h>
+#include <util/delay.h>
+
 #ifndef F_CPU
-#error "Debe definir F_CPU globalmente en el proyecto. Ejemplo: F_CPU=16000000UL"
+#error "Debe definir F_CPU=16000000UL en el proyecto"
 #endif
 
-#define I2C_WAIT_TIMEOUT 60000UL
+#define I2C_WAIT_TIMEOUT_US 5000U
+#define I2C_DEFERRED_ATTEMPTS 40U
 
 static uint8_t i2c_last_status = 0xF8U;
+static I2CError i2c_last_error = I2C_ERROR_NONE;
 
+// Espera que TWI termine una operacion o registra timeout tras unos 5 ms.
 static uint8_t I2C_WaitForTWINT(void)
 {
-    uint32_t timeout = I2C_WAIT_TIMEOUT;
+    uint16_t remaining = I2C_WAIT_TIMEOUT_US;
 
-    while ((TWCR & (1 << TWINT)) == 0U)
+    while ((TWCR & (1U << TWINT)) == 0U)
     {
-        if (timeout == 0UL)
+        if (remaining == 0U)
         {
             i2c_last_status = (uint8_t)(TWSR & 0xF8U);
-            TWCR = (1 << TWEN);
+            i2c_last_error = I2C_ERROR_TIMEOUT;
+            TWCR = (1U << TWEN);
             return 0U;
         }
 
-        timeout--;
+        remaining--;
+        _delay_us(1);
     }
 
     return 1U;
 }
 
+// Envia direccion de siete bits junto con el bit de lectura o escritura.
+static uint8_t I2C_SendAddress(uint8_t address, uint8_t read)
+{
+    uint8_t address_byte = (uint8_t)(address << 1U);
+
+    if (read != 0U)
+    {
+        address_byte |= 1U;
+    }
+
+    if (I2C_Master_Write(address_byte) == 0U)
+    {
+        i2c_last_error = I2C_ERROR_ADDRESS_NACK;
+        return 0U;
+    }
+
+    return 1U;
+}
+
+// Escribe los ocho bytes completos de una solicitud y garantiza STOP.
+static uint8_t I2C_WriteFrame(uint8_t address,
+                              const uint8_t frame[I2C_FRAME_SIZE])
+{
+    uint8_t index;
+
+    if (I2C_Master_Start() == 0U)
+    {
+        return 0U;
+    }
+
+    if (I2C_SendAddress(address, 0U) == 0U)
+    {
+        return 0U;
+    }
+
+    for (index = 0U; index < I2C_FRAME_SIZE; index++)
+    {
+        if (I2C_Master_Write(frame[index]) == 0U)
+        {
+            i2c_last_error = I2C_ERROR_DATA_NACK;
+            return 0U;
+        }
+    }
+
+    return 1U;
+}
+
+// Lee ocho bytes usando ACK excepto en el ultimo byte, que usa NACK.
+static uint8_t I2C_ReadFrame(uint8_t address,
+                             uint8_t frame[I2C_FRAME_SIZE],
+                             uint8_t repeated_start)
+{
+    uint8_t index;
+
+    if (repeated_start != 0U)
+    {
+        if (I2C_Master_RepeatedStart() == 0U)
+        {
+            return 0U;
+        }
+    }
+    else if (I2C_Master_Start() == 0U)
+    {
+        return 0U;
+    }
+
+    if (I2C_SendAddress(address, 1U) == 0U)
+    {
+        return 0U;
+    }
+
+    for (index = 0U; index < I2C_FRAME_SIZE; index++)
+    {
+        uint8_t send_ack = (uint8_t)(index < (I2C_FRAME_SIZE - 1U));
+
+        if (I2C_Master_Read(&frame[index], send_ack) == 0U)
+        {
+            i2c_last_error = I2C_ERROR_READ;
+            return 0U;
+        }
+    }
+
+    return 1U;
+}
+
+/****************************************/
+// NON-Interrupt subroutines
+
+// Configura la frecuencia SCL, el prescaler y habilita el modulo TWI.
+void I2C_Master_Init(uint32_t scl_clock, uint8_t prescaler)
+{
+    DDRC &= (uint8_t)~((1U << DDC4) | (1U << DDC5));
+
+    switch (prescaler)
+    {
+        case 1U:
+            TWSR &= (uint8_t)~((1U << TWPS1) | (1U << TWPS0));
+            break;
+
+        case 4U:
+            TWSR &= (uint8_t)~(1U << TWPS1);
+            TWSR |= (1U << TWPS0);
+            break;
+
+        case 16U:
+            TWSR &= (uint8_t)~(1U << TWPS0);
+            TWSR |= (1U << TWPS1);
+            break;
+
+        case 64U:
+            TWSR |= (1U << TWPS1) | (1U << TWPS0);
+            break;
+
+        default:
+            TWSR &= (uint8_t)~((1U << TWPS1) | (1U << TWPS0));
+            prescaler = 1U;
+            break;
+    }
+
+    if (scl_clock == 0UL)
+    {
+        scl_clock = 100000UL;
+    }
+
+    TWBR = (uint8_t)(((F_CPU / scl_clock) - 16UL) /
+                     (2UL * (uint32_t)prescaler));
+    TWCR = (1U << TWEN);
+    i2c_last_status = (uint8_t)(TWSR & 0xF8U);
+    i2c_last_error = I2C_ERROR_NONE;
+}
+
+// Genera START y verifica el estado devuelto por TWI.
+uint8_t I2C_Master_Start(void)
+{
+    i2c_last_error = I2C_ERROR_NONE;
+    TWCR = (1U << TWINT) | (1U << TWSTA) | (1U << TWEN);
+
+    if (I2C_WaitForTWINT() == 0U)
+    {
+        return 0U;
+    }
+
+    i2c_last_status = (uint8_t)(TWSR & 0xF8U);
+    if (i2c_last_status != 0x08U)
+    {
+        i2c_last_error = I2C_ERROR_START;
+        return 0U;
+    }
+
+    return 1U;
+}
+
+// Genera repeated START sin liberar previamente el bus.
+uint8_t I2C_Master_RepeatedStart(void)
+{
+    TWCR = (1U << TWINT) | (1U << TWSTA) | (1U << TWEN);
+
+    if (I2C_WaitForTWINT() == 0U)
+    {
+        return 0U;
+    }
+
+    i2c_last_status = (uint8_t)(TWSR & 0xF8U);
+    if (i2c_last_status != 0x10U)
+    {
+        i2c_last_error = I2C_ERROR_START;
+        return 0U;
+    }
+
+    return 1U;
+}
+
+// Genera STOP y espera que el hardware libere el bus.
+void I2C_Master_Stop(void)
+{
+    uint16_t remaining = I2C_WAIT_TIMEOUT_US;
+
+    TWCR = (1U << TWEN) | (1U << TWINT) | (1U << TWSTO);
+
+    while ((TWCR & (1U << TWSTO)) != 0U)
+    {
+        if (remaining == 0U)
+        {
+            i2c_last_status = (uint8_t)(TWSR & 0xF8U);
+            i2c_last_error = I2C_ERROR_STOP_TIMEOUT;
+            TWCR = 0U;
+            TWCR = (1U << TWEN);
+            return;
+        }
+
+        remaining--;
+        _delay_us(1);
+    }
+}
+
+// Transmite un byte y valida el ACK recibido.
+uint8_t I2C_Master_Write(uint8_t data)
+{
+    uint8_t status;
+
+    TWDR = data;
+    TWCR = (1U << TWEN) | (1U << TWINT);
+
+    if (I2C_WaitForTWINT() == 0U)
+    {
+        return 0U;
+    }
+
+    status = (uint8_t)(TWSR & 0xF8U);
+    i2c_last_status = status;
+
+    if ((status == 0x18U) || (status == 0x28U) || (status == 0x40U))
+    {
+        return 1U;
+    }
+
+    i2c_last_error = I2C_ERROR_DATA_NACK;
+    return 0U;
+}
+
+// Lee un byte y decide si responder con ACK o NACK.
+uint8_t I2C_Master_Read(uint8_t *data, uint8_t ack)
+{
+    uint8_t status;
+
+    if (data == 0)
+    {
+        i2c_last_error = I2C_ERROR_NULL_POINTER;
+        return 0U;
+    }
+
+    if (ack != 0U)
+    {
+        TWCR = (1U << TWINT) | (1U << TWEN) | (1U << TWEA);
+    }
+    else
+    {
+        TWCR = (1U << TWINT) | (1U << TWEN);
+    }
+
+    if (I2C_WaitForTWINT() == 0U)
+    {
+        return 0U;
+    }
+
+    status = (uint8_t)(TWSR & 0xF8U);
+    i2c_last_status = status;
+
+    if (((ack != 0U) && (status != 0x50U)) ||
+        ((ack == 0U) && (status != 0x58U)))
+    {
+        i2c_last_error = I2C_ERROR_READ;
+        return 0U;
+    }
+
+    *data = TWDR;
+    return 1U;
+}
+
+// Comprueba solamente si una direccion responde con ACK.
+uint8_t I2C_Master_ProbeAddress(uint8_t address)
+{
+    uint8_t success;
+
+    i2c_last_error = I2C_ERROR_NONE;
+    success = I2C_Master_Start();
+    if (success != 0U)
+    {
+        success = I2C_SendAddress(address, 0U);
+    }
+
+    I2C_Master_Stop();
+    if (i2c_last_error == I2C_ERROR_STOP_TIMEOUT)
+    {
+        return 0U;
+    }
+
+    return success;
+}
+
+// Intercambia una trama PING completa con espera diferida.
+uint8_t I2C_Master_Ping(uint8_t address,
+                        const uint8_t request[I2C_FRAME_SIZE],
+                        uint8_t response[I2C_FRAME_SIZE])
+{
+    return I2C_Master_Exchange(address, request, response,
+                               I2C_EXCHANGE_DEFERRED);
+}
+
+// Escribe una solicitud y obtiene la respuesta inmediata o diferida.
+uint8_t I2C_Master_Exchange(uint8_t address,
+                            const uint8_t request[I2C_FRAME_SIZE],
+                            uint8_t response[I2C_FRAME_SIZE],
+                            I2CExchangeMode mode)
+{
+    uint8_t attempt;
+
+    if ((request == 0) || (response == 0))
+    {
+        i2c_last_error = I2C_ERROR_NULL_POINTER;
+        return 0U;
+    }
+
+    i2c_last_error = I2C_ERROR_NONE;
+    if (I2C_WriteFrame(address, request) == 0U)
+    {
+        I2C_Master_Stop();
+        return 0U;
+    }
+
+    if (mode == I2C_EXCHANGE_IMMEDIATE)
+    {
+        if (I2C_ReadFrame(address, response, 1U) == 0U)
+        {
+            I2C_Master_Stop();
+            return 0U;
+        }
+
+        I2C_Master_Stop();
+        if (i2c_last_error == I2C_ERROR_STOP_TIMEOUT)
+        {
+            return 0U;
+        }
+
+        if ((response[0] != request[0]) || (response[1] != request[1]))
+        {
+            i2c_last_error = I2C_ERROR_RESPONSE_TIMEOUT;
+            return 0U;
+        }
+
+        i2c_last_error = I2C_ERROR_NONE;
+        return 1U;
+    }
+
+    I2C_Master_Stop();
+    if (i2c_last_error == I2C_ERROR_STOP_TIMEOUT)
+    {
+        return 0U;
+    }
+
+    for (attempt = 0U; attempt < I2C_DEFERRED_ATTEMPTS; attempt++)
+    {
+        _delay_ms(1);
+
+        if (I2C_ReadFrame(address, response, 0U) == 0U)
+        {
+            I2C_Master_Stop();
+            if (i2c_last_error == I2C_ERROR_STOP_TIMEOUT)
+            {
+                return 0U;
+            }
+            continue;
+        }
+
+        I2C_Master_Stop();
+        if (i2c_last_error == I2C_ERROR_STOP_TIMEOUT)
+        {
+            return 0U;
+        }
+
+        if ((response[0] == request[0]) && (response[1] == request[1]))
+        {
+            i2c_last_error = I2C_ERROR_NONE;
+            return 1U;
+        }
+    }
+
+    i2c_last_error = I2C_ERROR_RESPONSE_TIMEOUT;
+    return 0U;
+}
+
+// Devuelve el ultimo codigo TWSR sin bits de prescaler.
 uint8_t I2C_Master_GetLastStatus(void)
 {
     return i2c_last_status;
 }
 
-/******************************************************************************/
-// Funcion para inicializar I2C Maestro
-/******************************************************************************/
-void I2C_Master_Init(unsigned long SCL_Clock, uint8_t Prescaler)
+// Devuelve la ultima categoria de error del transporte.
+I2CError I2C_Master_GetLastError(void)
 {
-    // Pines I2C como entradas:
-    // PC4 = SDA
-    // PC5 = SCL
-    DDRC &= ~((1 << DDC4) | (1 << DDC5));
-
-    // Seleccionamos el valor de los bits del prescaler en TWSR
-    switch (Prescaler)
-    {
-        case 1:
-            TWSR &= ~((1 << TWPS1) | (1 << TWPS0));
-            break;
-
-        case 4:
-            TWSR &= ~(1 << TWPS1);
-            TWSR |=  (1 << TWPS0);
-            break;
-
-        case 16:
-            TWSR &= ~(1 << TWPS0);
-            TWSR |=  (1 << TWPS1);
-            break;
-
-        case 64:
-            TWSR |= ((1 << TWPS1) | (1 << TWPS0));
-            break;
-
-        default:
-            TWSR &= ~((1 << TWPS1) | (1 << TWPS0));
-            Prescaler = 1;
-            break;
-    }
-
-    // Calcular velocidad del bus I2C
-    TWBR = (uint8_t)(((F_CPU / SCL_Clock) - 16UL) / (2UL * Prescaler));
-
-    // Activar interfaz TWI/I2C
-    TWCR = (1 << TWEN);
-    i2c_last_status = (uint8_t)(TWSR & 0xF8U);
-}
-
-/******************************************************************************/
-// Funcion de inicio de la comunicacion I2C
-/******************************************************************************/
-uint8_t I2C_Master_Start(void)
-{
-    // Enviar condicion START
-    TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
-
-    // Esperar a que termine la operacion
-    if (!I2C_WaitForTWINT())
-    {
-        return 0U;
-    }
-
-    // Estado 0x08 = START transmitido
-    i2c_last_status = (uint8_t)(TWSR & 0xF8U);
-    return (i2c_last_status == 0x08U);
-}
-
-/******************************************************************************/
-// Funcion de reinicio de la comunicacion I2C
-/******************************************************************************/
-uint8_t I2C_Master_RepeatedStart(void)
-{
-    // Enviar condicion Repeated START
-    TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
-
-    // Esperar a que termine la operacion
-    if (!I2C_WaitForTWINT())
-    {
-        return 0U;
-    }
-
-    // Estado 0x10 = Repeated START transmitido
-    i2c_last_status = (uint8_t)(TWSR & 0xF8U);
-    return (i2c_last_status == 0x10U);
-}
-
-/******************************************************************************/
-// Funcion de parada de la comunicacion I2C
-/******************************************************************************/
-void I2C_Master_Stop(void)
-{
-    uint32_t timeout = I2C_WAIT_TIMEOUT;
-
-    // Enviar condicion STOP
-    TWCR = (1 << TWEN) | (1 << TWINT) | (1 << TWSTO);
-
-    // Esperar a que TWSTO vuelva a cero
-    while ((TWCR & (1 << TWSTO)) != 0U)
-    {
-        if (timeout == 0UL)
-        {
-            i2c_last_status = (uint8_t)(TWSR & 0xF8U);
-            TWCR = 0U;
-            TWCR = (1 << TWEN);
-            return;
-        }
-
-        timeout--;
-    }
-}
-
-/******************************************************************************/
-// Funcion de transmision de datos del maestro al esclavo
-//
-// Sirve tanto para:
-// - SLA+W
-// - SLA+R
-// - Datos
-//
-// Retorna 1 cuando se recibe ACK.
-/******************************************************************************/
-uint8_t I2C_Master_Write(uint8_t dato)
-{
-    uint8_t estado;
-
-    // Cargar byte a transmitir
-    TWDR = dato;
-
-    // Iniciar transmision
-    TWCR = (1 << TWEN) | (1 << TWINT);
-
-    // Esperar a que termine
-    if (!I2C_WaitForTWINT())
-    {
-        return 0U;
-    }
-
-    // Obtener solamente los bits de estado TWI
-    estado = (uint8_t)(TWSR & 0xF8U);
-    i2c_last_status = estado;
-
-    /*
-     * Estados de exito mas comunes:
-     *
-     * 0x18 = SLA+W transmitido, ACK recibido
-     * 0x28 = dato transmitido, ACK recibido
-     * 0x40 = SLA+R transmitido, ACK recibido
-     */
-    if ((estado == 0x18) ||
-        (estado == 0x28) ||
-        (estado == 0x40))
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
-/******************************************************************************/
-// Funcion de recepcion de datos enviados por el esclavo al maestro
-//
-// ack = 1:
-//   El maestro envia ACK despues de recibir el byte.
-//
-// ack = 0:
-//   El maestro envia NACK porque es el ultimo byte.
-/******************************************************************************/
-uint8_t I2C_Master_Read(uint8_t *buffer, uint8_t ack)
-{
-    uint8_t estado;
-
-    if (buffer == 0)
-    {
-        return 0;
-    }
-
-    if (ack)
-    {
-        // Recibir byte y responder ACK
-        TWCR = (1 << TWINT) |
-               (1 << TWEN)  |
-               (1 << TWEA);
-    }
-    else
-    {
-        // Recibir ultimo byte y responder NACK
-        TWCR = (1 << TWINT) |
-               (1 << TWEN);
-    }
-
-    // Esperar a que termine la recepcion
-    if (!I2C_WaitForTWINT())
-    {
-        return 0U;
-    }
-
-    estado = (uint8_t)(TWSR & 0xF8U);
-    i2c_last_status = estado;
-
-    // 0x50 = dato recibido, ACK transmitido
-    if (ack && (estado != 0x50))
-    {
-        return 0;
-    }
-
-    // 0x58 = dato recibido, NACK transmitido
-    if (!ack && (estado != 0x58))
-    {
-        return 0;
-    }
-
-    // Obtener dato recibido
-    *buffer = TWDR;
-
-    return 1;
-}
-
-/******************************************************************************/
-// Funcion para inicializar I2C Esclavo
-/******************************************************************************/
-void I2C_Slave_Init(uint8_t address)
-{
-    // SDA y SCL como entradas
-    DDRC &= ~((1 << DDC4) | (1 << DDC5));
-
-    // Direccion I2C de 7 bits
-    TWAR = (address << 1);
-
-    // Habilitar TWI, ACK automatico e interrupcion TWI
-    TWCR = (1 << TWEA) |
-           (1 << TWEN) |
-           (1 << TWIE);
+    return i2c_last_error;
 }

@@ -1,19 +1,25 @@
 /*
- * ascii_binario.c
+ * Biblioteca ASCII Binario
  *
- * Created: 25/04/2026 06:53:57 p. m.
- *  Author: migue
- */ 
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
+ * Description: Conversion ASCII y visualizacion binaria mediante LED
+ */
+/****************************************/
+// Encabezado (Libraries)
+
 #include "ascii_binario.h"
 #include <util/delay.h>
 
-//convertir a ascii
+/****************************************/
+// NON-Interrupt subroutines
+
+// Devuelve directamente el valor binario de un caracter ASCII.
 uint8_t ASCII_a_Binario(char caracter)
 {
 	return (uint8_t)caracter;
 }
 
-//enviar 
+// Presenta los ocho bits del caracter en los pines D2-D9.
 void ASCII_En_LEDs_D2_D9(char caracter)
 {
 	uint8_t dato;
@@ -32,3 +38,7 @@ void ASCII_En_LEDs_D2_D9(char caracter)
 	PORTD |= ((dato & 0x3F) << 2);
 	PORTB |= ((dato >> 6) & 0x03);
 }
+
+/****************************************/
+// Interrupt routines
+// Esta biblioteca no utiliza interrupciones.

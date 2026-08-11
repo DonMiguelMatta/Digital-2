@@ -1,8 +1,11 @@
 /*
- * HC_SR04.c
+ * Biblioteca HC-SR04
  *
- * Mide ECHO en microsegundos. No calcula distancia ni nivel.
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
+ * Description: Generacion de TRIG y medicion cruda del pulso ECHO
  */
+/****************************************/
+// Encabezado (Libraries)
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
@@ -29,6 +32,7 @@ static uint8_t hcsr04_trig_pin = 0u;
 static uint8_t hcsr04_echo_pin = 0u;
 static uint8_t hcsr04_initialized = 0u;
 
+// Inicia Timer2 para medir el ancho del pulso ECHO.
 static void HCSR04_TimerStart(void)
 {
     TCCR2A = 0u;
@@ -38,17 +42,20 @@ static void HCSR04_TimerStart(void)
     TCCR2B = (1u << CS21);
 }
 
+// Detiene Timer2 al finalizar o cancelar una medicion.
 static void HCSR04_TimerStop(void)
 {
     TCCR2B = 0u;
 }
 
+// Lee directamente el nivel logico del pin ECHO.
 static uint8_t HCSR04_EchoIsHigh(void)
 {
     return ((*hcsr04_echo_pin_register &
              (1u << hcsr04_echo_pin)) != 0u) ? 1u : 0u;
 }
 
+// Espera el nivel solicitado y cancela al superar el timeout.
 static uint8_t HCSR04_WaitForState(uint8_t expected_high,
                                    uint32_t max_ticks,
                                    uint32_t *elapsed_ticks)
@@ -77,6 +84,10 @@ static uint8_t HCSR04_WaitForState(uint8_t expected_high,
     return 1u;
 }
 
+/****************************************/
+// NON-Interrupt subroutines
+
+// Configura TRIG como salida, ECHO como entrada y guarda sus registros.
 uint8_t HCSR04_Init(volatile uint8_t *trig_ddr,
                     volatile uint8_t *trig_port,
                     uint8_t trig_pin,
@@ -107,6 +118,7 @@ uint8_t HCSR04_Init(volatile uint8_t *trig_ddr,
     return 1u;
 }
 
+// Genera TRIG, mide ECHO con Timer2 y devuelve su duracion en us.
 uint8_t HCSR04_ReadEchoPulseUS(uint16_t *echo_us)
 {
     uint32_t unused_ticks = 0UL;
@@ -161,3 +173,7 @@ uint8_t HCSR04_ReadEchoPulseUS(uint16_t *echo_us)
     *echo_us = (uint16_t)pulse_us;
     return 1u;
 }
+
+/****************************************/
+// Interrupt routines
+// Esta biblioteca realiza la medicion por consulta; no usa interrupciones.

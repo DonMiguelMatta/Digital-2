@@ -1,213 +1,284 @@
 /*
- * I2C.c
+ * Biblioteca I2C Slave
  *
- * Libreria I2C/TWI para ATmega328P
- * Microchip Studio - C
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
+ * Description: Transporte TWI de tramas fijas para un Slave ATmega328P
  */
+/****************************************/
+// Encabezado (Libraries)
 
 #include "I2CLIB.h"
 
-#ifndef F_CPU
-#error "Debe definir F_CPU globalmente en el proyecto. Ejemplo: F_CPU=16000000UL"
-#endif
+#include <avr/interrupt.h>
+#include <avr/io.h>
 
-/******************************************************************************/
-// Funcion para inicializar I2C Maestro
-/******************************************************************************/
-void I2C_Master_Init(unsigned long SCL_Clock, uint8_t Prescaler)
+static volatile uint8_t rx_buffer[I2C_FRAME_SIZE];
+static volatile uint8_t pending_request[I2C_FRAME_SIZE];
+static volatile uint8_t rejected_request[I2C_FRAME_SIZE];
+static volatile uint8_t staged_response[I2C_FRAME_SIZE];
+static volatile uint8_t active_response[I2C_FRAME_SIZE];
+
+static volatile uint8_t rx_index;
+static volatile uint8_t rx_overflow;
+static volatile uint8_t request_pending;
+static volatile uint8_t request_in_progress;
+static volatile uint8_t rejected_pending;
+static volatile uint8_t response_ready;
+static volatile uint8_t active_response_valid;
+static volatile uint8_t tx_index;
+
+// Reactiva TWI con ACK e interrupcion para continuar la transaccion.
+static void I2C_Slave_Continue(void)
 {
-    // Pines I2C como entradas:
-    // PC4 = SDA
-    // PC5 = SCL
-    DDRC &= ~((1 << DDC4) | (1 << DDC5));
+    TWCR = (1U << TWINT) | (1U << TWEA) | (1U << TWEN) | (1U << TWIE);
+}
 
-    // Seleccionamos el valor de los bits del prescaler en TWSR
-    switch (Prescaler)
+// Congela una trama completa o la guarda como rechazada si existe otra pendiente.
+static void I2C_Slave_FinalizeReception(void)
+{
+    uint8_t index;
+
+    if ((rx_index != I2C_FRAME_SIZE) || (rx_overflow != 0U))
     {
-        case 1:
-            TWSR &= ~((1 << TWPS1) | (1 << TWPS0));
+        return;
+    }
+
+    if ((request_pending != 0U) || (request_in_progress != 0U))
+    {
+        if (rejected_pending == 0U)
+        {
+            for (index = 0U; index < I2C_FRAME_SIZE; index++)
+            {
+                rejected_request[index] = rx_buffer[index];
+            }
+            rejected_pending = 1U;
+        }
+        return;
+    }
+
+    for (index = 0U; index < I2C_FRAME_SIZE; index++)
+    {
+        pending_request[index] = rx_buffer[index];
+    }
+    request_pending = 1U;
+    response_ready = 0U;
+}
+
+/****************************************/
+// NON-Interrupt subroutines
+
+// Limpia los buffers y configura la direccion propia del Slave.
+uint8_t I2C_Slave_Init(uint8_t address)
+{
+    uint8_t saved_sreg;
+
+    if ((address == 0U) || (address > 0x7FU))
+    {
+        return 0U;
+    }
+
+    saved_sreg = SREG;
+    cli();
+
+    rx_index = 0U;
+    rx_overflow = 0U;
+    request_pending = 0U;
+    request_in_progress = 0U;
+    rejected_pending = 0U;
+    response_ready = 0U;
+    active_response_valid = 0U;
+    tx_index = 0U;
+
+    DDRC &= (uint8_t)~((1U << DDC4) | (1U << DDC5));
+    TWAR = (uint8_t)(address << 1U);
+    TWCR = (1U << TWEA) | (1U << TWEN) | (1U << TWIE);
+
+    SREG = saved_sreg;
+    return 1U;
+}
+
+// Indica si main puede retirar una solicitud normal o rechazada por BUSY.
+uint8_t I2C_Slave_RequestAvailable(void)
+{
+    uint8_t saved_sreg = SREG;
+    uint8_t available;
+
+    cli();
+    available = request_pending;
+    if ((available == 0U) && (rejected_pending != 0U) &&
+        (request_in_progress == 0U) && (response_ready == 0U))
+    {
+        available = 1U;
+    }
+    SREG = saved_sreg;
+
+    return available;
+}
+
+// Copia una solicitud congelada y marca que main la esta procesando.
+I2CSlaveRequestState I2C_Slave_GetRequest(uint8_t frame[I2C_FRAME_SIZE])
+{
+    I2CSlaveRequestState state = I2C_SLAVE_REQUEST_NONE;
+    uint8_t saved_sreg;
+    uint8_t index;
+
+    if (frame == 0)
+    {
+        return I2C_SLAVE_REQUEST_NONE;
+    }
+
+    saved_sreg = SREG;
+    cli();
+
+    if ((request_pending != 0U) && (request_in_progress == 0U))
+    {
+        for (index = 0U; index < I2C_FRAME_SIZE; index++)
+        {
+            frame[index] = pending_request[index];
+        }
+        request_pending = 0U;
+        request_in_progress = 1U;
+        state = I2C_SLAVE_REQUEST_READY;
+    }
+    else if ((rejected_pending != 0U) && (request_in_progress == 0U) &&
+             (response_ready == 0U))
+    {
+        for (index = 0U; index < I2C_FRAME_SIZE; index++)
+        {
+            frame[index] = rejected_request[index];
+        }
+        rejected_pending = 0U;
+        request_in_progress = 1U;
+        state = I2C_SLAVE_REQUEST_REJECTED_BUSY;
+    }
+
+    SREG = saved_sreg;
+    return state;
+}
+
+// Publica una respuesta completa sin modificar la copia actualmente transmitida.
+uint8_t I2C_Slave_SetResponse(const uint8_t frame[I2C_FRAME_SIZE])
+{
+    uint8_t saved_sreg;
+    uint8_t index;
+
+    if (frame == 0)
+    {
+        return 0U;
+    }
+
+    saved_sreg = SREG;
+    cli();
+
+    if ((request_in_progress == 0U) || (response_ready != 0U))
+    {
+        SREG = saved_sreg;
+        return 0U;
+    }
+
+    for (index = 0U; index < I2C_FRAME_SIZE; index++)
+    {
+        staged_response[index] = frame[index];
+    }
+    response_ready = 1U;
+    request_in_progress = 0U;
+
+    SREG = saved_sreg;
+    return 1U;
+}
+
+/****************************************/
+// Interrupt routines
+
+// Recibe solicitudes y transmite una copia congelada segun el estado TWI.
+ISR(TWI_vect)
+{
+    uint8_t status = (uint8_t)(TWSR & 0xF8U);
+    uint8_t index;
+
+    switch (status)
+    {
+        case 0x00U:
+            rx_index = 0U;
+            rx_overflow = 0U;
+            active_response_valid = 0U;
+            tx_index = 0U;
+            TWCR = (1U << TWINT) | (1U << TWSTO) | (1U << TWEA) |
+                   (1U << TWEN) | (1U << TWIE);
             break;
 
-        case 4:
-            TWSR &= ~(1 << TWPS1);
-            TWSR |=  (1 << TWPS0);
+        case 0x60U:
+        case 0x68U:
+            rx_index = 0U;
+            rx_overflow = 0U;
+            I2C_Slave_Continue();
             break;
 
-        case 16:
-            TWSR &= ~(1 << TWPS0);
-            TWSR |=  (1 << TWPS1);
+        case 0x80U:
+        case 0x88U:
+            if (rx_index < I2C_FRAME_SIZE)
+            {
+                rx_buffer[rx_index] = TWDR;
+                rx_index++;
+            }
+            else
+            {
+                rx_overflow = 1U;
+            }
+            I2C_Slave_Continue();
             break;
 
-        case 64:
-            TWSR |= ((1 << TWPS1) | (1 << TWPS0));
+        case 0xA0U:
+            I2C_Slave_FinalizeReception();
+            rx_index = 0U;
+            rx_overflow = 0U;
+            I2C_Slave_Continue();
+            break;
+
+        case 0xA8U:
+        case 0xB0U:
+            active_response_valid = response_ready;
+            for (index = 0U; index < I2C_FRAME_SIZE; index++)
+            {
+                active_response[index] = (active_response_valid != 0U) ?
+                                         staged_response[index] : 0U;
+            }
+            tx_index = 1U;
+            TWDR = active_response[0];
+            I2C_Slave_Continue();
+            break;
+
+        case 0xB8U:
+            if (tx_index < I2C_FRAME_SIZE)
+            {
+                TWDR = active_response[tx_index];
+                tx_index++;
+            }
+            else
+            {
+                TWDR = 0U;
+            }
+            I2C_Slave_Continue();
+            break;
+
+        case 0xC0U:
+        case 0xC8U:
+            if ((active_response_valid != 0U) &&
+                (tx_index >= I2C_FRAME_SIZE))
+            {
+                response_ready = 0U;
+            }
+            active_response_valid = 0U;
+            tx_index = 0U;
+            I2C_Slave_Continue();
             break;
 
         default:
-            TWSR &= ~((1 << TWPS1) | (1 << TWPS0));
-            Prescaler = 1;
+            rx_index = 0U;
+            rx_overflow = 0U;
+            active_response_valid = 0U;
+            tx_index = 0U;
+            I2C_Slave_Continue();
             break;
     }
-
-    // Calcular velocidad del bus I2C
-    TWBR = (uint8_t)(((F_CPU / SCL_Clock) - 16UL) / (2UL * Prescaler));
-
-    // Activar interfaz TWI/I2C
-    TWCR = (1 << TWEN);
-}
-
-/******************************************************************************/
-// Funcion de inicio de la comunicacion I2C
-/******************************************************************************/
-uint8_t I2C_Master_Start(void)
-{
-    // Enviar condicion START
-    TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
-
-    // Esperar a que termine la operacion
-    while (!(TWCR & (1 << TWINT)));
-
-    // Estado 0x08 = START transmitido
-    return ((TWSR & 0xF8) == 0x08);
-}
-
-/******************************************************************************/
-// Funcion de reinicio de la comunicacion I2C
-/******************************************************************************/
-uint8_t I2C_Master_RepeatedStart(void)
-{
-    // Enviar condicion Repeated START
-    TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
-
-    // Esperar a que termine la operacion
-    while (!(TWCR & (1 << TWINT)));
-
-    // Estado 0x10 = Repeated START transmitido
-    return ((TWSR & 0xF8) == 0x10);
-}
-
-/******************************************************************************/
-// Funcion de parada de la comunicacion I2C
-/******************************************************************************/
-void I2C_Master_Stop(void)
-{
-    // Enviar condicion STOP
-    TWCR = (1 << TWEN) | (1 << TWINT) | (1 << TWSTO);
-
-    // Esperar a que TWSTO vuelva a cero
-    while (TWCR & (1 << TWSTO));
-}
-
-/******************************************************************************/
-// Funcion de transmision de datos del maestro al esclavo
-//
-// Sirve tanto para:
-// - SLA+W
-// - SLA+R
-// - Datos
-//
-// Retorna 1 cuando se recibe ACK.
-/******************************************************************************/
-uint8_t I2C_Master_Write(uint8_t dato)
-{
-    uint8_t estado;
-
-    // Cargar byte a transmitir
-    TWDR = dato;
-
-    // Iniciar transmision
-    TWCR = (1 << TWEN) | (1 << TWINT);
-
-    // Esperar a que termine
-    while (!(TWCR & (1 << TWINT)));
-
-    // Obtener solamente los bits de estado TWI
-    estado = TWSR & 0xF8;
-
-    /*
-     * Estados de exito mas comunes:
-     *
-     * 0x18 = SLA+W transmitido, ACK recibido
-     * 0x28 = dato transmitido, ACK recibido
-     * 0x40 = SLA+R transmitido, ACK recibido
-     */
-    if ((estado == 0x18) ||
-        (estado == 0x28) ||
-        (estado == 0x40))
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
-/******************************************************************************/
-// Funcion de recepcion de datos enviados por el esclavo al maestro
-//
-// ack = 1:
-//   El maestro envia ACK despues de recibir el byte.
-//
-// ack = 0:
-//   El maestro envia NACK porque es el ultimo byte.
-/******************************************************************************/
-uint8_t I2C_Master_Read(uint8_t *buffer, uint8_t ack)
-{
-    uint8_t estado;
-
-    if (buffer == 0)
-    {
-        return 0;
-    }
-
-    if (ack)
-    {
-        // Recibir byte y responder ACK
-        TWCR = (1 << TWINT) |
-               (1 << TWEN)  |
-               (1 << TWEA);
-    }
-    else
-    {
-        // Recibir ultimo byte y responder NACK
-        TWCR = (1 << TWINT) |
-               (1 << TWEN);
-    }
-
-    // Esperar a que termine la recepcion
-    while (!(TWCR & (1 << TWINT)));
-
-    estado = TWSR & 0xF8;
-
-    // 0x50 = dato recibido, ACK transmitido
-    if (ack && (estado != 0x50))
-    {
-        return 0;
-    }
-
-    // 0x58 = dato recibido, NACK transmitido
-    if (!ack && (estado != 0x58))
-    {
-        return 0;
-    }
-
-    // Obtener dato recibido
-    *buffer = TWDR;
-
-    return 1;
-}
-
-/******************************************************************************/
-// Funcion para inicializar I2C Esclavo
-/******************************************************************************/
-void I2C_Slave_Init(uint8_t address)
-{
-    // SDA y SCL como entradas
-    DDRC &= ~((1 << DDC4) | (1 << DDC5));
-
-    // Direccion I2C de 7 bits
-    TWAR = (address << 1);
-
-    // Habilitar TWI, ACK automatico e interrupcion TWI
-    TWCR = (1 << TWEA) |
-           (1 << TWEN) |
-           (1 << TWIE);
 }

@@ -1,13 +1,11 @@
 Archive member included to satisfy reference by file (symbol)
 
 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_udivmodsi4.o)
-                              I2CLIB/I2CLIB.o (__udivmodsi4)
+                              SERVO/Servo.o (__udivmodsi4)
 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
                               D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o (exit)
-d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
-                              main.o (__tablejump2__)
 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
-                              main.o (__do_copy_data)
+                              L298N/L298N.o (__do_copy_data)
 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
                               HCR/HC_SR04.o (__do_clear_bss)
 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_umulhisi3.o)
@@ -23,21 +21,23 @@ Discarded input sections
  .text          0x00000000        0x0 I2CLIB/I2CLIB.o
  .data          0x00000000        0x0 I2CLIB/I2CLIB.o
  .bss           0x00000000        0x0 I2CLIB/I2CLIB.o
- .text.I2C_Master_Init
-                0x00000000       0xb6 I2CLIB/I2CLIB.o
- .text.I2C_Master_Start
-                0x00000000       0x1e I2CLIB/I2CLIB.o
- .text.I2C_Master_RepeatedStart
-                0x00000000       0x1e I2CLIB/I2CLIB.o
- .text.I2C_Master_Stop
-                0x00000000       0x10 I2CLIB/I2CLIB.o
- .text.I2C_Master_Write
-                0x00000000       0x34 I2CLIB/I2CLIB.o
- .text.I2C_Master_Read
-                0x00000000       0x4c I2CLIB/I2CLIB.o
+ .text          0x00000000        0x0 L298N/L298N.o
+ .data          0x00000000        0x0 L298N/L298N.o
+ .bss           0x00000000        0x0 L298N/L298N.o
  .text          0x00000000        0x0 main.o
  .data          0x00000000        0x0 main.o
  .bss           0x00000000        0x0 main.o
+ .text          0x00000000        0x0 PROTOCOL/Protocol.o
+ .data          0x00000000        0x0 PROTOCOL/Protocol.o
+ .bss           0x00000000        0x0 PROTOCOL/Protocol.o
+ .text.Protocol_CreateRequest
+                0x00000000       0x70 PROTOCOL/Protocol.o
+ .text.Protocol_EncodeRequest
+                0x00000000       0x4e PROTOCOL/Protocol.o
+ .text.Protocol_DecodeResponse
+                0x00000000       0x72 PROTOCOL/Protocol.o
+ .text.Protocol_ValidateResponse
+                0x00000000      0x1a0 PROTOCOL/Protocol.o
  .text          0x00000000        0x0 SERVO/Servo.o
  .data          0x00000000        0x0 SERVO/Servo.o
  .bss           0x00000000        0x0 SERVO/Servo.o
@@ -71,21 +71,6 @@ Discarded input sections
                 0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
  .text.libgcc.fixed
                 0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
- .text          0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
- .data          0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
- .bss           0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
- .text.libgcc.mul
-                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
- .text.libgcc.div
-                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
- .text.libgcc.prologue
-                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
- .text.libgcc.builtins
-                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
- .text.libgcc.fmul
-                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
- .text.libgcc.fixed
-                0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
  .text          0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
  .data          0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
  .bss           0x00000000        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
@@ -151,7 +136,9 @@ Address of section .data set to 0x800100
 LOAD D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
 LOAD HCR/HC_SR04.o
 LOAD I2CLIB/I2CLIB.o
+LOAD L298N/L298N.o
 LOAD main.o
+LOAD PROTOCOL/Protocol.o
 LOAD SERVO/Servo.o
 START GROUP
 LOAD d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5\libm.a
@@ -262,53 +249,51 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000      0x7e2
+.text           0x00000000     0x13a4
  *(.vectors)
  .vectors       0x00000000       0x68 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
                 0x00000000                __vector_default
                 0x00000000                __vectors
  *(.vectors)
  *(.progmem.gcc*)
- .progmem.gcc_sw_table.__vector_24
-                0x00000068       0xb2 main.o
-                0x0000011a                . = ALIGN (0x2)
-                0x0000011a                __trampolines_start = .
+                0x00000068                . = ALIGN (0x2)
+                0x00000068                __trampolines_start = .
  *(.trampolines)
- .trampolines   0x0000011a        0x0 linker stubs
+ .trampolines   0x00000068        0x0 linker stubs
  *(.trampolines*)
-                0x0000011a                __trampolines_end = .
+                0x00000068                __trampolines_end = .
  *libprintf_flt.a:*(.progmem.data)
  *libc.a:*(.progmem.data)
  *(.progmem*)
-                0x0000011a                . = ALIGN (0x2)
+                0x00000068                . = ALIGN (0x2)
  *(.jumptables)
  *(.jumptables*)
  *(.lowtext)
  *(.lowtext*)
-                0x0000011a                __ctors_start = .
+                0x00000068                __ctors_start = .
  *(.ctors)
-                0x0000011a                __ctors_end = .
-                0x0000011a                __dtors_start = .
+                0x00000068                __ctors_end = .
+                0x00000068                __dtors_start = .
  *(.dtors)
-                0x0000011a                __dtors_end = .
+                0x00000068                __dtors_end = .
  SORT(*)(.ctors)
  SORT(*)(.dtors)
  *(.init0)
- .init0         0x0000011a        0x0 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
-                0x0000011a                __init
+ .init0         0x00000068        0x0 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
+                0x00000068                __init
  *(.init0)
  *(.init1)
  *(.init1)
  *(.init2)
- .init2         0x0000011a        0xc D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
+ .init2         0x00000068        0xc D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
  *(.init2)
  *(.init3)
  *(.init3)
  *(.init4)
- .init4         0x00000126       0x16 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
-                0x00000126                __do_copy_data
- .init4         0x0000013c       0x10 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
-                0x0000013c                __do_clear_bss
+ .init4         0x00000074       0x16 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_copy_data.o)
+                0x00000074                __do_copy_data
+ .init4         0x0000008a       0x10 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_clear_bss.o)
+                0x0000008a                __do_clear_bss
  *(.init4)
  *(.init5)
  *(.init5)
@@ -319,91 +304,161 @@ END GROUP
  *(.init8)
  *(.init8)
  *(.init9)
- .init9         0x0000014c        0x8 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
+ .init9         0x0000009a        0x8 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
  *(.init9)
  *(.text)
- .text          0x00000154        0x4 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
-                0x00000154                __vector_22
-                0x00000154                __vector_1
-                0x00000154                __vector_12
-                0x00000154                __bad_interrupt
-                0x00000154                __vector_6
-                0x00000154                __vector_3
-                0x00000154                __vector_23
-                0x00000154                __vector_25
-                0x00000154                __vector_17
-                0x00000154                __vector_19
-                0x00000154                __vector_7
-                0x00000154                __vector_5
-                0x00000154                __vector_4
-                0x00000154                __vector_9
-                0x00000154                __vector_2
-                0x00000154                __vector_21
-                0x00000154                __vector_15
-                0x00000154                __vector_8
-                0x00000154                __vector_14
-                0x00000154                __vector_10
-                0x00000154                __vector_16
-                0x00000154                __vector_18
-                0x00000154                __vector_20
-                0x00000158                . = ALIGN (0x2)
+ .text          0x000000a2        0x4 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
+                0x000000a2                __vector_22
+                0x000000a2                __vector_1
+                0x000000a2                __vector_12
+                0x000000a2                __bad_interrupt
+                0x000000a2                __vector_6
+                0x000000a2                __vector_3
+                0x000000a2                __vector_23
+                0x000000a2                __vector_25
+                0x000000a2                __vector_17
+                0x000000a2                __vector_19
+                0x000000a2                __vector_7
+                0x000000a2                __vector_5
+                0x000000a2                __vector_4
+                0x000000a2                __vector_9
+                0x000000a2                __vector_2
+                0x000000a2                __vector_21
+                0x000000a2                __vector_15
+                0x000000a2                __vector_8
+                0x000000a2                __vector_10
+                0x000000a2                __vector_18
+                0x000000a2                __vector_20
+                0x000000a6                . = ALIGN (0x2)
  *(.text.*)
  .text.HCSR04_TimerStart
-                0x00000158       0x18 HCR/HC_SR04.o
+                0x000000a6       0x18 HCR/HC_SR04.o
  .text.HCSR04_TimerStop
-                0x00000170        0x6 HCR/HC_SR04.o
+                0x000000be        0x6 HCR/HC_SR04.o
  .text.HCSR04_EchoIsHigh
-                0x00000176       0x1e HCR/HC_SR04.o
+                0x000000c4       0x1e HCR/HC_SR04.o
  .text.HCSR04_WaitForState
-                0x00000194       0x92 HCR/HC_SR04.o
+                0x000000e2       0x92 HCR/HC_SR04.o
  .text.HCSR04_Init
-                0x00000226       0x98 HCR/HC_SR04.o
-                0x00000226                HCSR04_Init
+                0x00000174       0x98 HCR/HC_SR04.o
+                0x00000174                HCSR04_Init
  .text.HCSR04_ReadEchoPulseUS
-                0x000002be      0x156 HCR/HC_SR04.o
-                0x000002be                HCSR04_ReadEchoPulseUS
+                0x0000020c      0x156 HCR/HC_SR04.o
+                0x0000020c                HCSR04_ReadEchoPulseUS
+ .text.I2C_Slave_Continue
+                0x00000362        0x8 I2CLIB/I2CLIB.o
+ .text.I2C_Slave_FinalizeReception
+                0x0000036a       0x7a I2CLIB/I2CLIB.o
  .text.I2C_Slave_Init
-                0x00000414       0x14 I2CLIB/I2CLIB.o
-                0x00000414                I2C_Slave_Init
- .text.Slave1_UpdateResponse
-                0x00000428       0x1e main.o
- .text.Slave1_ExecutePendingCommand
-                0x00000446       0x4a main.o
- .text.main     0x00000490       0x8c main.o
-                0x00000490                main
+                0x000003e4       0x44 I2CLIB/I2CLIB.o
+                0x000003e4                I2C_Slave_Init
+ .text.I2C_Slave_RequestAvailable
+                0x00000428       0x2a I2CLIB/I2CLIB.o
+                0x00000428                I2C_Slave_RequestAvailable
+ .text.I2C_Slave_GetRequest
+                0x00000452       0x9e I2CLIB/I2CLIB.o
+                0x00000452                I2C_Slave_GetRequest
+ .text.I2C_Slave_SetResponse
+                0x000004f0       0x52 I2CLIB/I2CLIB.o
+                0x000004f0                I2C_Slave_SetResponse
  .text.__vector_24
-                0x0000051c       0xd4 main.o
-                0x0000051c                __vector_24
+                0x00000542      0x19e I2CLIB/I2CLIB.o
+                0x00000542                __vector_24
+ .text.L298N_PinIsRepeated
+                0x000006e0       0x16 L298N/L298N.o
+ .text.L298N_DisablePWM
+                0x000006f6       0x22 L298N/L298N.o
+ .text.L298N_ApplyPWM
+                0x00000718       0x52 L298N/L298N.o
+ .text.L298N_ApplyDirection
+                0x0000076a       0x54 L298N/L298N.o
+ .text.L298N_Init
+                0x000007be      0x1bc L298N/L298N.o
+                0x000007be                L298N_Init
+ .text.L298N_Set
+                0x0000097a       0x4e L298N/L298N.o
+                0x0000097a                L298N_Set
+ .text.L298N_Stop
+                0x000009c8       0x4e L298N/L298N.o
+                0x000009c8                L298N_Stop
+ .text.L298N_GetState
+                0x00000a16       0x32 L298N/L298N.o
+                0x00000a16                L298N_GetState
+ .text.__vector_16
+                0x00000a48       0x4e L298N/L298N.o
+                0x00000a48                __vector_16
+ .text.__vector_14
+                0x00000a96       0x48 L298N/L298N.o
+                0x00000a96                __vector_14
+ .text.Slave1_UpdateSensor
+                0x00000ade       0x52 main.o
+ .text.Slave1_SendResponse
+                0x00000b30       0x38 main.o
+ .text.Slave1_SendStatus
+                0x00000b68       0x50 main.o
+ .text.Slave1_HandleSensorRead
+                0x00000bb8       0x7c main.o
+ .text.Slave1_HandlePing
+                0x00000c34       0xb6 main.o
+ .text.Slave1_HandleValidatedRequest
+                0x00000cea       0xf6 main.o
+ .text.Slave1_ServiceI2C
+                0x00000de0       0x76 main.o
+ .text.main     0x00000e56       0x9c main.o
+                0x00000e56                main
+ .text.Protocol_Clear
+                0x00000ef2       0x16 PROTOCOL/Protocol.o
+ .text.Protocol_Copy
+                0x00000f08       0x2a PROTOCOL/Protocol.o
+ .text.Protocol_IsKnownCommand
+                0x00000f32        0xe PROTOCOL/Protocol.o
+                0x00000f32                Protocol_IsKnownCommand
+ .text.Protocol_IsKnownDevice
+                0x00000f40       0x18 PROTOCOL/Protocol.o
+                0x00000f40                Protocol_IsKnownDevice
+ .text.Protocol_IsKnownStatus
+                0x00000f58        0xc PROTOCOL/Protocol.o
+                0x00000f58                Protocol_IsKnownStatus
+ .text.Protocol_ValidateRequest
+                0x00000f64      0x136 PROTOCOL/Protocol.o
+                0x00000f64                Protocol_ValidateRequest
+ .text.Protocol_CreateResponse
+                0x0000109a       0x7c PROTOCOL/Protocol.o
+                0x0000109a                Protocol_CreateResponse
+ .text.Protocol_EncodeResponse
+                0x00001116       0x56 PROTOCOL/Protocol.o
+                0x00001116                Protocol_EncodeResponse
+ .text.Protocol_DecodeRequest
+                0x0000116c       0x52 PROTOCOL/Protocol.o
+                0x0000116c                Protocol_DecodeRequest
  .text.Servo_AngleToTicks
-                0x000005f0       0x26 SERVO/Servo.o
+                0x000011be       0x26 SERVO/Servo.o
  .text.Servo_Init
-                0x00000616       0x90 SERVO/Servo.o
-                0x00000616                Servo_Init
+                0x000011e4       0x90 SERVO/Servo.o
+                0x000011e4                Servo_Init
  .text.Servo_SetAngle
-                0x000006a6       0x3e SERVO/Servo.o
-                0x000006a6                Servo_SetAngle
+                0x00001274       0x3e SERVO/Servo.o
+                0x00001274                Servo_SetAngle
  .text.Servo_GetAngle
-                0x000006e4       0x16 SERVO/Servo.o
-                0x000006e4                Servo_GetAngle
+                0x000012b2       0x16 SERVO/Servo.o
+                0x000012b2                Servo_GetAngle
  .text.__vector_13
-                0x000006fa       0x3a SERVO/Servo.o
-                0x000006fa                __vector_13
+                0x000012c8       0x3a SERVO/Servo.o
+                0x000012c8                __vector_13
  .text.__vector_11
-                0x00000734       0x3c SERVO/Servo.o
-                0x00000734                __vector_11
+                0x00001302       0x3c SERVO/Servo.o
+                0x00001302                __vector_11
  .text.libgcc.div
-                0x00000770       0x44 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_udivmodsi4.o)
-                0x00000770                __udivmodsi4
- .text.libgcc   0x000007b4        0xc d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_tablejump2.o)
-                0x000007b4                __tablejump2__
+                0x0000133e       0x44 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_udivmodsi4.o)
+                0x0000133e                __udivmodsi4
  .text.libgcc.mul
-                0x000007c0       0x1e d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_umulhisi3.o)
-                0x000007c0                __umulhisi3
-                0x000007de                . = ALIGN (0x2)
+                0x00001382       0x1e d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_umulhisi3.o)
+                0x00001382                __umulhisi3
+                0x000013a0                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x000007de        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
-                0x000007de                _exit
-                0x000007de                exit
+ .fini9         0x000013a0        0x0 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
+                0x000013a0                _exit
+                0x000013a0                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -422,62 +477,101 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x000007de        0x4 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
+ .fini0         0x000013a0        0x4 d:/program files/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr5\libgcc.a(_exit.o)
  *(.fini0)
-                0x000007e2                _etext = .
+                0x000013a4                _etext = .
 
-.data           0x00800100        0x4 load address 0x000007e2
+.data           0x00800100        0x6 load address 0x000013a4
                 0x00800100                PROVIDE (__data_start, .)
  *(.data)
  *(.data*)
- .data.slave1_tx_buffer
-                0x00800100        0x4 main.o
+ .data.l298n_direction
+                0x00800100        0x1 L298N/L298N.o
+ .data.hcsr04_sample
+                0x00800101        0x4 main.o
  *(.gnu.linkonce.d*)
  *(.rodata)
  *(.rodata*)
  *(.gnu.linkonce.r*)
-                0x00800104                . = ALIGN (0x2)
-                0x00800104                _edata = .
-                0x00800104                PROVIDE (__data_end, .)
+                0x00800106                . = ALIGN (0x2)
+ *fill*         0x00800105        0x1 
+                0x00800106                _edata = .
+                0x00800106                PROVIDE (__data_end, .)
 
-.bss            0x00800104        0xf
-                0x00800104                PROVIDE (__bss_start, .)
+.bss            0x00800106       0x48
+                0x00800106                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
  .bss.hcsr04_initialized
-                0x00800104        0x1 HCR/HC_SR04.o
- .bss.hcsr04_echo_pin
-                0x00800105        0x1 HCR/HC_SR04.o
- .bss.hcsr04_trig_pin
                 0x00800106        0x1 HCR/HC_SR04.o
+ .bss.hcsr04_echo_pin
+                0x00800107        0x1 HCR/HC_SR04.o
+ .bss.hcsr04_trig_pin
+                0x00800108        0x1 HCR/HC_SR04.o
  .bss.hcsr04_echo_pin_register
-                0x00800107        0x2 HCR/HC_SR04.o
- .bss.hcsr04_trig_port
                 0x00800109        0x2 HCR/HC_SR04.o
- .bss.slave1_command_pending
-                0x0080010b        0x1 main.o
- .bss.slave1_command
-                0x0080010c        0x1 main.o
- .bss.slave1_tx_index
-                0x0080010d        0x1 main.o
+ .bss.hcsr04_trig_port
+                0x0080010b        0x2 HCR/HC_SR04.o
+ .bss.tx_index  0x0080010d        0x1 I2CLIB/I2CLIB.o
+ .bss.active_response_valid
+                0x0080010e        0x1 I2CLIB/I2CLIB.o
+ .bss.response_ready
+                0x0080010f        0x1 I2CLIB/I2CLIB.o
+ .bss.rejected_pending
+                0x00800110        0x1 I2CLIB/I2CLIB.o
+ .bss.request_in_progress
+                0x00800111        0x1 I2CLIB/I2CLIB.o
+ .bss.request_pending
+                0x00800112        0x1 I2CLIB/I2CLIB.o
+ .bss.rx_overflow
+                0x00800113        0x1 I2CLIB/I2CLIB.o
+ .bss.rx_index  0x00800114        0x1 I2CLIB/I2CLIB.o
+ .bss.active_response
+                0x00800115        0x8 I2CLIB/I2CLIB.o
+ .bss.staged_response
+                0x0080011d        0x8 I2CLIB/I2CLIB.o
+ .bss.rejected_request
+                0x00800125        0x8 I2CLIB/I2CLIB.o
+ .bss.pending_request
+                0x0080012d        0x8 I2CLIB/I2CLIB.o
+ .bss.rx_buffer
+                0x00800135        0x8 I2CLIB/I2CLIB.o
+ .bss.l298n_initialized
+                0x0080013d        0x1 L298N/L298N.o
+ .bss.l298n_pwm
+                0x0080013e        0x1 L298N/L298N.o
+ .bss.l298n_in2_mask
+                0x0080013f        0x1 L298N/L298N.o
+ .bss.l298n_in1_mask
+                0x00800140        0x1 L298N/L298N.o
+ .bss.l298n_enable_mask
+                0x00800141        0x1 L298N/L298N.o
+ .bss.l298n_in2_port
+                0x00800142        0x2 L298N/L298N.o
+ .bss.l298n_in1_port
+                0x00800144        0x2 L298N/L298N.o
+ .bss.l298n_enable_port
+                0x00800146        0x2 L298N/L298N.o
+ .bss.dc_motor_initialized
+                0x00800148        0x1 main.o
  .bss.servo_initialized
-                0x0080010e        0x1 SERVO/Servo.o
+                0x00800149        0x1 SERVO/Servo.o
  .bss.servo_angle
-                0x0080010f        0x1 SERVO/Servo.o
+                0x0080014a        0x1 SERVO/Servo.o
  .bss.servo_pin_mask
-                0x00800110        0x1 SERVO/Servo.o
+                0x0080014b        0x1 SERVO/Servo.o
  .bss.servo_port
-                0x00800111        0x2 SERVO/Servo.o
+                0x0080014c        0x2 SERVO/Servo.o
  *(COMMON)
-                0x00800113                PROVIDE (__bss_end, .)
-                0x000007e2                __data_load_start = LOADADDR (.data)
-                0x000007e6                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x0080014e                PROVIDE (__bss_end, .)
+                0x000013a4                __data_load_start = LOADADDR (.data)
+                0x000013aa                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x00800113        0x0
+.noinit         0x0080014e        0x0
                 [!provide]                PROVIDE (__noinit_start, .)
  *(.noinit*)
                 [!provide]                PROVIDE (__noinit_end, .)
-                0x00800113                _end = .
+                0x0080014e                _end = .
                 [!provide]                PROVIDE (__heap_start, .)
 
 .eeprom         0x00810000        0x0
@@ -522,7 +616,9 @@ END GROUP
  .comment       0x00000000       0x30 HCR/HC_SR04.o
                                  0x31 (size before relaxing)
  .comment       0x00000030       0x31 I2CLIB/I2CLIB.o
+ .comment       0x00000030       0x31 L298N/L298N.o
  .comment       0x00000030       0x31 main.o
+ .comment       0x00000030       0x31 PROTOCOL/Protocol.o
  .comment       0x00000030       0x31 SERVO/Servo.o
 
 .note.gnu.avr.deviceinfo
@@ -545,69 +641,87 @@ END GROUP
 .debug_sfnames
  *(.debug_sfnames)
 
-.debug_aranges  0x00000000      0x118
+.debug_aranges  0x00000000      0x220
  *(.debug_aranges)
  .debug_aranges
                 0x00000000       0x48 HCR/HC_SR04.o
  .debug_aranges
                 0x00000048       0x50 I2CLIB/I2CLIB.o
  .debug_aranges
-                0x00000098       0x38 main.o
+                0x00000098       0x68 L298N/L298N.o
  .debug_aranges
-                0x000000d0       0x48 SERVO/Servo.o
+                0x00000100       0x58 main.o
+ .debug_aranges
+                0x00000158       0x80 PROTOCOL/Protocol.o
+ .debug_aranges
+                0x000001d8       0x48 SERVO/Servo.o
 
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000     0x12ac
+.debug_info     0x00000000     0x28b8
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x00000000      0x5f4 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
  .debug_info    0x000005f4      0x3e0 HCR/HC_SR04.o
- .debug_info    0x000009d4      0x1a3 I2CLIB/I2CLIB.o
- .debug_info    0x00000b77      0x459 main.o
- .debug_info    0x00000fd0      0x2dc SERVO/Servo.o
+ .debug_info    0x000009d4      0x396 I2CLIB/I2CLIB.o
+ .debug_info    0x00000d6a      0x5e0 L298N/L298N.o
+ .debug_info    0x0000134a      0xb36 main.o
+ .debug_info    0x00001e80      0x75c PROTOCOL/Protocol.o
+ .debug_info    0x000025dc      0x2dc SERVO/Servo.o
 
-.debug_abbrev   0x00000000      0xb93
+.debug_abbrev   0x00000000     0x1023
  *(.debug_abbrev)
  .debug_abbrev  0x00000000      0x5a2 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
  .debug_abbrev  0x000005a2      0x18d HCR/HC_SR04.o
- .debug_abbrev  0x0000072f       0xef I2CLIB/I2CLIB.o
- .debug_abbrev  0x0000081e      0x1e0 main.o
- .debug_abbrev  0x000009fe      0x195 SERVO/Servo.o
+ .debug_abbrev  0x0000072f      0x116 I2CLIB/I2CLIB.o
+ .debug_abbrev  0x00000845      0x250 L298N/L298N.o
+ .debug_abbrev  0x00000a95      0x204 main.o
+ .debug_abbrev  0x00000c99      0x1f5 PROTOCOL/Protocol.o
+ .debug_abbrev  0x00000e8e      0x195 SERVO/Servo.o
 
-.debug_line     0x00000000      0xccd
+.debug_line     0x00000000     0x1d3f
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x00000000      0x134 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
  .debug_line    0x00000134      0x2f4 HCR/HC_SR04.o
- .debug_line    0x00000428      0x27d I2CLIB/I2CLIB.o
- .debug_line    0x000006a5      0x355 main.o
- .debug_line    0x000009fa      0x2d3 SERVO/Servo.o
+ .debug_line    0x00000428      0x4f7 I2CLIB/I2CLIB.o
+ .debug_line    0x0000091f      0x57d L298N/L298N.o
+ .debug_line    0x00000e9c      0x476 main.o
+ .debug_line    0x00001312      0x75a PROTOCOL/Protocol.o
+ .debug_line    0x00001a6c      0x2d3 SERVO/Servo.o
 
-.debug_frame    0x00000000      0x2c4
+.debug_frame    0x00000000      0x6b4
  *(.debug_frame)
  .debug_frame   0x00000000       0xe8 HCR/HC_SR04.o
- .debug_frame   0x000000e8       0x94 I2CLIB/I2CLIB.o
- .debug_frame   0x0000017c       0x8c main.o
- .debug_frame   0x00000208       0xbc SERVO/Servo.o
+ .debug_frame   0x000000e8       0xcc I2CLIB/I2CLIB.o
+ .debug_frame   0x000001b4      0x174 L298N/L298N.o
+ .debug_frame   0x00000328      0x138 main.o
+ .debug_frame   0x00000460      0x198 PROTOCOL/Protocol.o
+ .debug_frame   0x000005f8       0xbc SERVO/Servo.o
 
-.debug_str      0x00000000      0x755
+.debug_str      0x00000000      0xdb1
  *(.debug_str)
  .debug_str     0x00000000      0x208 D:/Program Files/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega328p/avr5/crtatmega328p.o
  .debug_str     0x00000208      0x30c HCR/HC_SR04.o
                                 0x387 (size before relaxing)
- .debug_str     0x00000514       0xb5 I2CLIB/I2CLIB.o
-                                0x23c (size before relaxing)
- .debug_str     0x000005c9      0x124 main.o
-                                0x332 (size before relaxing)
- .debug_str     0x000006ed       0x68 SERVO/Servo.o
+ .debug_str     0x00000514      0x1fd I2CLIB/I2CLIB.o
+                                0x389 (size before relaxing)
+ .debug_str     0x00000711      0x208 L298N/L298N.o
+                                0x3c2 (size before relaxing)
+ .debug_str     0x00000919      0x302 main.o
+                                0x672 (size before relaxing)
+ .debug_str     0x00000c1b      0x122 PROTOCOL/Protocol.o
+                                0x4c1 (size before relaxing)
+ .debug_str     0x00000d3d       0x74 SERVO/Servo.o
                                 0x281 (size before relaxing)
 
-.debug_loc      0x00000000      0xadf
+.debug_loc      0x00000000     0x21f1
  *(.debug_loc)
  .debug_loc     0x00000000      0x433 HCR/HC_SR04.o
- .debug_loc     0x00000433      0x1bb I2CLIB/I2CLIB.o
- .debug_loc     0x000005ee      0x259 main.o
- .debug_loc     0x00000847      0x298 SERVO/Servo.o
+ .debug_loc     0x00000433      0x306 I2CLIB/I2CLIB.o
+ .debug_loc     0x00000739      0x775 L298N/L298N.o
+ .debug_loc     0x00000eae      0x4f9 main.o
+ .debug_loc     0x000013a7      0xbb2 PROTOCOL/Protocol.o
+ .debug_loc     0x00001f59      0x298 SERVO/Servo.o
 
 .debug_macinfo
  *(.debug_macinfo)
@@ -627,12 +741,14 @@ END GROUP
 .debug_pubtypes
  *(.debug_pubtypes)
 
-.debug_ranges   0x00000000       0xf0
+.debug_ranges   0x00000000      0x1c0
  *(.debug_ranges)
  .debug_ranges  0x00000000       0x38 HCR/HC_SR04.o
  .debug_ranges  0x00000038       0x40 I2CLIB/I2CLIB.o
- .debug_ranges  0x00000078       0x40 main.o
- .debug_ranges  0x000000b8       0x38 SERVO/Servo.o
+ .debug_ranges  0x00000078       0x58 L298N/L298N.o
+ .debug_ranges  0x000000d0       0x48 main.o
+ .debug_ranges  0x00000118       0x70 PROTOCOL/Protocol.o
+ .debug_ranges  0x00000188       0x38 SERVO/Servo.o
 
 .debug_macro
  *(.debug_macro)

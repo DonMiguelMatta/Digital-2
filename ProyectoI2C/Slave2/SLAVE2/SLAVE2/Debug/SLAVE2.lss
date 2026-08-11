@@ -3,1451 +3,3287 @@ SLAVE2.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .data         0000003c  00800100  0000086e  00000902  2**0
+  0 .data         0000003a  00800100  00001172  00001206  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         0000086e  00000000  00000000  00000094  2**1
+  1 .text         00001172  00000000  00000000  00000094  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .bss          00000023  0080013c  0080013c  0000093e  2**0
+  2 .bss          00000058  0080013a  0080013a  00001240  2**0
                   ALLOC
-  3 .comment      00000030  00000000  00000000  0000093e  2**0
+  3 .comment      00000030  00000000  00000000  00001240  2**0
                   CONTENTS, READONLY
-  4 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  00000970  2**2
+  4 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  00001270  2**2
                   CONTENTS, READONLY
-  5 .debug_aranges 000000f0  00000000  00000000  000009b0  2**0
+  5 .debug_aranges 00000210  00000000  00000000  000012b0  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_info   000014e7  00000000  00000000  00000aa0  2**0
+  6 .debug_info   00002881  00000000  00000000  000014c0  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_abbrev 00000ae2  00000000  00000000  00001f87  2**0
+  7 .debug_abbrev 00000f20  00000000  00000000  00003d41  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   00000ce7  00000000  00000000  00002a69  2**0
+  8 .debug_line   00001c77  00000000  00000000  00004c61  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_frame  00000238  00000000  00000000  00003750  2**2
+  9 .debug_frame  000005fc  00000000  00000000  000068d8  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    000007b9  00000000  00000000  00003988  2**0
+ 10 .debug_str    00000d8b  00000000  00000000  00006ed4  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    00000b9a  00000000  00000000  00004141  2**0
+ 11 .debug_loc    00001fd7  00000000  00000000  00007c5f  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 000000c8  00000000  00000000  00004cdb  2**0
+ 12 .debug_ranges 000001b0  00000000  00000000  00009c36  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
 
 00000000 <__vectors>:
-   0:	0c 94 8d 00 	jmp	0x11a	; 0x11a <__ctors_end>
-   4:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-   8:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-   c:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  10:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  14:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  18:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  1c:	0c 94 91 03 	jmp	0x722	; 0x722 <__vector_7>
-  20:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  24:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  28:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  2c:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  30:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  34:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  38:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  3c:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  40:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  44:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  48:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  4c:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  50:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  54:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  58:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  5c:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  60:	0c 94 92 01 	jmp	0x324	; 0x324 <__vector_24>
-  64:	0c 94 aa 00 	jmp	0x154	; 0x154 <__bad_interrupt>
-  68:	ae 01       	movw	r20, r28
-  6a:	ee 01       	movw	r28, r28
-  6c:	ee 01       	movw	r28, r28
-  6e:	ee 01       	movw	r28, r28
-  70:	ee 01       	movw	r28, r28
-  72:	ee 01       	movw	r28, r28
-  74:	ee 01       	movw	r28, r28
-  76:	ee 01       	movw	r28, r28
-  78:	ae 01       	movw	r20, r28
-  7a:	ee 01       	movw	r28, r28
-  7c:	ee 01       	movw	r28, r28
-  7e:	ee 01       	movw	r28, r28
-  80:	ee 01       	movw	r28, r28
-  82:	ee 01       	movw	r28, r28
-  84:	ee 01       	movw	r28, r28
-  86:	ee 01       	movw	r28, r28
-  88:	ae 01       	movw	r20, r28
-  8a:	ee 01       	movw	r28, r28
-  8c:	ee 01       	movw	r28, r28
-  8e:	ee 01       	movw	r28, r28
-  90:	ee 01       	movw	r28, r28
-  92:	ee 01       	movw	r28, r28
-  94:	ee 01       	movw	r28, r28
-  96:	ee 01       	movw	r28, r28
-  98:	ae 01       	movw	r20, r28
-  9a:	ee 01       	movw	r28, r28
-  9c:	ee 01       	movw	r28, r28
-  9e:	ee 01       	movw	r28, r28
-  a0:	ee 01       	movw	r28, r28
-  a2:	ee 01       	movw	r28, r28
-  a4:	ee 01       	movw	r28, r28
-  a6:	ee 01       	movw	r28, r28
-  a8:	b4 01       	movw	r22, r8
-  aa:	ee 01       	movw	r28, r28
-  ac:	ee 01       	movw	r28, r28
-  ae:	ee 01       	movw	r28, r28
-  b0:	ee 01       	movw	r28, r28
-  b2:	ee 01       	movw	r28, r28
-  b4:	ee 01       	movw	r28, r28
-  b6:	ee 01       	movw	r28, r28
-  b8:	ee 01       	movw	r28, r28
-  ba:	ee 01       	movw	r28, r28
-  bc:	ee 01       	movw	r28, r28
-  be:	ee 01       	movw	r28, r28
-  c0:	ee 01       	movw	r28, r28
-  c2:	ee 01       	movw	r28, r28
-  c4:	ee 01       	movw	r28, r28
-  c6:	ee 01       	movw	r28, r28
-  c8:	b4 01       	movw	r22, r8
-  ca:	ee 01       	movw	r28, r28
-  cc:	ee 01       	movw	r28, r28
-  ce:	ee 01       	movw	r28, r28
-  d0:	ee 01       	movw	r28, r28
-  d2:	ee 01       	movw	r28, r28
-  d4:	ee 01       	movw	r28, r28
-  d6:	ee 01       	movw	r28, r28
-  d8:	ee 01       	movw	r28, r28
-  da:	ee 01       	movw	r28, r28
-  dc:	ee 01       	movw	r28, r28
-  de:	ee 01       	movw	r28, r28
-  e0:	ee 01       	movw	r28, r28
-  e2:	ee 01       	movw	r28, r28
-  e4:	ee 01       	movw	r28, r28
-  e6:	ee 01       	movw	r28, r28
-  e8:	bf 01       	movw	r22, r30
-  ea:	ee 01       	movw	r28, r28
-  ec:	ee 01       	movw	r28, r28
-  ee:	ee 01       	movw	r28, r28
-  f0:	ee 01       	movw	r28, r28
-  f2:	ee 01       	movw	r28, r28
-  f4:	ee 01       	movw	r28, r28
-  f6:	ee 01       	movw	r28, r28
-  f8:	c3 01       	movw	r24, r6
-  fa:	ee 01       	movw	r28, r28
-  fc:	ee 01       	movw	r28, r28
-  fe:	ee 01       	movw	r28, r28
- 100:	ee 01       	movw	r28, r28
- 102:	ee 01       	movw	r28, r28
- 104:	ee 01       	movw	r28, r28
- 106:	ee 01       	movw	r28, r28
- 108:	c3 01       	movw	r24, r6
- 10a:	ee 01       	movw	r28, r28
- 10c:	ee 01       	movw	r28, r28
- 10e:	ee 01       	movw	r28, r28
- 110:	ee 01       	movw	r28, r28
- 112:	ee 01       	movw	r28, r28
- 114:	ee 01       	movw	r28, r28
- 116:	ee 01       	movw	r28, r28
- 118:	d6 01       	movw	r26, r12
+       0:	0c 94 34 00 	jmp	0x68	; 0x68 <__ctors_end>
+       4:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+       8:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+       c:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      10:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      14:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      18:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      1c:	0c 94 19 08 	jmp	0x1032	; 0x1032 <__vector_7>
+      20:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      24:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      28:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      2c:	0c 94 62 06 	jmp	0xcc4	; 0xcc4 <__vector_11>
+      30:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      34:	0c 94 45 06 	jmp	0xc8a	; 0xc8a <__vector_13>
+      38:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      3c:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      40:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      44:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      48:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      4c:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      50:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      54:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      58:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      5c:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
+      60:	0c 94 43 01 	jmp	0x286	; 0x286 <__vector_24>
+      64:	0c 94 51 00 	jmp	0xa2	; 0xa2 <__bad_interrupt>
 
-0000011a <__ctors_end>:
- 11a:	11 24       	eor	r1, r1
- 11c:	1f be       	out	0x3f, r1	; 63
- 11e:	cf ef       	ldi	r28, 0xFF	; 255
- 120:	d8 e0       	ldi	r29, 0x08	; 8
- 122:	de bf       	out	0x3e, r29	; 62
- 124:	cd bf       	out	0x3d, r28	; 61
+00000068 <__ctors_end>:
+      68:	11 24       	eor	r1, r1
+      6a:	1f be       	out	0x3f, r1	; 63
+      6c:	cf ef       	ldi	r28, 0xFF	; 255
+      6e:	d8 e0       	ldi	r29, 0x08	; 8
+      70:	de bf       	out	0x3e, r29	; 62
+      72:	cd bf       	out	0x3d, r28	; 61
 
-00000126 <__do_copy_data>:
- 126:	11 e0       	ldi	r17, 0x01	; 1
- 128:	a0 e0       	ldi	r26, 0x00	; 0
- 12a:	b1 e0       	ldi	r27, 0x01	; 1
- 12c:	ee e6       	ldi	r30, 0x6E	; 110
- 12e:	f8 e0       	ldi	r31, 0x08	; 8
- 130:	02 c0       	rjmp	.+4      	; 0x136 <__do_copy_data+0x10>
- 132:	05 90       	lpm	r0, Z+
- 134:	0d 92       	st	X+, r0
- 136:	ac 33       	cpi	r26, 0x3C	; 60
- 138:	b1 07       	cpc	r27, r17
- 13a:	d9 f7       	brne	.-10     	; 0x132 <__do_copy_data+0xc>
+00000074 <__do_copy_data>:
+      74:	11 e0       	ldi	r17, 0x01	; 1
+      76:	a0 e0       	ldi	r26, 0x00	; 0
+      78:	b1 e0       	ldi	r27, 0x01	; 1
+      7a:	e2 e7       	ldi	r30, 0x72	; 114
+      7c:	f1 e1       	ldi	r31, 0x11	; 17
+      7e:	02 c0       	rjmp	.+4      	; 0x84 <__do_copy_data+0x10>
+      80:	05 90       	lpm	r0, Z+
+      82:	0d 92       	st	X+, r0
+      84:	aa 33       	cpi	r26, 0x3A	; 58
+      86:	b1 07       	cpc	r27, r17
+      88:	d9 f7       	brne	.-10     	; 0x80 <__do_copy_data+0xc>
 
-0000013c <__do_clear_bss>:
- 13c:	21 e0       	ldi	r18, 0x01	; 1
- 13e:	ac e3       	ldi	r26, 0x3C	; 60
- 140:	b1 e0       	ldi	r27, 0x01	; 1
- 142:	01 c0       	rjmp	.+2      	; 0x146 <.do_clear_bss_start>
+0000008a <__do_clear_bss>:
+      8a:	21 e0       	ldi	r18, 0x01	; 1
+      8c:	aa e3       	ldi	r26, 0x3A	; 58
+      8e:	b1 e0       	ldi	r27, 0x01	; 1
+      90:	01 c0       	rjmp	.+2      	; 0x94 <.do_clear_bss_start>
 
-00000144 <.do_clear_bss_loop>:
- 144:	1d 92       	st	X+, r1
+00000092 <.do_clear_bss_loop>:
+      92:	1d 92       	st	X+, r1
 
-00000146 <.do_clear_bss_start>:
- 146:	af 35       	cpi	r26, 0x5F	; 95
- 148:	b2 07       	cpc	r27, r18
- 14a:	e1 f7       	brne	.-8      	; 0x144 <.do_clear_bss_loop>
- 14c:	0e 94 4b 01 	call	0x296	; 0x296 <main>
- 150:	0c 94 35 04 	jmp	0x86a	; 0x86a <_exit>
+00000094 <.do_clear_bss_start>:
+      94:	a2 39       	cpi	r26, 0x92	; 146
+      96:	b2 07       	cpc	r27, r18
+      98:	e1 f7       	brne	.-8      	; 0x92 <.do_clear_bss_loop>
+      9a:	0e 94 10 04 	call	0x820	; 0x820 <main>
+      9e:	0c 94 b7 08 	jmp	0x116e	; 0x116e <_exit>
 
-00000154 <__bad_interrupt>:
- 154:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+000000a2 <__bad_interrupt>:
+      a2:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
 
-00000158 <I2C_Slave_Init>:
+000000a6 <I2C_Slave_Continue>:
+static volatile uint8_t tx_index;
 
-#include <avr/io.h>
+// Reactiva TWI con ACK e interrupcion para continuar la transaccion.
+static void I2C_Slave_Continue(void)
+{
+    TWCR = (1U << TWINT) | (1U << TWEA) | (1U << TWEN) | (1U << TWIE);
+      a6:	85 ec       	ldi	r24, 0xC5	; 197
+      a8:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+      ac:	08 95       	ret
 
+000000ae <I2C_Slave_FinalizeReception>:
+// Congela una trama completa o la guarda como rechazada si existe otra pendiente.
+static void I2C_Slave_FinalizeReception(void)
+{
+    uint8_t index;
+
+    if ((rx_index != I2C_FRAME_SIZE) || (rx_overflow != 0U))
+      ae:	80 91 41 01 	lds	r24, 0x0141	; 0x800141 <rx_index>
+      b2:	88 30       	cpi	r24, 0x08	; 8
+      b4:	c1 f5       	brne	.+112    	; 0x126 <I2C_Slave_FinalizeReception+0x78>
+      b6:	80 91 40 01 	lds	r24, 0x0140	; 0x800140 <rx_overflow>
+      ba:	81 11       	cpse	r24, r1
+      bc:	34 c0       	rjmp	.+104    	; 0x126 <I2C_Slave_FinalizeReception+0x78>
+    {
+        return;
+    }
+
+    if ((request_pending != 0U) || (request_in_progress != 0U))
+      be:	80 91 3f 01 	lds	r24, 0x013F	; 0x80013f <request_pending>
+      c2:	81 11       	cpse	r24, r1
+      c4:	04 c0       	rjmp	.+8      	; 0xce <I2C_Slave_FinalizeReception+0x20>
+      c6:	80 91 3e 01 	lds	r24, 0x013E	; 0x80013e <request_in_progress>
+      ca:	88 23       	and	r24, r24
+      cc:	21 f1       	breq	.+72     	; 0x116 <I2C_Slave_FinalizeReception+0x68>
+    {
+        if (rejected_pending == 0U)
+      ce:	80 91 3d 01 	lds	r24, 0x013D	; 0x80013d <rejected_pending>
+      d2:	88 23       	and	r24, r24
+      d4:	69 f0       	breq	.+26     	; 0xf0 <I2C_Slave_FinalizeReception+0x42>
+      d6:	08 95       	ret
+        {
+            for (index = 0U; index < I2C_FRAME_SIZE; index++)
+            {
+                rejected_request[index] = rx_buffer[index];
+      d8:	82 2f       	mov	r24, r18
+      da:	90 e0       	ldi	r25, 0x00	; 0
+      dc:	fc 01       	movw	r30, r24
+      de:	ee 59       	subi	r30, 0x9E	; 158
+      e0:	fe 4f       	sbci	r31, 0xFE	; 254
+      e2:	30 81       	ld	r19, Z
+      e4:	fc 01       	movw	r30, r24
+      e6:	ee 5a       	subi	r30, 0xAE	; 174
+      e8:	fe 4f       	sbci	r31, 0xFE	; 254
+      ea:	30 83       	st	Z, r19
+
+    if ((request_pending != 0U) || (request_in_progress != 0U))
+    {
+        if (rejected_pending == 0U)
+        {
+            for (index = 0U; index < I2C_FRAME_SIZE; index++)
+      ec:	2f 5f       	subi	r18, 0xFF	; 255
+      ee:	01 c0       	rjmp	.+2      	; 0xf2 <I2C_Slave_FinalizeReception+0x44>
+      f0:	20 e0       	ldi	r18, 0x00	; 0
+      f2:	28 30       	cpi	r18, 0x08	; 8
+      f4:	88 f3       	brcs	.-30     	; 0xd8 <I2C_Slave_FinalizeReception+0x2a>
+            {
+                rejected_request[index] = rx_buffer[index];
+            }
+            rejected_pending = 1U;
+      f6:	81 e0       	ldi	r24, 0x01	; 1
+      f8:	80 93 3d 01 	sts	0x013D, r24	; 0x80013d <rejected_pending>
+      fc:	08 95       	ret
+        return;
+    }
+
+    for (index = 0U; index < I2C_FRAME_SIZE; index++)
+    {
+        pending_request[index] = rx_buffer[index];
+      fe:	82 2f       	mov	r24, r18
+     100:	90 e0       	ldi	r25, 0x00	; 0
+     102:	fc 01       	movw	r30, r24
+     104:	ee 59       	subi	r30, 0x9E	; 158
+     106:	fe 4f       	sbci	r31, 0xFE	; 254
+     108:	30 81       	ld	r19, Z
+     10a:	fc 01       	movw	r30, r24
+     10c:	e6 5a       	subi	r30, 0xA6	; 166
+     10e:	fe 4f       	sbci	r31, 0xFE	; 254
+     110:	30 83       	st	Z, r19
+            rejected_pending = 1U;
+        }
+        return;
+    }
+
+    for (index = 0U; index < I2C_FRAME_SIZE; index++)
+     112:	2f 5f       	subi	r18, 0xFF	; 255
+     114:	01 c0       	rjmp	.+2      	; 0x118 <I2C_Slave_FinalizeReception+0x6a>
+     116:	20 e0       	ldi	r18, 0x00	; 0
+     118:	28 30       	cpi	r18, 0x08	; 8
+     11a:	88 f3       	brcs	.-30     	; 0xfe <I2C_Slave_FinalizeReception+0x50>
+    {
+        pending_request[index] = rx_buffer[index];
+    }
+    request_pending = 1U;
+     11c:	81 e0       	ldi	r24, 0x01	; 1
+     11e:	80 93 3f 01 	sts	0x013F, r24	; 0x80013f <request_pending>
+    response_ready = 0U;
+     122:	10 92 3c 01 	sts	0x013C, r1	; 0x80013c <response_ready>
+     126:	08 95       	ret
+
+00000128 <I2C_Slave_Init>:
+// Limpia los buffers y configura la direccion propia del Slave.
 uint8_t I2C_Slave_Init(uint8_t address)
 {
-    if ((address < 0x08U) || (address > 0x77U))
- 158:	98 ef       	ldi	r25, 0xF8	; 248
- 15a:	98 0f       	add	r25, r24
- 15c:	90 37       	cpi	r25, 0x70	; 112
- 15e:	80 f4       	brcc	.+32     	; 0x180 <I2C_Slave_Init+0x28>
+    uint8_t saved_sreg;
+
+    if ((address == 0U) || (address > 0x7FU))
+     128:	18 16       	cp	r1, r24
+     12a:	f4 f4       	brge	.+60     	; 0x168 <I2C_Slave_Init+0x40>
     {
         return 0U;
     }
 
-    /* A4/PC4 = SDA y A5/PC5 = SCL. */
+    saved_sreg = SREG;
+     12c:	2f b7       	in	r18, 0x3f	; 63
+    cli();
+     12e:	f8 94       	cli
+
+    rx_index = 0U;
+     130:	10 92 41 01 	sts	0x0141, r1	; 0x800141 <rx_index>
+    rx_overflow = 0U;
+     134:	10 92 40 01 	sts	0x0140, r1	; 0x800140 <rx_overflow>
+    request_pending = 0U;
+     138:	10 92 3f 01 	sts	0x013F, r1	; 0x80013f <request_pending>
+    request_in_progress = 0U;
+     13c:	10 92 3e 01 	sts	0x013E, r1	; 0x80013e <request_in_progress>
+    rejected_pending = 0U;
+     140:	10 92 3d 01 	sts	0x013D, r1	; 0x80013d <rejected_pending>
+    response_ready = 0U;
+     144:	10 92 3c 01 	sts	0x013C, r1	; 0x80013c <response_ready>
+    active_response_valid = 0U;
+     148:	10 92 3b 01 	sts	0x013B, r1	; 0x80013b <active_response_valid>
+    tx_index = 0U;
+     14c:	10 92 3a 01 	sts	0x013A, r1	; 0x80013a <__data_end>
+
     DDRC &= (uint8_t)~((1U << DDC4) | (1U << DDC5));
- 160:	97 b1       	in	r25, 0x07	; 7
- 162:	9f 7c       	andi	r25, 0xCF	; 207
- 164:	97 b9       	out	0x07, r25	; 7
-    PORTC &= (uint8_t)~((1U << PORTC4) | (1U << PORTC5));
- 166:	98 b1       	in	r25, 0x08	; 8
- 168:	9f 7c       	andi	r25, 0xCF	; 207
- 16a:	98 b9       	out	0x08, r25	; 8
+     150:	97 b1       	in	r25, 0x07	; 7
+     152:	9f 7c       	andi	r25, 0xCF	; 207
+     154:	97 b9       	out	0x07, r25	; 7
+    TWAR = (uint8_t)(address << 1U);
+     156:	88 0f       	add	r24, r24
+     158:	80 93 ba 00 	sts	0x00BA, r24	; 0x8000ba <__TEXT_REGION_LENGTH__+0x7f80ba>
+    TWCR = (1U << TWEA) | (1U << TWEN) | (1U << TWIE);
+     15c:	85 e4       	ldi	r24, 0x45	; 69
+     15e:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
 
-    TWAMR = 0U;
- 16c:	10 92 bd 00 	sts	0x00BD, r1	; 0x8000bd <__TEXT_REGION_LENGTH__+0x7f80bd>
-    TWAR = (uint8_t)(address << 1);
- 170:	88 0f       	add	r24, r24
- 172:	80 93 ba 00 	sts	0x00BA, r24	; 0x8000ba <__TEXT_REGION_LENGTH__+0x7f80ba>
-    TWCR = (1U << TWINT) |
- 176:	85 ec       	ldi	r24, 0xC5	; 197
- 178:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
-           (1U << TWEA)  |
-           (1U << TWEN)  |
-           (1U << TWIE);
-
+    SREG = saved_sreg;
+     162:	2f bf       	out	0x3f, r18	; 63
     return 1U;
- 17c:	81 e0       	ldi	r24, 0x01	; 1
- 17e:	08 95       	ret
-
-uint8_t I2C_Slave_Init(uint8_t address)
+     164:	81 e0       	ldi	r24, 0x01	; 1
+     166:	08 95       	ret
 {
-    if ((address < 0x08U) || (address > 0x77U))
+    uint8_t saved_sreg;
+
+    if ((address == 0U) || (address > 0x7FU))
     {
         return 0U;
- 180:	80 e0       	ldi	r24, 0x00	; 0
-           (1U << TWEA)  |
-           (1U << TWEN)  |
-           (1U << TWIE);
+     168:	80 e0       	ldi	r24, 0x00	; 0
+    TWAR = (uint8_t)(address << 1U);
+    TWCR = (1U << TWEA) | (1U << TWEN) | (1U << TWIE);
 
+    SREG = saved_sreg;
     return 1U;
 }
- 182:	08 95       	ret
+     16a:	08 95       	ret
 
-00000184 <InfraRojo_Init>:
+0000016c <I2C_Slave_RequestAvailable>:
+
+// Indica si main puede retirar una solicitud normal o rechazada por BUSY.
+uint8_t I2C_Slave_RequestAvailable(void)
+{
+    uint8_t saved_sreg = SREG;
+     16c:	9f b7       	in	r25, 0x3f	; 63
+    uint8_t available;
+
+    cli();
+     16e:	f8 94       	cli
+    available = request_pending;
+     170:	80 91 3f 01 	lds	r24, 0x013F	; 0x80013f <request_pending>
+    if ((available == 0U) && (rejected_pending != 0U) &&
+     174:	81 11       	cpse	r24, r1
+     176:	0d c0       	rjmp	.+26     	; 0x192 <I2C_Slave_RequestAvailable+0x26>
+     178:	20 91 3d 01 	lds	r18, 0x013D	; 0x80013d <rejected_pending>
+     17c:	22 23       	and	r18, r18
+     17e:	49 f0       	breq	.+18     	; 0x192 <I2C_Slave_RequestAvailable+0x26>
+        (request_in_progress == 0U) && (response_ready == 0U))
+     180:	20 91 3e 01 	lds	r18, 0x013E	; 0x80013e <request_in_progress>
+    uint8_t saved_sreg = SREG;
+    uint8_t available;
+
+    cli();
+    available = request_pending;
+    if ((available == 0U) && (rejected_pending != 0U) &&
+     184:	21 11       	cpse	r18, r1
+     186:	05 c0       	rjmp	.+10     	; 0x192 <I2C_Slave_RequestAvailable+0x26>
+        (request_in_progress == 0U) && (response_ready == 0U))
+     188:	20 91 3c 01 	lds	r18, 0x013C	; 0x80013c <response_ready>
+     18c:	21 11       	cpse	r18, r1
+     18e:	01 c0       	rjmp	.+2      	; 0x192 <I2C_Slave_RequestAvailable+0x26>
+    {
+        available = 1U;
+     190:	81 e0       	ldi	r24, 0x01	; 1
+    }
+    SREG = saved_sreg;
+     192:	9f bf       	out	0x3f, r25	; 63
+
+    return available;
+}
+     194:	08 95       	ret
+
+00000196 <I2C_Slave_GetRequest>:
+
+// Copia una solicitud congelada y marca que main la esta procesando.
+I2CSlaveRequestState I2C_Slave_GetRequest(uint8_t frame[I2C_FRAME_SIZE])
+{
+     196:	ac 01       	movw	r20, r24
+    I2CSlaveRequestState state = I2C_SLAVE_REQUEST_NONE;
+    uint8_t saved_sreg;
+    uint8_t index;
+
+    if (frame == 0)
+     198:	89 2b       	or	r24, r25
+     19a:	09 f4       	brne	.+2      	; 0x19e <I2C_Slave_GetRequest+0x8>
+     19c:	49 c0       	rjmp	.+146    	; 0x230 <I2C_Slave_GetRequest+0x9a>
+    {
+        return I2C_SLAVE_REQUEST_NONE;
+    }
+
+    saved_sreg = SREG;
+     19e:	6f b7       	in	r22, 0x3f	; 63
+    cli();
+     1a0:	f8 94       	cli
+
+    if ((request_pending != 0U) && (request_in_progress == 0U))
+     1a2:	80 91 3f 01 	lds	r24, 0x013F	; 0x80013f <request_pending>
+     1a6:	88 23       	and	r24, r24
+     1a8:	d1 f0       	breq	.+52     	; 0x1de <I2C_Slave_GetRequest+0x48>
+     1aa:	80 91 3e 01 	lds	r24, 0x013E	; 0x80013e <request_in_progress>
+     1ae:	88 23       	and	r24, r24
+     1b0:	69 f0       	breq	.+26     	; 0x1cc <I2C_Slave_GetRequest+0x36>
+     1b2:	15 c0       	rjmp	.+42     	; 0x1de <I2C_Slave_GetRequest+0x48>
+    {
+        for (index = 0U; index < I2C_FRAME_SIZE; index++)
+        {
+            frame[index] = pending_request[index];
+     1b4:	29 2f       	mov	r18, r25
+     1b6:	30 e0       	ldi	r19, 0x00	; 0
+     1b8:	fa 01       	movw	r30, r20
+     1ba:	e2 0f       	add	r30, r18
+     1bc:	f3 1f       	adc	r31, r19
+     1be:	d9 01       	movw	r26, r18
+     1c0:	a6 5a       	subi	r26, 0xA6	; 166
+     1c2:	be 4f       	sbci	r27, 0xFE	; 254
+     1c4:	8c 91       	ld	r24, X
+     1c6:	80 83       	st	Z, r24
+    saved_sreg = SREG;
+    cli();
+
+    if ((request_pending != 0U) && (request_in_progress == 0U))
+    {
+        for (index = 0U; index < I2C_FRAME_SIZE; index++)
+     1c8:	9f 5f       	subi	r25, 0xFF	; 255
+     1ca:	01 c0       	rjmp	.+2      	; 0x1ce <I2C_Slave_GetRequest+0x38>
+     1cc:	90 e0       	ldi	r25, 0x00	; 0
+     1ce:	98 30       	cpi	r25, 0x08	; 8
+     1d0:	88 f3       	brcs	.-30     	; 0x1b4 <I2C_Slave_GetRequest+0x1e>
+        {
+            frame[index] = pending_request[index];
+        }
+        request_pending = 0U;
+     1d2:	10 92 3f 01 	sts	0x013F, r1	; 0x80013f <request_pending>
+        request_in_progress = 1U;
+     1d6:	81 e0       	ldi	r24, 0x01	; 1
+     1d8:	80 93 3e 01 	sts	0x013E, r24	; 0x80013e <request_in_progress>
+        state = I2C_SLAVE_REQUEST_READY;
+     1dc:	27 c0       	rjmp	.+78     	; 0x22c <I2C_Slave_GetRequest+0x96>
+    }
+    else if ((rejected_pending != 0U) && (request_in_progress == 0U) &&
+     1de:	80 91 3d 01 	lds	r24, 0x013D	; 0x80013d <rejected_pending>
+     1e2:	88 23       	and	r24, r24
+     1e4:	01 f1       	breq	.+64     	; 0x226 <I2C_Slave_GetRequest+0x90>
+     1e6:	80 91 3e 01 	lds	r24, 0x013E	; 0x80013e <request_in_progress>
+     1ea:	81 11       	cpse	r24, r1
+     1ec:	1e c0       	rjmp	.+60     	; 0x22a <I2C_Slave_GetRequest+0x94>
+             (response_ready == 0U))
+     1ee:	80 91 3c 01 	lds	r24, 0x013C	; 0x80013c <response_ready>
+        }
+        request_pending = 0U;
+        request_in_progress = 1U;
+        state = I2C_SLAVE_REQUEST_READY;
+    }
+    else if ((rejected_pending != 0U) && (request_in_progress == 0U) &&
+     1f2:	88 23       	and	r24, r24
+     1f4:	71 f0       	breq	.+28     	; 0x212 <I2C_Slave_GetRequest+0x7c>
+}
+
+// Copia una solicitud congelada y marca que main la esta procesando.
+I2CSlaveRequestState I2C_Slave_GetRequest(uint8_t frame[I2C_FRAME_SIZE])
+{
+    I2CSlaveRequestState state = I2C_SLAVE_REQUEST_NONE;
+     1f6:	80 e0       	ldi	r24, 0x00	; 0
+     1f8:	19 c0       	rjmp	.+50     	; 0x22c <I2C_Slave_GetRequest+0x96>
+    else if ((rejected_pending != 0U) && (request_in_progress == 0U) &&
+             (response_ready == 0U))
+    {
+        for (index = 0U; index < I2C_FRAME_SIZE; index++)
+        {
+            frame[index] = rejected_request[index];
+     1fa:	82 2f       	mov	r24, r18
+     1fc:	90 e0       	ldi	r25, 0x00	; 0
+     1fe:	fa 01       	movw	r30, r20
+     200:	e8 0f       	add	r30, r24
+     202:	f9 1f       	adc	r31, r25
+     204:	dc 01       	movw	r26, r24
+     206:	ae 5a       	subi	r26, 0xAE	; 174
+     208:	be 4f       	sbci	r27, 0xFE	; 254
+     20a:	8c 91       	ld	r24, X
+     20c:	80 83       	st	Z, r24
+        state = I2C_SLAVE_REQUEST_READY;
+    }
+    else if ((rejected_pending != 0U) && (request_in_progress == 0U) &&
+             (response_ready == 0U))
+    {
+        for (index = 0U; index < I2C_FRAME_SIZE; index++)
+     20e:	2f 5f       	subi	r18, 0xFF	; 255
+     210:	01 c0       	rjmp	.+2      	; 0x214 <I2C_Slave_GetRequest+0x7e>
+     212:	20 e0       	ldi	r18, 0x00	; 0
+     214:	28 30       	cpi	r18, 0x08	; 8
+     216:	88 f3       	brcs	.-30     	; 0x1fa <I2C_Slave_GetRequest+0x64>
+        {
+            frame[index] = rejected_request[index];
+        }
+        rejected_pending = 0U;
+     218:	10 92 3d 01 	sts	0x013D, r1	; 0x80013d <rejected_pending>
+        request_in_progress = 1U;
+     21c:	81 e0       	ldi	r24, 0x01	; 1
+     21e:	80 93 3e 01 	sts	0x013E, r24	; 0x80013e <request_in_progress>
+        state = I2C_SLAVE_REQUEST_REJECTED_BUSY;
+     222:	82 e0       	ldi	r24, 0x02	; 2
+     224:	03 c0       	rjmp	.+6      	; 0x22c <I2C_Slave_GetRequest+0x96>
+}
+
+// Copia una solicitud congelada y marca que main la esta procesando.
+I2CSlaveRequestState I2C_Slave_GetRequest(uint8_t frame[I2C_FRAME_SIZE])
+{
+    I2CSlaveRequestState state = I2C_SLAVE_REQUEST_NONE;
+     226:	80 e0       	ldi	r24, 0x00	; 0
+     228:	01 c0       	rjmp	.+2      	; 0x22c <I2C_Slave_GetRequest+0x96>
+     22a:	80 e0       	ldi	r24, 0x00	; 0
+        rejected_pending = 0U;
+        request_in_progress = 1U;
+        state = I2C_SLAVE_REQUEST_REJECTED_BUSY;
+    }
+
+    SREG = saved_sreg;
+     22c:	6f bf       	out	0x3f, r22	; 63
+    return state;
+     22e:	08 95       	ret
+    uint8_t saved_sreg;
+    uint8_t index;
+
+    if (frame == 0)
+    {
+        return I2C_SLAVE_REQUEST_NONE;
+     230:	80 e0       	ldi	r24, 0x00	; 0
+        state = I2C_SLAVE_REQUEST_REJECTED_BUSY;
+    }
+
+    SREG = saved_sreg;
+    return state;
+}
+     232:	08 95       	ret
+
+00000234 <I2C_Slave_SetResponse>:
+
+// Publica una respuesta completa sin modificar la copia actualmente transmitida.
+uint8_t I2C_Slave_SetResponse(const uint8_t frame[I2C_FRAME_SIZE])
+{
+     234:	bc 01       	movw	r22, r24
+    uint8_t saved_sreg;
+    uint8_t index;
+
+    if (frame == 0)
+     236:	89 2b       	or	r24, r25
+     238:	21 f1       	breq	.+72     	; 0x282 <I2C_Slave_SetResponse+0x4e>
+    {
+        return 0U;
+    }
+
+    saved_sreg = SREG;
+     23a:	8f b7       	in	r24, 0x3f	; 63
+    cli();
+     23c:	f8 94       	cli
+
+    if ((request_in_progress == 0U) || (response_ready != 0U))
+     23e:	90 91 3e 01 	lds	r25, 0x013E	; 0x80013e <request_in_progress>
+     242:	99 23       	and	r25, r25
+     244:	21 f0       	breq	.+8      	; 0x24e <I2C_Slave_SetResponse+0x1a>
+     246:	90 91 3c 01 	lds	r25, 0x013C	; 0x80013c <response_ready>
+     24a:	99 23       	and	r25, r25
+     24c:	79 f0       	breq	.+30     	; 0x26c <I2C_Slave_SetResponse+0x38>
+    {
+        SREG = saved_sreg;
+     24e:	8f bf       	out	0x3f, r24	; 63
+        return 0U;
+     250:	80 e0       	ldi	r24, 0x00	; 0
+     252:	08 95       	ret
+    }
+
+    for (index = 0U; index < I2C_FRAME_SIZE; index++)
+    {
+        staged_response[index] = frame[index];
+     254:	29 2f       	mov	r18, r25
+     256:	30 e0       	ldi	r19, 0x00	; 0
+     258:	fb 01       	movw	r30, r22
+     25a:	e2 0f       	add	r30, r18
+     25c:	f3 1f       	adc	r31, r19
+     25e:	40 81       	ld	r20, Z
+     260:	f9 01       	movw	r30, r18
+     262:	e6 5b       	subi	r30, 0xB6	; 182
+     264:	fe 4f       	sbci	r31, 0xFE	; 254
+     266:	40 83       	st	Z, r20
+    {
+        SREG = saved_sreg;
+        return 0U;
+    }
+
+    for (index = 0U; index < I2C_FRAME_SIZE; index++)
+     268:	9f 5f       	subi	r25, 0xFF	; 255
+     26a:	01 c0       	rjmp	.+2      	; 0x26e <I2C_Slave_SetResponse+0x3a>
+     26c:	90 e0       	ldi	r25, 0x00	; 0
+     26e:	98 30       	cpi	r25, 0x08	; 8
+     270:	88 f3       	brcs	.-30     	; 0x254 <I2C_Slave_SetResponse+0x20>
+    {
+        staged_response[index] = frame[index];
+    }
+    response_ready = 1U;
+     272:	91 e0       	ldi	r25, 0x01	; 1
+     274:	90 93 3c 01 	sts	0x013C, r25	; 0x80013c <response_ready>
+    request_in_progress = 0U;
+     278:	10 92 3e 01 	sts	0x013E, r1	; 0x80013e <request_in_progress>
+
+    SREG = saved_sreg;
+     27c:	8f bf       	out	0x3f, r24	; 63
+    return 1U;
+     27e:	81 e0       	ldi	r24, 0x01	; 1
+     280:	08 95       	ret
+    uint8_t saved_sreg;
+    uint8_t index;
+
+    if (frame == 0)
+    {
+        return 0U;
+     282:	80 e0       	ldi	r24, 0x00	; 0
+    response_ready = 1U;
+    request_in_progress = 0U;
+
+    SREG = saved_sreg;
+    return 1U;
+}
+     284:	08 95       	ret
+
+00000286 <__vector_24>:
+/****************************************/
+// Interrupt routines
+
+// Recibe solicitudes y transmite una copia congelada segun el estado TWI.
+ISR(TWI_vect)
+{
+     286:	1f 92       	push	r1
+     288:	0f 92       	push	r0
+     28a:	0f b6       	in	r0, 0x3f	; 63
+     28c:	0f 92       	push	r0
+     28e:	11 24       	eor	r1, r1
+     290:	2f 93       	push	r18
+     292:	3f 93       	push	r19
+     294:	4f 93       	push	r20
+     296:	5f 93       	push	r21
+     298:	6f 93       	push	r22
+     29a:	7f 93       	push	r23
+     29c:	8f 93       	push	r24
+     29e:	9f 93       	push	r25
+     2a0:	af 93       	push	r26
+     2a2:	bf 93       	push	r27
+     2a4:	ef 93       	push	r30
+     2a6:	ff 93       	push	r31
+    uint8_t status = (uint8_t)(TWSR & 0xF8U);
+     2a8:	80 91 b9 00 	lds	r24, 0x00B9	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7f80b9>
+     2ac:	88 7f       	andi	r24, 0xF8	; 248
+    uint8_t index;
+
+    switch (status)
+     2ae:	80 3a       	cpi	r24, 0xA0	; 160
+     2b0:	09 f4       	brne	.+2      	; 0x2b4 <__vector_24+0x2e>
+     2b2:	49 c0       	rjmp	.+146    	; 0x346 <__vector_24+0xc0>
+     2b4:	68 f4       	brcc	.+26     	; 0x2d0 <__vector_24+0x4a>
+     2b6:	88 36       	cpi	r24, 0x68	; 104
+     2b8:	39 f1       	breq	.+78     	; 0x308 <__vector_24+0x82>
+     2ba:	28 f4       	brcc	.+10     	; 0x2c6 <__vector_24+0x40>
+     2bc:	88 23       	and	r24, r24
+     2be:	c1 f0       	breq	.+48     	; 0x2f0 <__vector_24+0x6a>
+     2c0:	80 36       	cpi	r24, 0x60	; 96
+     2c2:	11 f1       	breq	.+68     	; 0x308 <__vector_24+0x82>
+     2c4:	94 c0       	rjmp	.+296    	; 0x3ee <__vector_24+0x168>
+     2c6:	80 38       	cpi	r24, 0x80	; 128
+     2c8:	31 f1       	breq	.+76     	; 0x316 <__vector_24+0x90>
+     2ca:	88 38       	cpi	r24, 0x88	; 136
+     2cc:	21 f1       	breq	.+72     	; 0x316 <__vector_24+0x90>
+     2ce:	8f c0       	rjmp	.+286    	; 0x3ee <__vector_24+0x168>
+     2d0:	88 3b       	cpi	r24, 0xB8	; 184
+     2d2:	09 f4       	brne	.+2      	; 0x2d6 <__vector_24+0x50>
+     2d4:	64 c0       	rjmp	.+200    	; 0x39e <__vector_24+0x118>
+     2d6:	28 f4       	brcc	.+10     	; 0x2e2 <__vector_24+0x5c>
+     2d8:	88 3a       	cpi	r24, 0xA8	; 168
+     2da:	f1 f1       	breq	.+124    	; 0x358 <__vector_24+0xd2>
+     2dc:	80 3b       	cpi	r24, 0xB0	; 176
+     2de:	e1 f1       	breq	.+120    	; 0x358 <__vector_24+0xd2>
+     2e0:	86 c0       	rjmp	.+268    	; 0x3ee <__vector_24+0x168>
+     2e2:	80 3c       	cpi	r24, 0xC0	; 192
+     2e4:	09 f4       	brne	.+2      	; 0x2e8 <__vector_24+0x62>
+     2e6:	72 c0       	rjmp	.+228    	; 0x3cc <__vector_24+0x146>
+     2e8:	88 3c       	cpi	r24, 0xC8	; 200
+     2ea:	09 f4       	brne	.+2      	; 0x2ee <__vector_24+0x68>
+     2ec:	6f c0       	rjmp	.+222    	; 0x3cc <__vector_24+0x146>
+     2ee:	7f c0       	rjmp	.+254    	; 0x3ee <__vector_24+0x168>
+    {
+        case 0x00U:
+            rx_index = 0U;
+     2f0:	10 92 41 01 	sts	0x0141, r1	; 0x800141 <rx_index>
+            rx_overflow = 0U;
+     2f4:	10 92 40 01 	sts	0x0140, r1	; 0x800140 <rx_overflow>
+            active_response_valid = 0U;
+     2f8:	10 92 3b 01 	sts	0x013B, r1	; 0x80013b <active_response_valid>
+            tx_index = 0U;
+     2fc:	10 92 3a 01 	sts	0x013A, r1	; 0x80013a <__data_end>
+            TWCR = (1U << TWINT) | (1U << TWSTO) | (1U << TWEA) |
+     300:	85 ed       	ldi	r24, 0xD5	; 213
+     302:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
+                   (1U << TWEN) | (1U << TWIE);
+            break;
+     306:	7d c0       	rjmp	.+250    	; 0x402 <__EEPROM_REGION_LENGTH__+0x2>
+
+        case 0x60U:
+        case 0x68U:
+            rx_index = 0U;
+     308:	10 92 41 01 	sts	0x0141, r1	; 0x800141 <rx_index>
+            rx_overflow = 0U;
+     30c:	10 92 40 01 	sts	0x0140, r1	; 0x800140 <rx_overflow>
+            I2C_Slave_Continue();
+     310:	0e 94 53 00 	call	0xa6	; 0xa6 <I2C_Slave_Continue>
+            break;
+     314:	76 c0       	rjmp	.+236    	; 0x402 <__EEPROM_REGION_LENGTH__+0x2>
+
+        case 0x80U:
+        case 0x88U:
+            if (rx_index < I2C_FRAME_SIZE)
+     316:	80 91 41 01 	lds	r24, 0x0141	; 0x800141 <rx_index>
+     31a:	88 30       	cpi	r24, 0x08	; 8
+     31c:	70 f4       	brcc	.+28     	; 0x33a <__vector_24+0xb4>
+            {
+                rx_buffer[rx_index] = TWDR;
+     31e:	e0 91 41 01 	lds	r30, 0x0141	; 0x800141 <rx_index>
+     322:	f0 e0       	ldi	r31, 0x00	; 0
+     324:	80 91 bb 00 	lds	r24, 0x00BB	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
+     328:	ee 59       	subi	r30, 0x9E	; 158
+     32a:	fe 4f       	sbci	r31, 0xFE	; 254
+     32c:	80 83       	st	Z, r24
+                rx_index++;
+     32e:	80 91 41 01 	lds	r24, 0x0141	; 0x800141 <rx_index>
+     332:	8f 5f       	subi	r24, 0xFF	; 255
+     334:	80 93 41 01 	sts	0x0141, r24	; 0x800141 <rx_index>
+     338:	03 c0       	rjmp	.+6      	; 0x340 <__vector_24+0xba>
+            }
+            else
+            {
+                rx_overflow = 1U;
+     33a:	81 e0       	ldi	r24, 0x01	; 1
+     33c:	80 93 40 01 	sts	0x0140, r24	; 0x800140 <rx_overflow>
+            }
+            I2C_Slave_Continue();
+     340:	0e 94 53 00 	call	0xa6	; 0xa6 <I2C_Slave_Continue>
+            break;
+     344:	5e c0       	rjmp	.+188    	; 0x402 <__EEPROM_REGION_LENGTH__+0x2>
+
+        case 0xA0U:
+            I2C_Slave_FinalizeReception();
+     346:	0e 94 57 00 	call	0xae	; 0xae <I2C_Slave_FinalizeReception>
+            rx_index = 0U;
+     34a:	10 92 41 01 	sts	0x0141, r1	; 0x800141 <rx_index>
+            rx_overflow = 0U;
+     34e:	10 92 40 01 	sts	0x0140, r1	; 0x800140 <rx_overflow>
+            I2C_Slave_Continue();
+     352:	0e 94 53 00 	call	0xa6	; 0xa6 <I2C_Slave_Continue>
+            break;
+     356:	55 c0       	rjmp	.+170    	; 0x402 <__EEPROM_REGION_LENGTH__+0x2>
+
+        case 0xA8U:
+        case 0xB0U:
+            active_response_valid = response_ready;
+     358:	80 91 3c 01 	lds	r24, 0x013C	; 0x80013c <response_ready>
+     35c:	80 93 3b 01 	sts	0x013B, r24	; 0x80013b <active_response_valid>
+            for (index = 0U; index < I2C_FRAME_SIZE; index++)
+     360:	20 e0       	ldi	r18, 0x00	; 0
+     362:	11 c0       	rjmp	.+34     	; 0x386 <__vector_24+0x100>
+            {
+                active_response[index] = (active_response_valid != 0U) ?
+     364:	82 2f       	mov	r24, r18
+     366:	90 e0       	ldi	r25, 0x00	; 0
+     368:	30 91 3b 01 	lds	r19, 0x013B	; 0x80013b <active_response_valid>
+     36c:	33 23       	and	r19, r19
+     36e:	29 f0       	breq	.+10     	; 0x37a <__vector_24+0xf4>
+     370:	fc 01       	movw	r30, r24
+     372:	e6 5b       	subi	r30, 0xB6	; 182
+     374:	fe 4f       	sbci	r31, 0xFE	; 254
+     376:	30 81       	ld	r19, Z
+     378:	01 c0       	rjmp	.+2      	; 0x37c <__vector_24+0xf6>
+     37a:	30 e0       	ldi	r19, 0x00	; 0
+     37c:	fc 01       	movw	r30, r24
+     37e:	ee 5b       	subi	r30, 0xBE	; 190
+     380:	fe 4f       	sbci	r31, 0xFE	; 254
+     382:	30 83       	st	Z, r19
+            break;
+
+        case 0xA8U:
+        case 0xB0U:
+            active_response_valid = response_ready;
+            for (index = 0U; index < I2C_FRAME_SIZE; index++)
+     384:	2f 5f       	subi	r18, 0xFF	; 255
+     386:	28 30       	cpi	r18, 0x08	; 8
+     388:	68 f3       	brcs	.-38     	; 0x364 <__vector_24+0xde>
+            {
+                active_response[index] = (active_response_valid != 0U) ?
+                                         staged_response[index] : 0U;
+            }
+            tx_index = 1U;
+     38a:	81 e0       	ldi	r24, 0x01	; 1
+     38c:	80 93 3a 01 	sts	0x013A, r24	; 0x80013a <__data_end>
+            TWDR = active_response[0];
+     390:	80 91 42 01 	lds	r24, 0x0142	; 0x800142 <active_response>
+     394:	80 93 bb 00 	sts	0x00BB, r24	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
+            I2C_Slave_Continue();
+     398:	0e 94 53 00 	call	0xa6	; 0xa6 <I2C_Slave_Continue>
+            break;
+     39c:	32 c0       	rjmp	.+100    	; 0x402 <__EEPROM_REGION_LENGTH__+0x2>
+
+        case 0xB8U:
+            if (tx_index < I2C_FRAME_SIZE)
+     39e:	80 91 3a 01 	lds	r24, 0x013A	; 0x80013a <__data_end>
+     3a2:	88 30       	cpi	r24, 0x08	; 8
+     3a4:	70 f4       	brcc	.+28     	; 0x3c2 <__vector_24+0x13c>
+            {
+                TWDR = active_response[tx_index];
+     3a6:	e0 91 3a 01 	lds	r30, 0x013A	; 0x80013a <__data_end>
+     3aa:	f0 e0       	ldi	r31, 0x00	; 0
+     3ac:	ee 5b       	subi	r30, 0xBE	; 190
+     3ae:	fe 4f       	sbci	r31, 0xFE	; 254
+     3b0:	80 81       	ld	r24, Z
+     3b2:	80 93 bb 00 	sts	0x00BB, r24	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
+                tx_index++;
+     3b6:	80 91 3a 01 	lds	r24, 0x013A	; 0x80013a <__data_end>
+     3ba:	8f 5f       	subi	r24, 0xFF	; 255
+     3bc:	80 93 3a 01 	sts	0x013A, r24	; 0x80013a <__data_end>
+     3c0:	02 c0       	rjmp	.+4      	; 0x3c6 <__vector_24+0x140>
+            }
+            else
+            {
+                TWDR = 0U;
+     3c2:	10 92 bb 00 	sts	0x00BB, r1	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
+            }
+            I2C_Slave_Continue();
+     3c6:	0e 94 53 00 	call	0xa6	; 0xa6 <I2C_Slave_Continue>
+            break;
+     3ca:	1b c0       	rjmp	.+54     	; 0x402 <__EEPROM_REGION_LENGTH__+0x2>
+
+        case 0xC0U:
+        case 0xC8U:
+            if ((active_response_valid != 0U) &&
+     3cc:	80 91 3b 01 	lds	r24, 0x013B	; 0x80013b <active_response_valid>
+     3d0:	88 23       	and	r24, r24
+     3d2:	31 f0       	breq	.+12     	; 0x3e0 <__vector_24+0x15a>
+                (tx_index >= I2C_FRAME_SIZE))
+     3d4:	80 91 3a 01 	lds	r24, 0x013A	; 0x80013a <__data_end>
+            I2C_Slave_Continue();
+            break;
+
+        case 0xC0U:
+        case 0xC8U:
+            if ((active_response_valid != 0U) &&
+     3d8:	88 30       	cpi	r24, 0x08	; 8
+     3da:	10 f0       	brcs	.+4      	; 0x3e0 <__vector_24+0x15a>
+                (tx_index >= I2C_FRAME_SIZE))
+            {
+                response_ready = 0U;
+     3dc:	10 92 3c 01 	sts	0x013C, r1	; 0x80013c <response_ready>
+            }
+            active_response_valid = 0U;
+     3e0:	10 92 3b 01 	sts	0x013B, r1	; 0x80013b <active_response_valid>
+            tx_index = 0U;
+     3e4:	10 92 3a 01 	sts	0x013A, r1	; 0x80013a <__data_end>
+            I2C_Slave_Continue();
+     3e8:	0e 94 53 00 	call	0xa6	; 0xa6 <I2C_Slave_Continue>
+            break;
+     3ec:	0a c0       	rjmp	.+20     	; 0x402 <__EEPROM_REGION_LENGTH__+0x2>
+
+        default:
+            rx_index = 0U;
+     3ee:	10 92 41 01 	sts	0x0141, r1	; 0x800141 <rx_index>
+            rx_overflow = 0U;
+     3f2:	10 92 40 01 	sts	0x0140, r1	; 0x800140 <rx_overflow>
+            active_response_valid = 0U;
+     3f6:	10 92 3b 01 	sts	0x013B, r1	; 0x80013b <active_response_valid>
+            tx_index = 0U;
+     3fa:	10 92 3a 01 	sts	0x013A, r1	; 0x80013a <__data_end>
+            I2C_Slave_Continue();
+     3fe:	0e 94 53 00 	call	0xa6	; 0xa6 <I2C_Slave_Continue>
+            break;
+    }
+}
+     402:	ff 91       	pop	r31
+     404:	ef 91       	pop	r30
+     406:	bf 91       	pop	r27
+     408:	af 91       	pop	r26
+     40a:	9f 91       	pop	r25
+     40c:	8f 91       	pop	r24
+     40e:	7f 91       	pop	r23
+     410:	6f 91       	pop	r22
+     412:	5f 91       	pop	r21
+     414:	4f 91       	pop	r20
+     416:	3f 91       	pop	r19
+     418:	2f 91       	pop	r18
+     41a:	0f 90       	pop	r0
+     41c:	0f be       	out	0x3f, r0	; 63
+     41e:	0f 90       	pop	r0
+     420:	1f 90       	pop	r1
+     422:	18 95       	reti
+
+00000424 <InfraRojo_Init>:
 uint8_t InfraRojo_Init(volatile uint8_t *ddr,
                        volatile uint8_t *port,
                        volatile uint8_t *pin_register,
                        uint8_t pin,
                        uint8_t enable_pullup)
 {
- 184:	0f 93       	push	r16
+     424:	0f 93       	push	r16
     if ((ddr == NULL) || (port == NULL) ||
- 186:	00 97       	sbiw	r24, 0x00	; 0
- 188:	41 f0       	breq	.+16     	; 0x19a <InfraRojo_Init+0x16>
- 18a:	61 15       	cp	r22, r1
- 18c:	71 05       	cpc	r23, r1
- 18e:	29 f0       	breq	.+10     	; 0x19a <InfraRojo_Init+0x16>
- 190:	41 15       	cp	r20, r1
- 192:	51 05       	cpc	r21, r1
- 194:	11 f0       	breq	.+4      	; 0x19a <InfraRojo_Init+0x16>
+     426:	00 97       	sbiw	r24, 0x00	; 0
+     428:	41 f0       	breq	.+16     	; 0x43a <InfraRojo_Init+0x16>
+     42a:	61 15       	cp	r22, r1
+     42c:	71 05       	cpc	r23, r1
+     42e:	29 f0       	breq	.+10     	; 0x43a <InfraRojo_Init+0x16>
+     430:	41 15       	cp	r20, r1
+     432:	51 05       	cpc	r21, r1
+     434:	11 f0       	breq	.+4      	; 0x43a <InfraRojo_Init+0x16>
         (pin_register == NULL) || (pin > 7u))
- 196:	28 30       	cpi	r18, 0x08	; 8
- 198:	30 f0       	brcs	.+12     	; 0x1a6 <InfraRojo_Init+0x22>
+     436:	28 30       	cpi	r18, 0x08	; 8
+     438:	30 f0       	brcs	.+12     	; 0x446 <InfraRojo_Init+0x22>
     {
         infrared_pin_register = NULL;
- 19a:	10 92 3e 01 	sts	0x013E, r1	; 0x80013e <infrared_pin_register+0x1>
- 19e:	10 92 3d 01 	sts	0x013D, r1	; 0x80013d <infrared_pin_register>
+     43a:	10 92 6c 01 	sts	0x016C, r1	; 0x80016c <infrared_pin_register+0x1>
+     43e:	10 92 6b 01 	sts	0x016B, r1	; 0x80016b <infrared_pin_register>
         return 0u;
- 1a2:	80 e0       	ldi	r24, 0x00	; 0
- 1a4:	22 c0       	rjmp	.+68     	; 0x1ea <InfraRojo_Init+0x66>
+     442:	80 e0       	ldi	r24, 0x00	; 0
+     444:	22 c0       	rjmp	.+68     	; 0x48a <InfraRojo_Init+0x66>
     }
 
     infrared_pin_register = pin_register;
- 1a6:	50 93 3e 01 	sts	0x013E, r21	; 0x80013e <infrared_pin_register+0x1>
- 1aa:	40 93 3d 01 	sts	0x013D, r20	; 0x80013d <infrared_pin_register>
+     446:	50 93 6c 01 	sts	0x016C, r21	; 0x80016c <infrared_pin_register+0x1>
+     44a:	40 93 6b 01 	sts	0x016B, r20	; 0x80016b <infrared_pin_register>
     infrared_pin_mask = (uint8_t)(1u << pin);
- 1ae:	41 e0       	ldi	r20, 0x01	; 1
- 1b0:	50 e0       	ldi	r21, 0x00	; 0
- 1b2:	fa 01       	movw	r30, r20
- 1b4:	02 c0       	rjmp	.+4      	; 0x1ba <InfraRojo_Init+0x36>
- 1b6:	ee 0f       	add	r30, r30
- 1b8:	ff 1f       	adc	r31, r31
- 1ba:	2a 95       	dec	r18
- 1bc:	e2 f7       	brpl	.-8      	; 0x1b6 <InfraRojo_Init+0x32>
- 1be:	9f 01       	movw	r18, r30
- 1c0:	e0 93 3c 01 	sts	0x013C, r30	; 0x80013c <__data_end>
+     44e:	41 e0       	ldi	r20, 0x01	; 1
+     450:	50 e0       	ldi	r21, 0x00	; 0
+     452:	fa 01       	movw	r30, r20
+     454:	02 c0       	rjmp	.+4      	; 0x45a <InfraRojo_Init+0x36>
+     456:	ee 0f       	add	r30, r30
+     458:	ff 1f       	adc	r31, r31
+     45a:	2a 95       	dec	r18
+     45c:	e2 f7       	brpl	.-8      	; 0x456 <InfraRojo_Init+0x32>
+     45e:	9f 01       	movw	r18, r30
+     460:	e0 93 6a 01 	sts	0x016A, r30	; 0x80016a <infrared_pin_mask>
 
     *ddr &= (uint8_t)~infrared_pin_mask;
- 1c4:	fc 01       	movw	r30, r24
- 1c6:	40 81       	ld	r20, Z
- 1c8:	52 2f       	mov	r21, r18
- 1ca:	50 95       	com	r21
- 1cc:	45 23       	and	r20, r21
- 1ce:	40 83       	st	Z, r20
+     464:	fc 01       	movw	r30, r24
+     466:	40 81       	ld	r20, Z
+     468:	52 2f       	mov	r21, r18
+     46a:	50 95       	com	r21
+     46c:	45 23       	and	r20, r21
+     46e:	40 83       	st	Z, r20
     if (enable_pullup != 0u)
- 1d0:	00 23       	and	r16, r16
- 1d2:	31 f0       	breq	.+12     	; 0x1e0 <InfraRojo_Init+0x5c>
+     470:	00 23       	and	r16, r16
+     472:	31 f0       	breq	.+12     	; 0x480 <InfraRojo_Init+0x5c>
     {
         *port |= infrared_pin_mask;
- 1d4:	fb 01       	movw	r30, r22
- 1d6:	80 81       	ld	r24, Z
- 1d8:	28 2b       	or	r18, r24
- 1da:	20 83       	st	Z, r18
+     474:	fb 01       	movw	r30, r22
+     476:	80 81       	ld	r24, Z
+     478:	28 2b       	or	r18, r24
+     47a:	20 83       	st	Z, r18
     else
     {
         *port &= (uint8_t)~infrared_pin_mask;
     }
 
     return 1u;
- 1dc:	81 e0       	ldi	r24, 0x01	; 1
- 1de:	05 c0       	rjmp	.+10     	; 0x1ea <InfraRojo_Init+0x66>
+     47c:	81 e0       	ldi	r24, 0x01	; 1
+     47e:	05 c0       	rjmp	.+10     	; 0x48a <InfraRojo_Init+0x66>
     {
         *port |= infrared_pin_mask;
     }
     else
     {
         *port &= (uint8_t)~infrared_pin_mask;
- 1e0:	fb 01       	movw	r30, r22
- 1e2:	80 81       	ld	r24, Z
- 1e4:	58 23       	and	r21, r24
- 1e6:	50 83       	st	Z, r21
+     480:	fb 01       	movw	r30, r22
+     482:	80 81       	ld	r24, Z
+     484:	58 23       	and	r21, r24
+     486:	50 83       	st	Z, r21
     }
 
     return 1u;
- 1e8:	81 e0       	ldi	r24, 0x01	; 1
+     488:	81 e0       	ldi	r24, 0x01	; 1
 }
- 1ea:	0f 91       	pop	r16
- 1ec:	08 95       	ret
+     48a:	0f 91       	pop	r16
+     48c:	08 95       	ret
 
-000001ee <InfraRojo_ReadPinLevel>:
+0000048e <InfraRojo_ReadPinLevel>:
 
+// Devuelve 1 para nivel alto y 0 para nivel bajo, sin interpretarlo.
 uint8_t InfraRojo_ReadPinLevel(void)
 {
     if (infrared_pin_register == NULL)
- 1ee:	e0 91 3d 01 	lds	r30, 0x013D	; 0x80013d <infrared_pin_register>
- 1f2:	f0 91 3e 01 	lds	r31, 0x013E	; 0x80013e <infrared_pin_register+0x1>
- 1f6:	30 97       	sbiw	r30, 0x00	; 0
- 1f8:	39 f0       	breq	.+14     	; 0x208 <InfraRojo_ReadPinLevel+0x1a>
+     48e:	e0 91 6b 01 	lds	r30, 0x016B	; 0x80016b <infrared_pin_register>
+     492:	f0 91 6c 01 	lds	r31, 0x016C	; 0x80016c <infrared_pin_register+0x1>
+     496:	30 97       	sbiw	r30, 0x00	; 0
+     498:	39 f0       	breq	.+14     	; 0x4a8 <InfraRojo_ReadPinLevel+0x1a>
     {
         return 0u;
     }
 
     return ((*infrared_pin_register & infrared_pin_mask) != 0u) ?
- 1fa:	90 81       	ld	r25, Z
- 1fc:	80 91 3c 01 	lds	r24, 0x013C	; 0x80013c <__data_end>
- 200:	89 23       	and	r24, r25
- 202:	19 f0       	breq	.+6      	; 0x20a <InfraRojo_ReadPinLevel+0x1c>
- 204:	81 e0       	ldi	r24, 0x01	; 1
- 206:	08 95       	ret
-
+     49a:	90 81       	ld	r25, Z
+     49c:	80 91 6a 01 	lds	r24, 0x016A	; 0x80016a <infrared_pin_mask>
+     4a0:	89 23       	and	r24, r25
+     4a2:	19 f0       	breq	.+6      	; 0x4aa <InfraRojo_ReadPinLevel+0x1c>
+     4a4:	81 e0       	ldi	r24, 0x01	; 1
+     4a6:	08 95       	ret
+// Devuelve 1 para nivel alto y 0 para nivel bajo, sin interpretarlo.
 uint8_t InfraRojo_ReadPinLevel(void)
 {
     if (infrared_pin_register == NULL)
     {
         return 0u;
- 208:	80 e0       	ldi	r24, 0x00	; 0
+     4a8:	80 e0       	ldi	r24, 0x00	; 0
     }
 
     return ((*infrared_pin_register & infrared_pin_mask) != 0u) ?
            1u : 0u;
 }
- 20a:	08 95       	ret
+     4aa:	08 95       	ret
 
-0000020c <Slave2_UpdateResponse>:
-static volatile uint8_t slave2_command_pending = 0U;
-
-static void Slave2_UpdateResponse(uint8_t status,
-                                  uint8_t infrared_level,
-                                  const StepperState *stepper_state)
-{
- 20c:	da 01       	movw	r26, r20
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
- 20e:	2f b7       	in	r18, 0x3f	; 63
-    return 1;
+000004ac <Slave2_UpdateSensor>:
 }
 
-static __inline__ uint8_t __iCliRetVal(void)
+// Actualiza periodicamente la muestra infrarroja.
+static void Slave2_UpdateSensor(void)
 {
-    cli();
- 210:	f8 94       	cli
- 212:	91 e0       	ldi	r25, 0x01	; 1
- 214:	0b c0       	rjmp	.+22     	; 0x22c <Slave2_UpdateResponse+0x20>
+    infrared_sample.valid = infrared_initialized;
+     4ac:	80 91 6f 01 	lds	r24, 0x016F	; 0x80016f <infrared_initialized>
+     4b0:	80 93 00 01 	sts	0x0100, r24	; 0x800100 <__DATA_REGION_ORIGIN__>
+    if (infrared_initialized != 0U)
+     4b4:	88 23       	and	r24, r24
+     4b6:	21 f0       	breq	.+8      	; 0x4c0 <Slave2_UpdateSensor+0x14>
     {
-        slave2_tx_buffer[0] = status;
- 216:	e0 e0       	ldi	r30, 0x00	; 0
- 218:	f1 e0       	ldi	r31, 0x01	; 1
- 21a:	80 83       	st	Z, r24
-        slave2_tx_buffer[1] = infrared_level;
- 21c:	61 83       	std	Z+1, r22	; 0x01
-        slave2_tx_buffer[2] = stepper_state->running;
- 21e:	15 96       	adiw	r26, 0x05	; 5
- 220:	9c 91       	ld	r25, X
- 222:	15 97       	sbiw	r26, 0x05	; 5
- 224:	92 83       	std	Z+2, r25	; 0x02
-        slave2_tx_buffer[3] = (uint8_t)stepper_state->direction;
- 226:	9c 91       	ld	r25, X
- 228:	93 83       	std	Z+3, r25	; 0x03
-
-static void Slave2_UpdateResponse(uint8_t status,
-                                  uint8_t infrared_level,
-                                  const StepperState *stepper_state)
-{
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
- 22a:	90 e0       	ldi	r25, 0x00	; 0
- 22c:	91 11       	cpse	r25, r1
- 22e:	f3 cf       	rjmp	.-26     	; 0x216 <Slave2_UpdateResponse+0xa>
-    (void)__s;
-}
-
-static __inline__ void __iRestore(const  uint8_t *__s)
-{
-    SREG = *__s;
- 230:	2f bf       	out	0x3f, r18	; 63
-    __asm__ volatile ("" ::: "memory");
- 232:	08 95       	ret
-
-00000234 <Slave2_ExecutePendingCommand>:
-static void Slave2_ExecutePendingCommand(void)
-{
-    uint8_t command = 0U;
-    uint8_t has_command = 0U;
-
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
- 234:	4f b7       	in	r20, 0x3f	; 63
-    return 1;
-}
-
-static __inline__ uint8_t __iCliRetVal(void)
-{
-    cli();
- 236:	f8 94       	cli
- 238:	81 e0       	ldi	r24, 0x01	; 1
-}
-
-static void Slave2_ExecutePendingCommand(void)
-{
-    uint8_t command = 0U;
-    uint8_t has_command = 0U;
- 23a:	30 e0       	ldi	r19, 0x00	; 0
+        infrared_sample.raw_level = InfraRojo_ReadPinLevel();
+     4b8:	0e 94 47 02 	call	0x48e	; 0x48e <InfraRojo_ReadPinLevel>
+     4bc:	80 93 01 01 	sts	0x0101, r24	; 0x800101 <__DATA_REGION_ORIGIN__+0x1>
     }
+    // El contador permite al Master distinguir una muestra nueva.
+    infrared_sample.counter++;
+     4c0:	e0 e0       	ldi	r30, 0x00	; 0
+     4c2:	f1 e0       	ldi	r31, 0x01	; 1
+     4c4:	82 81       	ldd	r24, Z+2	; 0x02
+     4c6:	8f 5f       	subi	r24, 0xFF	; 255
+     4c8:	82 83       	std	Z+2, r24	; 0x02
+     4ca:	08 95       	ret
+
+000004cc <Slave2_SendResponse>:
+/****************************************/
+// NON-Interrupt subroutines
+
+// Codifica y publica una respuesta I2C.
+static uint8_t Slave2_SendResponse(const ProtocolResponse *response)
+{
+     4cc:	cf 93       	push	r28
+     4ce:	df 93       	push	r29
+     4d0:	cd b7       	in	r28, 0x3d	; 61
+     4d2:	de b7       	in	r29, 0x3e	; 62
+     4d4:	28 97       	sbiw	r28, 0x08	; 8
+     4d6:	0f b6       	in	r0, 0x3f	; 63
+     4d8:	f8 94       	cli
+     4da:	de bf       	out	0x3e, r29	; 62
+     4dc:	0f be       	out	0x3f, r0	; 63
+     4de:	cd bf       	out	0x3d, r28	; 61
+    uint8_t frame[PROTOCOL_FRAME_SIZE];
+
+    Protocol_EncodeResponse(response, frame);
+     4e0:	be 01       	movw	r22, r28
+     4e2:	6f 5f       	subi	r22, 0xFF	; 255
+     4e4:	7f 4f       	sbci	r23, 0xFF	; 255
+     4e6:	0e 94 6c 05 	call	0xad8	; 0xad8 <Protocol_EncodeResponse>
+    return I2C_Slave_SetResponse(frame);
+     4ea:	ce 01       	movw	r24, r28
+     4ec:	01 96       	adiw	r24, 0x01	; 1
+     4ee:	0e 94 1a 01 	call	0x234	; 0x234 <I2C_Slave_SetResponse>
+}
+     4f2:	28 96       	adiw	r28, 0x08	; 8
+     4f4:	0f b6       	in	r0, 0x3f	; 63
+     4f6:	f8 94       	cli
+     4f8:	de bf       	out	0x3e, r29	; 62
+     4fa:	0f be       	out	0x3f, r0	; 63
+     4fc:	cd bf       	out	0x3d, r28	; 61
+     4fe:	df 91       	pop	r29
+     500:	cf 91       	pop	r28
+     502:	08 95       	ret
+
+00000504 <Slave2_SendStatus>:
+
+// Responde unicamente con un estado Protocol.
+static uint8_t Slave2_SendStatus(const ProtocolRequest *request,
+                                 ProtocolStatus status)
+{
+     504:	ef 92       	push	r14
+     506:	ff 92       	push	r15
+     508:	0f 93       	push	r16
+     50a:	cf 93       	push	r28
+     50c:	df 93       	push	r29
+     50e:	cd b7       	in	r28, 0x3d	; 61
+     510:	de b7       	in	r29, 0x3e	; 62
+     512:	28 97       	sbiw	r28, 0x08	; 8
+     514:	0f b6       	in	r0, 0x3f	; 63
+     516:	f8 94       	cli
+     518:	de bf       	out	0x3e, r29	; 62
+     51a:	0f be       	out	0x3f, r0	; 63
+     51c:	cd bf       	out	0x3d, r28	; 61
+     51e:	26 2f       	mov	r18, r22
+    ProtocolResponse response;
+
+    (void)Protocol_CreateResponse(&response,
+     520:	fc 01       	movw	r30, r24
+     522:	41 81       	ldd	r20, Z+1	; 0x01
+     524:	60 81       	ld	r22, Z
+     526:	e1 2c       	mov	r14, r1
+     528:	f1 2c       	mov	r15, r1
+     52a:	00 e0       	ldi	r16, 0x00	; 0
+     52c:	ce 01       	movw	r24, r28
+     52e:	01 96       	adiw	r24, 0x01	; 1
+     530:	0e 94 2e 05 	call	0xa5c	; 0xa5c <Protocol_CreateResponse>
+                                  request->command,
+                                  request->device,
+                                  status,
+                                  0U,
+                                  0);
+    return Slave2_SendResponse(&response);
+     534:	ce 01       	movw	r24, r28
+     536:	01 96       	adiw	r24, 0x01	; 1
+     538:	0e 94 66 02 	call	0x4cc	; 0x4cc <Slave2_SendResponse>
+}
+     53c:	28 96       	adiw	r28, 0x08	; 8
+     53e:	0f b6       	in	r0, 0x3f	; 63
+     540:	f8 94       	cli
+     542:	de bf       	out	0x3e, r29	; 62
+     544:	0f be       	out	0x3f, r0	; 63
+     546:	cd bf       	out	0x3d, r28	; 61
+     548:	df 91       	pop	r29
+     54a:	cf 91       	pop	r28
+     54c:	0f 91       	pop	r16
+     54e:	ff 90       	pop	r15
+     550:	ef 90       	pop	r14
+     552:	08 95       	ret
+
+00000554 <Slave2_HandleSensorRead>:
+    (void)Slave2_SendResponse(&response);
 }
 
-static void Slave2_ExecutePendingCommand(void)
+// Entrega la ultima muestra cruda del sensor IR.
+static void Slave2_HandleSensorRead(const ProtocolRequest *request)
 {
-    uint8_t command = 0U;
- 23c:	20 e0       	ldi	r18, 0x00	; 0
-    uint8_t has_command = 0U;
+     554:	ef 92       	push	r14
+     556:	ff 92       	push	r15
+     558:	0f 93       	push	r16
+     55a:	cf 93       	push	r28
+     55c:	df 93       	push	r29
+     55e:	cd b7       	in	r28, 0x3d	; 61
+     560:	de b7       	in	r29, 0x3e	; 62
+     562:	2c 97       	sbiw	r28, 0x0c	; 12
+     564:	0f b6       	in	r0, 0x3f	; 63
+     566:	f8 94       	cli
+     568:	de bf       	out	0x3e, r29	; 62
+     56a:	0f be       	out	0x3f, r0	; 63
+     56c:	cd bf       	out	0x3d, r28	; 61
+    ProtocolResponse response;
+    uint8_t data[PROTOCOL_RESPONSE_DATA_SIZE];
+    ProtocolStatus status;
 
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
- 23e:	0a c0       	rjmp	.+20     	; 0x254 <Slave2_ExecutePendingCommand+0x20>
+    if (request->device != (uint8_t)IR)
+     56e:	fc 01       	movw	r30, r24
+     570:	21 81       	ldd	r18, Z+1	; 0x01
+     572:	22 30       	cpi	r18, 0x02	; 2
+     574:	21 f0       	breq	.+8      	; 0x57e <Slave2_HandleSensorRead+0x2a>
     {
-        if (slave2_command_pending != 0U)
- 240:	90 91 3f 01 	lds	r25, 0x013F	; 0x80013f <slave2_command_pending>
-static void Slave2_ExecutePendingCommand(void)
-{
-    uint8_t command = 0U;
-    uint8_t has_command = 0U;
-
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
- 244:	80 e0       	ldi	r24, 0x00	; 0
-    {
-        if (slave2_command_pending != 0U)
- 246:	99 23       	and	r25, r25
- 248:	29 f0       	breq	.+10     	; 0x254 <Slave2_ExecutePendingCommand+0x20>
-        {
-            command = slave2_command;
- 24a:	20 91 40 01 	lds	r18, 0x0140	; 0x800140 <slave2_command>
-            slave2_command_pending = 0U;
- 24e:	10 92 3f 01 	sts	0x013F, r1	; 0x80013f <slave2_command_pending>
-            has_command = 1U;
- 252:	31 e0       	ldi	r19, 0x01	; 1
-static void Slave2_ExecutePendingCommand(void)
-{
-    uint8_t command = 0U;
-    uint8_t has_command = 0U;
-
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
- 254:	81 11       	cpse	r24, r1
- 256:	f4 cf       	rjmp	.-24     	; 0x240 <Slave2_ExecutePendingCommand+0xc>
-    (void)__s;
-}
-
-static __inline__ void __iRestore(const  uint8_t *__s)
-{
-    SREG = *__s;
- 258:	4f bf       	out	0x3f, r20	; 63
-            slave2_command_pending = 0U;
-            has_command = 1U;
-        }
+        (void)Slave2_SendStatus(request, UNKNOWN_DEVICE);
+     576:	64 e0       	ldi	r22, 0x04	; 4
+     578:	0e 94 82 02 	call	0x504	; 0x504 <Slave2_SendStatus>
+     57c:	1c c0       	rjmp	.+56     	; 0x5b6 <Slave2_HandleSensorRead+0x62>
+        return;
     }
 
-    if (has_command == 0U)
- 25a:	33 23       	and	r19, r19
- 25c:	d9 f0       	breq	.+54     	; 0x294 <Slave2_ExecutePendingCommand+0x60>
+    data[0] = infrared_sample.valid;
+     57e:	e0 e0       	ldi	r30, 0x00	; 0
+     580:	f1 e0       	ldi	r31, 0x01	; 1
+     582:	20 81       	ld	r18, Z
+     584:	29 87       	std	Y+9, r18	; 0x09
+    data[1] = infrared_sample.raw_level;
+     586:	31 81       	ldd	r19, Z+1	; 0x01
+     588:	3a 87       	std	Y+10, r19	; 0x0a
+    data[2] = 0U;
+     58a:	1b 86       	std	Y+11, r1	; 0x0b
+    data[3] = infrared_sample.counter;
+     58c:	32 81       	ldd	r19, Z+2	; 0x02
+     58e:	3c 87       	std	Y+12, r19	; 0x0c
+    status = (infrared_sample.valid != 0U) ? OK : NO_SAMPLE;
+     590:	22 23       	and	r18, r18
+     592:	11 f0       	breq	.+4      	; 0x598 <Slave2_HandleSensorRead+0x44>
+     594:	20 e0       	ldi	r18, 0x00	; 0
+     596:	01 c0       	rjmp	.+2      	; 0x59a <Slave2_HandleSensorRead+0x46>
+     598:	27 e0       	ldi	r18, 0x07	; 7
+
+    (void)Protocol_CreateResponse(&response,
+     59a:	fc 01       	movw	r30, r24
+     59c:	41 81       	ldd	r20, Z+1	; 0x01
+     59e:	60 81       	ld	r22, Z
+     5a0:	ce 01       	movw	r24, r28
+     5a2:	09 96       	adiw	r24, 0x09	; 9
+     5a4:	7c 01       	movw	r14, r24
+     5a6:	04 e0       	ldi	r16, 0x04	; 4
+     5a8:	08 97       	sbiw	r24, 0x08	; 8
+     5aa:	0e 94 2e 05 	call	0xa5c	; 0xa5c <Protocol_CreateResponse>
+                                  request->command,
+                                  request->device,
+                                  status,
+                                  PROTOCOL_RESPONSE_DATA_SIZE,
+                                  data);
+    (void)Slave2_SendResponse(&response);
+     5ae:	ce 01       	movw	r24, r28
+     5b0:	01 96       	adiw	r24, 0x01	; 1
+     5b2:	0e 94 66 02 	call	0x4cc	; 0x4cc <Slave2_SendResponse>
+}
+     5b6:	2c 96       	adiw	r28, 0x0c	; 12
+     5b8:	0f b6       	in	r0, 0x3f	; 63
+     5ba:	f8 94       	cli
+     5bc:	de bf       	out	0x3e, r29	; 62
+     5be:	0f be       	out	0x3f, r0	; 63
+     5c0:	cd bf       	out	0x3d, r28	; 61
+     5c2:	df 91       	pop	r29
+     5c4:	cf 91       	pop	r28
+     5c6:	0f 91       	pop	r16
+     5c8:	ff 90       	pop	r15
+     5ca:	ef 90       	pop	r14
+     5cc:	08 95       	ret
+
+000005ce <Slave2_HandlePing>:
+    return Slave2_SendResponse(&response);
+}
+
+// Devuelve el estado local solicitado.
+static void Slave2_HandlePing(const ProtocolRequest *request)
+{
+     5ce:	ef 92       	push	r14
+     5d0:	ff 92       	push	r15
+     5d2:	0f 93       	push	r16
+     5d4:	cf 93       	push	r28
+     5d6:	df 93       	push	r29
+     5d8:	cd b7       	in	r28, 0x3d	; 61
+     5da:	de b7       	in	r29, 0x3e	; 62
+     5dc:	63 97       	sbiw	r28, 0x13	; 19
+     5de:	0f b6       	in	r0, 0x3f	; 63
+     5e0:	f8 94       	cli
+     5e2:	de bf       	out	0x3e, r29	; 62
+     5e4:	0f be       	out	0x3f, r0	; 63
+     5e6:	cd bf       	out	0x3d, r28	; 61
+     5e8:	7c 01       	movw	r14, r24
+    ProtocolResponse response;
+    StepperState stepper_state;
+    uint8_t data[PROTOCOL_RESPONSE_DATA_SIZE] = {0U, 0U, 0U, 0U};
+     5ea:	18 8a       	std	Y+16, r1	; 0x10
+     5ec:	19 8a       	std	Y+17, r1	; 0x11
+     5ee:	1a 8a       	std	Y+18, r1	; 0x12
+     5f0:	1b 8a       	std	Y+19, r1	; 0x13
+    uint8_t length = 0U;
+    ProtocolStatus status = OK;
+
+    switch ((ProtocolDevice)request->device)
+     5f2:	fc 01       	movw	r30, r24
+     5f4:	81 81       	ldd	r24, Z+1	; 0x01
+     5f6:	84 30       	cpi	r24, 0x04	; 4
+     5f8:	f1 f0       	breq	.+60     	; 0x636 <Slave2_HandlePing+0x68>
+     5fa:	18 f4       	brcc	.+6      	; 0x602 <Slave2_HandlePing+0x34>
+     5fc:	82 30       	cpi	r24, 0x02	; 2
+     5fe:	29 f0       	breq	.+10     	; 0x60a <Slave2_HandlePing+0x3c>
+     600:	24 c0       	rjmp	.+72     	; 0x64a <Slave2_HandlePing+0x7c>
+     602:	86 30       	cpi	r24, 0x06	; 6
+     604:	29 f0       	breq	.+10     	; 0x610 <Slave2_HandlePing+0x42>
+     606:	8f 37       	cpi	r24, 0x7F	; 127
+     608:	01 f5       	brne	.+64     	; 0x64a <Slave2_HandlePing+0x7c>
+{
+    ProtocolResponse response;
+    StepperState stepper_state;
+    uint8_t data[PROTOCOL_RESPONSE_DATA_SIZE] = {0U, 0U, 0U, 0U};
+    uint8_t length = 0U;
+    ProtocolStatus status = OK;
+     60a:	20 e0       	ldi	r18, 0x00	; 0
+static void Slave2_HandlePing(const ProtocolRequest *request)
+{
+    ProtocolResponse response;
+    StepperState stepper_state;
+    uint8_t data[PROTOCOL_RESPONSE_DATA_SIZE] = {0U, 0U, 0U, 0U};
+    uint8_t length = 0U;
+     60c:	00 e0       	ldi	r16, 0x00	; 0
+     60e:	25 c0       	rjmp	.+74     	; 0x65a <Slave2_HandlePing+0x8c>
+        case IR:
+        case ALL_LOCAL_ACTUATORS:
+            break;
+
+        case STEPPER:
+            if (stepper_initialized == 0U)
+     610:	80 91 6e 01 	lds	r24, 0x016E	; 0x80016e <stepper_initialized>
+     614:	88 23       	and	r24, r24
+     616:	e1 f0       	breq	.+56     	; 0x650 <Slave2_HandlePing+0x82>
+            {
+                status = UNSUPPORTED;
+                break;
+            }
+
+            Stepper_GetState(&stepper_state);
+     618:	ce 01       	movw	r24, r28
+     61a:	09 96       	adiw	r24, 0x09	; 9
+     61c:	0e 94 06 08 	call	0x100c	; 0x100c <Stepper_GetState>
+            data[0] = stepper_state.running;
+     620:	8e 85       	ldd	r24, Y+14	; 0x0e
+     622:	88 8b       	std	Y+16, r24	; 0x10
+            data[1] = (uint8_t)stepper_state.direction;
+     624:	89 85       	ldd	r24, Y+9	; 0x09
+     626:	89 8b       	std	Y+17, r24	; 0x11
+            data[2] = (uint8_t)(stepper_state.remaining_steps >> 8U);
+     628:	8c 85       	ldd	r24, Y+12	; 0x0c
+     62a:	9d 85       	ldd	r25, Y+13	; 0x0d
+     62c:	9a 8b       	std	Y+18, r25	; 0x12
+            data[3] = (uint8_t)stepper_state.remaining_steps;
+     62e:	8b 8b       	std	Y+19, r24	; 0x13
+{
+    ProtocolResponse response;
+    StepperState stepper_state;
+    uint8_t data[PROTOCOL_RESPONSE_DATA_SIZE] = {0U, 0U, 0U, 0U};
+    uint8_t length = 0U;
+    ProtocolStatus status = OK;
+     630:	20 e0       	ldi	r18, 0x00	; 0
+            Stepper_GetState(&stepper_state);
+            data[0] = stepper_state.running;
+            data[1] = (uint8_t)stepper_state.direction;
+            data[2] = (uint8_t)(stepper_state.remaining_steps >> 8U);
+            data[3] = (uint8_t)stepper_state.remaining_steps;
+            length = PROTOCOL_RESPONSE_DATA_SIZE;
+     632:	04 e0       	ldi	r16, 0x04	; 4
+            break;
+     634:	12 c0       	rjmp	.+36     	; 0x65a <Slave2_HandlePing+0x8c>
+
+        case SERVO_DOOR:
+            if (servo_door_initialized == 0U)
+     636:	80 91 6d 01 	lds	r24, 0x016D	; 0x80016d <servo_door_initialized>
+     63a:	88 23       	and	r24, r24
+     63c:	61 f0       	breq	.+24     	; 0x656 <Slave2_HandlePing+0x88>
+            {
+                status = UNSUPPORTED;
+                break;
+            }
+
+            data[0] = Servo_GetAngle();
+     63e:	0e 94 3a 06 	call	0xc74	; 0xc74 <Servo_GetAngle>
+     642:	88 8b       	std	Y+16, r24	; 0x10
+{
+    ProtocolResponse response;
+    StepperState stepper_state;
+    uint8_t data[PROTOCOL_RESPONSE_DATA_SIZE] = {0U, 0U, 0U, 0U};
+    uint8_t length = 0U;
+    ProtocolStatus status = OK;
+     644:	20 e0       	ldi	r18, 0x00	; 0
+                status = UNSUPPORTED;
+                break;
+            }
+
+            data[0] = Servo_GetAngle();
+            length = 1U;
+     646:	01 e0       	ldi	r16, 0x01	; 1
+            break;
+     648:	08 c0       	rjmp	.+16     	; 0x65a <Slave2_HandlePing+0x8c>
+
+        case HCSR04:
+        case SERVO_WATER:
+        case DC_MOTOR:
+        default:
+            status = UNKNOWN_DEVICE;
+     64a:	24 e0       	ldi	r18, 0x04	; 4
+static void Slave2_HandlePing(const ProtocolRequest *request)
+{
+    ProtocolResponse response;
+    StepperState stepper_state;
+    uint8_t data[PROTOCOL_RESPONSE_DATA_SIZE] = {0U, 0U, 0U, 0U};
+    uint8_t length = 0U;
+     64c:	00 e0       	ldi	r16, 0x00	; 0
+     64e:	05 c0       	rjmp	.+10     	; 0x65a <Slave2_HandlePing+0x8c>
+            break;
+
+        case STEPPER:
+            if (stepper_initialized == 0U)
+            {
+                status = UNSUPPORTED;
+     650:	28 e0       	ldi	r18, 0x08	; 8
+static void Slave2_HandlePing(const ProtocolRequest *request)
+{
+    ProtocolResponse response;
+    StepperState stepper_state;
+    uint8_t data[PROTOCOL_RESPONSE_DATA_SIZE] = {0U, 0U, 0U, 0U};
+    uint8_t length = 0U;
+     652:	00 e0       	ldi	r16, 0x00	; 0
+     654:	02 c0       	rjmp	.+4      	; 0x65a <Slave2_HandlePing+0x8c>
+            break;
+
+        case SERVO_DOOR:
+            if (servo_door_initialized == 0U)
+            {
+                status = UNSUPPORTED;
+     656:	28 e0       	ldi	r18, 0x08	; 8
+static void Slave2_HandlePing(const ProtocolRequest *request)
+{
+    ProtocolResponse response;
+    StepperState stepper_state;
+    uint8_t data[PROTOCOL_RESPONSE_DATA_SIZE] = {0U, 0U, 0U, 0U};
+    uint8_t length = 0U;
+     658:	00 e0       	ldi	r16, 0x00	; 0
+        default:
+            status = UNKNOWN_DEVICE;
+            break;
+    }
+
+    (void)Protocol_CreateResponse(&response,
+     65a:	f7 01       	movw	r30, r14
+     65c:	41 81       	ldd	r20, Z+1	; 0x01
+     65e:	60 81       	ld	r22, Z
+     660:	ce 01       	movw	r24, r28
+     662:	40 96       	adiw	r24, 0x10	; 16
+     664:	7c 01       	movw	r14, r24
+     666:	0f 97       	sbiw	r24, 0x0f	; 15
+     668:	0e 94 2e 05 	call	0xa5c	; 0xa5c <Protocol_CreateResponse>
+                                  request->command,
+                                  request->device,
+                                  status,
+                                  length,
+                                  data);
+    (void)Slave2_SendResponse(&response);
+     66c:	ce 01       	movw	r24, r28
+     66e:	01 96       	adiw	r24, 0x01	; 1
+     670:	0e 94 66 02 	call	0x4cc	; 0x4cc <Slave2_SendResponse>
+}
+     674:	63 96       	adiw	r28, 0x13	; 19
+     676:	0f b6       	in	r0, 0x3f	; 63
+     678:	f8 94       	cli
+     67a:	de bf       	out	0x3e, r29	; 62
+     67c:	0f be       	out	0x3f, r0	; 63
+     67e:	cd bf       	out	0x3d, r28	; 61
+     680:	df 91       	pop	r29
+     682:	cf 91       	pop	r28
+     684:	0f 91       	pop	r16
+     686:	ff 90       	pop	r15
+     688:	ef 90       	pop	r14
+     68a:	08 95       	ret
+
+0000068c <Slave2_HandleStepperMove>:
+    (void)Slave2_SendResponse(&response);
+}
+
+// Ejecuta el movimiento solicitado al stepper.
+static void Slave2_HandleStepperMove(const ProtocolRequest *request)
+{
+     68c:	cf 93       	push	r28
+     68e:	df 93       	push	r29
+     690:	ec 01       	movw	r28, r24
+    uint16_t steps;
+    uint16_t speed;
+    StepperDirection direction;
+
+    if (stepper_initialized == 0U)
+     692:	80 91 6e 01 	lds	r24, 0x016E	; 0x80016e <stepper_initialized>
+     696:	81 11       	cpse	r24, r1
+     698:	05 c0       	rjmp	.+10     	; 0x6a4 <Slave2_HandleStepperMove+0x18>
+    {
+        (void)Slave2_SendStatus(request, UNSUPPORTED);
+     69a:	68 e0       	ldi	r22, 0x08	; 8
+     69c:	ce 01       	movw	r24, r28
+     69e:	0e 94 82 02 	call	0x504	; 0x504 <Slave2_SendStatus>
+        return;
+     6a2:	21 c0       	rjmp	.+66     	; 0x6e6 <Slave2_HandleStepperMove+0x5a>
+    }
+
+    if (Slave2_SendStatus(request, ACCEPTED) == 0U)
+     6a4:	61 e0       	ldi	r22, 0x01	; 1
+     6a6:	ce 01       	movw	r24, r28
+     6a8:	0e 94 82 02 	call	0x504	; 0x504 <Slave2_SendStatus>
+     6ac:	88 23       	and	r24, r24
+     6ae:	d9 f0       	breq	.+54     	; 0x6e6 <Slave2_HandleStepperMove+0x5a>
     {
         return;
     }
 
-    if ((command == (uint8_t)SLAVE2_CMD_STEPPER_FORWARD) ||
- 25e:	26 36       	cpi	r18, 0x66	; 102
- 260:	11 f0       	breq	.+4      	; 0x266 <Slave2_ExecutePendingCommand+0x32>
- 262:	26 34       	cpi	r18, 0x46	; 70
- 264:	31 f4       	brne	.+12     	; 0x272 <Slave2_ExecutePendingCommand+0x3e>
-        (command == (uint8_t)'F'))
-    {
-        (void)Stepper_RunContinuous(
- 266:	64 ef       	ldi	r22, 0xF4	; 244
- 268:	71 e0       	ldi	r23, 0x01	; 1
- 26a:	81 e0       	ldi	r24, 0x01	; 1
- 26c:	0e 94 56 03 	call	0x6ac	; 0x6ac <Stepper_RunContinuous>
- 270:	08 95       	ret
-            STEPPER_DIRECTION_FORWARD,
-            SLAVE2_STEPS_PER_SECOND);
+    direction = (request->data[0] ==
+     6b0:	9b 81       	ldd	r25, Y+3	; 0x03
+                 (uint8_t)PROTOCOL_DIRECTION_FORWARD) ?
+                STEPPER_DIRECTION_FORWARD : STEPPER_DIRECTION_REVERSE;
+     6b2:	81 e0       	ldi	r24, 0x01	; 1
+     6b4:	91 30       	cpi	r25, 0x01	; 1
+     6b6:	09 f0       	breq	.+2      	; 0x6ba <Slave2_HandleStepperMove+0x2e>
+     6b8:	80 e0       	ldi	r24, 0x00	; 0
+    steps = ((uint16_t)request->data[1] << 8U) |
+     6ba:	2c 81       	ldd	r18, Y+4	; 0x04
+     6bc:	30 e0       	ldi	r19, 0x00	; 0
+     6be:	32 2f       	mov	r19, r18
+     6c0:	22 27       	eor	r18, r18
+            (uint16_t)request->data[2];
+     6c2:	9d 81       	ldd	r25, Y+5	; 0x05
     }
-    else if ((command == (uint8_t)SLAVE2_CMD_STEPPER_REVERSE) ||
- 272:	22 36       	cpi	r18, 0x62	; 98
- 274:	11 f0       	breq	.+4      	; 0x27a <Slave2_ExecutePendingCommand+0x46>
- 276:	22 34       	cpi	r18, 0x42	; 66
- 278:	31 f4       	brne	.+12     	; 0x286 <Slave2_ExecutePendingCommand+0x52>
-             (command == (uint8_t)'B'))
-    {
-        (void)Stepper_RunContinuous(
- 27a:	64 ef       	ldi	r22, 0xF4	; 244
- 27c:	71 e0       	ldi	r23, 0x01	; 1
- 27e:	80 e0       	ldi	r24, 0x00	; 0
- 280:	0e 94 56 03 	call	0x6ac	; 0x6ac <Stepper_RunContinuous>
- 284:	08 95       	ret
-            STEPPER_DIRECTION_REVERSE,
-            SLAVE2_STEPS_PER_SECOND);
-    }
-    else if ((command == (uint8_t)SLAVE2_CMD_STEPPER_STOP) ||
- 286:	28 37       	cpi	r18, 0x78	; 120
- 288:	11 f0       	breq	.+4      	; 0x28e <Slave2_ExecutePendingCommand+0x5a>
- 28a:	28 35       	cpi	r18, 0x58	; 88
- 28c:	19 f4       	brne	.+6      	; 0x294 <Slave2_ExecutePendingCommand+0x60>
-             (command == (uint8_t)'X'))
-    {
-        Stepper_Stop(1U);
- 28e:	81 e0       	ldi	r24, 0x01	; 1
- 290:	0e 94 5d 03 	call	0x6ba	; 0x6ba <Stepper_Stop>
- 294:	08 95       	ret
 
-00000296 <main>:
+    direction = (request->data[0] ==
+                 (uint8_t)PROTOCOL_DIRECTION_FORWARD) ?
+                STEPPER_DIRECTION_FORWARD : STEPPER_DIRECTION_REVERSE;
+    steps = ((uint16_t)request->data[1] << 8U) |
+     6c4:	b9 01       	movw	r22, r18
+     6c6:	69 2b       	or	r22, r25
+            (uint16_t)request->data[2];
+    speed = ((uint16_t)request->data[3] << 8U) |
+     6c8:	4e 81       	ldd	r20, Y+6	; 0x06
+     6ca:	50 e0       	ldi	r21, 0x00	; 0
+     6cc:	54 2f       	mov	r21, r20
+     6ce:	44 27       	eor	r20, r20
+            (uint16_t)request->data[4];
+     6d0:	9f 81       	ldd	r25, Y+7	; 0x07
+    direction = (request->data[0] ==
+                 (uint8_t)PROTOCOL_DIRECTION_FORWARD) ?
+                STEPPER_DIRECTION_FORWARD : STEPPER_DIRECTION_REVERSE;
+    steps = ((uint16_t)request->data[1] << 8U) |
+            (uint16_t)request->data[2];
+    speed = ((uint16_t)request->data[3] << 8U) |
+     6d2:	49 2b       	or	r20, r25
+            (uint16_t)request->data[4];
+
+    if (steps == 0U)
+     6d4:	61 15       	cp	r22, r1
+     6d6:	71 05       	cpc	r23, r1
+     6d8:	21 f4       	brne	.+8      	; 0x6e2 <Slave2_HandleStepperMove+0x56>
+    {
+        (void)Stepper_RunContinuous(direction, speed);
+     6da:	ba 01       	movw	r22, r20
+     6dc:	0e 94 da 07 	call	0xfb4	; 0xfb4 <Stepper_RunContinuous>
+     6e0:	02 c0       	rjmp	.+4      	; 0x6e6 <Slave2_HandleStepperMove+0x5a>
+    }
+    else
+    {
+        (void)Stepper_Move(direction, steps, speed);
+     6e2:	0e 94 e1 07 	call	0xfc2	; 0xfc2 <Stepper_Move>
     }
 }
+     6e6:	df 91       	pop	r29
+     6e8:	cf 91       	pop	r28
+     6ea:	08 95       	ret
 
+000006ec <Slave2_HandleValidatedRequest>:
+
+// Ejecuta una solicitud Protocol ya validada.
+static void Slave2_HandleValidatedRequest(const ProtocolRequest *request)
+{
+     6ec:	cf 93       	push	r28
+     6ee:	df 93       	push	r29
+     6f0:	ec 01       	movw	r28, r24
+    // Selecciona sensor o actuador sin ejecutar trabajo dentro de la ISR TWI.
+    switch ((ProtocolCommand)request->command)
+     6f2:	88 81       	ld	r24, Y
+     6f4:	83 30       	cpi	r24, 0x03	; 3
+     6f6:	a1 f0       	breq	.+40     	; 0x720 <Slave2_HandleValidatedRequest+0x34>
+     6f8:	28 f4       	brcc	.+10     	; 0x704 <Slave2_HandleValidatedRequest+0x18>
+     6fa:	81 30       	cpi	r24, 0x01	; 1
+     6fc:	49 f0       	breq	.+18     	; 0x710 <Slave2_HandleValidatedRequest+0x24>
+     6fe:	82 30       	cpi	r24, 0x02	; 2
+     700:	59 f0       	breq	.+22     	; 0x718 <Slave2_HandleValidatedRequest+0x2c>
+     702:	4c c0       	rjmp	.+152    	; 0x79c <Slave2_HandleValidatedRequest+0xb0>
+     704:	85 30       	cpi	r24, 0x05	; 5
+     706:	61 f1       	breq	.+88     	; 0x760 <Slave2_HandleValidatedRequest+0x74>
+     708:	30 f1       	brcs	.+76     	; 0x756 <Slave2_HandleValidatedRequest+0x6a>
+     70a:	86 30       	cpi	r24, 0x06	; 6
+     70c:	69 f1       	breq	.+90     	; 0x768 <Slave2_HandleValidatedRequest+0x7c>
+     70e:	46 c0       	rjmp	.+140    	; 0x79c <Slave2_HandleValidatedRequest+0xb0>
+    {
+        case CMD_PING:
+            Slave2_HandlePing(request);
+     710:	ce 01       	movw	r24, r28
+     712:	0e 94 e7 02 	call	0x5ce	; 0x5ce <Slave2_HandlePing>
+            break;
+     716:	46 c0       	rjmp	.+140    	; 0x7a4 <Slave2_HandleValidatedRequest+0xb8>
+
+        case CMD_READ_SENSOR:
+            Slave2_HandleSensorRead(request);
+     718:	ce 01       	movw	r24, r28
+     71a:	0e 94 aa 02 	call	0x554	; 0x554 <Slave2_HandleSensorRead>
+            break;
+     71e:	42 c0       	rjmp	.+132    	; 0x7a4 <Slave2_HandleValidatedRequest+0xb8>
+
+        case CMD_SERVO_POSITION:
+            if (request->device == (uint8_t)SERVO_DOOR)
+     720:	89 81       	ldd	r24, Y+1	; 0x01
+     722:	84 30       	cpi	r24, 0x04	; 4
+     724:	99 f4       	brne	.+38     	; 0x74c <Slave2_HandleValidatedRequest+0x60>
+            {
+                if (servo_door_initialized == 0U)
+     726:	80 91 6d 01 	lds	r24, 0x016D	; 0x80016d <servo_door_initialized>
+     72a:	81 11       	cpse	r24, r1
+     72c:	05 c0       	rjmp	.+10     	; 0x738 <Slave2_HandleValidatedRequest+0x4c>
+                {
+                    (void)Slave2_SendStatus(request, UNSUPPORTED);
+     72e:	68 e0       	ldi	r22, 0x08	; 8
+     730:	ce 01       	movw	r24, r28
+     732:	0e 94 82 02 	call	0x504	; 0x504 <Slave2_SendStatus>
+     736:	36 c0       	rjmp	.+108    	; 0x7a4 <Slave2_HandleValidatedRequest+0xb8>
+                }
+                // Publica ACCEPTED antes de aplicar fisicamente el nuevo angulo.
+                else if (Slave2_SendStatus(request, ACCEPTED) != 0U)
+     738:	61 e0       	ldi	r22, 0x01	; 1
+     73a:	ce 01       	movw	r24, r28
+     73c:	0e 94 82 02 	call	0x504	; 0x504 <Slave2_SendStatus>
+     740:	88 23       	and	r24, r24
+     742:	81 f1       	breq	.+96     	; 0x7a4 <Slave2_HandleValidatedRequest+0xb8>
+                {
+                    (void)Servo_SetAngle(request->data[0]);
+     744:	8b 81       	ldd	r24, Y+3	; 0x03
+     746:	0e 94 1b 06 	call	0xc36	; 0xc36 <Servo_SetAngle>
+     74a:	2c c0       	rjmp	.+88     	; 0x7a4 <Slave2_HandleValidatedRequest+0xb8>
+                }
+            }
+            else
+            {
+                (void)Slave2_SendStatus(request, UNKNOWN_DEVICE);
+     74c:	64 e0       	ldi	r22, 0x04	; 4
+     74e:	ce 01       	movw	r24, r28
+     750:	0e 94 82 02 	call	0x504	; 0x504 <Slave2_SendStatus>
+     754:	27 c0       	rjmp	.+78     	; 0x7a4 <Slave2_HandleValidatedRequest+0xb8>
+            }
+            break;
+
+        case CMD_DC_MOTOR:
+            (void)Slave2_SendStatus(request, UNKNOWN_DEVICE);
+     756:	64 e0       	ldi	r22, 0x04	; 4
+     758:	ce 01       	movw	r24, r28
+     75a:	0e 94 82 02 	call	0x504	; 0x504 <Slave2_SendStatus>
+            break;
+     75e:	22 c0       	rjmp	.+68     	; 0x7a4 <Slave2_HandleValidatedRequest+0xb8>
+
+        case CMD_STEPPER_MOVE:
+            Slave2_HandleStepperMove(request);
+     760:	ce 01       	movw	r24, r28
+     762:	0e 94 46 03 	call	0x68c	; 0x68c <Slave2_HandleStepperMove>
+            break;
+     766:	1e c0       	rjmp	.+60     	; 0x7a4 <Slave2_HandleValidatedRequest+0xb8>
+
+        case CMD_STOP:
+            if ((request->device == (uint8_t)STEPPER) ||
+     768:	89 81       	ldd	r24, Y+1	; 0x01
+     76a:	86 30       	cpi	r24, 0x06	; 6
+     76c:	11 f0       	breq	.+4      	; 0x772 <Slave2_HandleValidatedRequest+0x86>
+     76e:	8f 37       	cpi	r24, 0x7F	; 127
+     770:	81 f4       	brne	.+32     	; 0x792 <Slave2_HandleValidatedRequest+0xa6>
+                (request->device == (uint8_t)ALL_LOCAL_ACTUATORS))
+            {
+                if (Slave2_SendStatus(request, ACCEPTED) != 0U)
+     772:	61 e0       	ldi	r22, 0x01	; 1
+     774:	ce 01       	movw	r24, r28
+     776:	0e 94 82 02 	call	0x504	; 0x504 <Slave2_SendStatus>
+     77a:	88 23       	and	r24, r24
+     77c:	99 f0       	breq	.+38     	; 0x7a4 <Slave2_HandleValidatedRequest+0xb8>
+                {
+                    Stepper_Stop(1U);
+     77e:	81 e0       	ldi	r24, 0x01	; 1
+     780:	0e 94 e5 07 	call	0xfca	; 0xfca <Stepper_Stop>
+                    if (request->device ==
+     784:	89 81       	ldd	r24, Y+1	; 0x01
+     786:	8f 37       	cpi	r24, 0x7F	; 127
+     788:	69 f4       	brne	.+26     	; 0x7a4 <Slave2_HandleValidatedRequest+0xb8>
+                        (uint8_t)ALL_LOCAL_ACTUATORS)
+                    {
+                        (void)Servo_SetAngle(140U);
+     78a:	8c e8       	ldi	r24, 0x8C	; 140
+     78c:	0e 94 1b 06 	call	0xc36	; 0xc36 <Servo_SetAngle>
+     790:	09 c0       	rjmp	.+18     	; 0x7a4 <Slave2_HandleValidatedRequest+0xb8>
+                    }
+                }
+            }
+            else
+            {
+                (void)Slave2_SendStatus(request, UNKNOWN_DEVICE);
+     792:	64 e0       	ldi	r22, 0x04	; 4
+     794:	ce 01       	movw	r24, r28
+     796:	0e 94 82 02 	call	0x504	; 0x504 <Slave2_SendStatus>
+     79a:	04 c0       	rjmp	.+8      	; 0x7a4 <Slave2_HandleValidatedRequest+0xb8>
+            }
+            break;
+
+        default:
+            (void)Slave2_SendStatus(request, UNKNOWN_COMMAND);
+     79c:	63 e0       	ldi	r22, 0x03	; 3
+     79e:	ce 01       	movw	r24, r28
+     7a0:	0e 94 82 02 	call	0x504	; 0x504 <Slave2_SendStatus>
+            break;
+    }
+}
+     7a4:	df 91       	pop	r29
+     7a6:	cf 91       	pop	r28
+     7a8:	08 95       	ret
+
+000007aa <Slave2_ServiceI2C>:
+
+// Recibe, valida y responde solicitudes I2C.
+static void Slave2_ServiceI2C(void)
+{
+     7aa:	1f 93       	push	r17
+     7ac:	cf 93       	push	r28
+     7ae:	df 93       	push	r29
+     7b0:	cd b7       	in	r28, 0x3d	; 61
+     7b2:	de b7       	in	r29, 0x3e	; 62
+     7b4:	60 97       	sbiw	r28, 0x10	; 16
+     7b6:	0f b6       	in	r0, 0x3f	; 63
+     7b8:	f8 94       	cli
+     7ba:	de bf       	out	0x3e, r29	; 62
+     7bc:	0f be       	out	0x3f, r0	; 63
+     7be:	cd bf       	out	0x3d, r28	; 61
+    uint8_t frame[PROTOCOL_FRAME_SIZE];
+    I2CSlaveRequestState request_state;
+    ProtocolRequest request;
+    ProtocolStatus validation;
+
+    if (I2C_Slave_RequestAvailable() == 0U)
+     7c0:	0e 94 b6 00 	call	0x16c	; 0x16c <I2C_Slave_RequestAvailable>
+     7c4:	88 23       	and	r24, r24
+     7c6:	11 f1       	breq	.+68     	; 0x80c <__DATA_REGION_LENGTH__+0xc>
+    {
+        return;
+    }
+
+    request_state = I2C_Slave_GetRequest(frame);
+     7c8:	ce 01       	movw	r24, r28
+     7ca:	01 96       	adiw	r24, 0x01	; 1
+     7cc:	0e 94 cb 00 	call	0x196	; 0x196 <I2C_Slave_GetRequest>
+     7d0:	18 2f       	mov	r17, r24
+    if (request_state == I2C_SLAVE_REQUEST_NONE)
+     7d2:	88 23       	and	r24, r24
+     7d4:	d9 f0       	breq	.+54     	; 0x80c <__DATA_REGION_LENGTH__+0xc>
+    {
+        return;
+    }
+
+    // Decodifica y valida la trama congelada fuera de la interrupcion.
+    validation = Protocol_DecodeRequest(frame, &request);
+     7d6:	be 01       	movw	r22, r28
+     7d8:	67 5f       	subi	r22, 0xF7	; 247
+     7da:	7f 4f       	sbci	r23, 0xFF	; 255
+     7dc:	ce 01       	movw	r24, r28
+     7de:	01 96       	adiw	r24, 0x01	; 1
+     7e0:	0e 94 97 05 	call	0xb2e	; 0xb2e <Protocol_DecodeRequest>
+
+    // Una segunda solicitud conservada recibe BUSY y no reemplaza la primera.
+    if (request_state == I2C_SLAVE_REQUEST_REJECTED_BUSY)
+     7e4:	12 30       	cpi	r17, 0x02	; 2
+     7e6:	31 f4       	brne	.+12     	; 0x7f4 <Slave2_ServiceI2C+0x4a>
+    {
+        (void)Slave2_SendStatus(&request, BUSY);
+     7e8:	62 e0       	ldi	r22, 0x02	; 2
+     7ea:	ce 01       	movw	r24, r28
+     7ec:	09 96       	adiw	r24, 0x09	; 9
+     7ee:	0e 94 82 02 	call	0x504	; 0x504 <Slave2_SendStatus>
+        return;
+     7f2:	0c c0       	rjmp	.+24     	; 0x80c <__DATA_REGION_LENGTH__+0xc>
+    }
+
+    if (validation != OK)
+     7f4:	88 23       	and	r24, r24
+     7f6:	31 f0       	breq	.+12     	; 0x804 <__DATA_REGION_LENGTH__+0x4>
+    {
+        (void)Slave2_SendStatus(&request, validation);
+     7f8:	68 2f       	mov	r22, r24
+     7fa:	ce 01       	movw	r24, r28
+     7fc:	09 96       	adiw	r24, 0x09	; 9
+     7fe:	0e 94 82 02 	call	0x504	; 0x504 <Slave2_SendStatus>
+        return;
+     802:	04 c0       	rjmp	.+8      	; 0x80c <__DATA_REGION_LENGTH__+0xc>
+    }
+
+    Slave2_HandleValidatedRequest(&request);
+     804:	ce 01       	movw	r24, r28
+     806:	09 96       	adiw	r24, 0x09	; 9
+     808:	0e 94 76 03 	call	0x6ec	; 0x6ec <Slave2_HandleValidatedRequest>
+}
+     80c:	60 96       	adiw	r28, 0x10	; 16
+     80e:	0f b6       	in	r0, 0x3f	; 63
+     810:	f8 94       	cli
+     812:	de bf       	out	0x3e, r29	; 62
+     814:	0f be       	out	0x3f, r0	; 63
+     816:	cd bf       	out	0x3d, r28	; 61
+     818:	df 91       	pop	r29
+     81a:	cf 91       	pop	r28
+     81c:	1f 91       	pop	r17
+     81e:	08 95       	ret
+
+00000820 <main>:
+/****************************************/
+// Main Function
+
+// Inicializa el Slave2 y atiende sensor e I2C.
 int main(void)
 {
- 296:	cf 93       	push	r28
- 298:	df 93       	push	r29
- 29a:	cd b7       	in	r28, 0x3d	; 61
- 29c:	de b7       	in	r29, 0x3e	; 62
- 29e:	6b 97       	sbiw	r28, 0x1b	; 27
- 2a0:	0f b6       	in	r0, 0x3f	; 63
- 2a2:	f8 94       	cli
- 2a4:	de bf       	out	0x3e, r29	; 62
- 2a6:	0f be       	out	0x3f, r0	; 63
- 2a8:	cd bf       	out	0x3d, r28	; 61
+     820:	cf 93       	push	r28
+     822:	df 93       	push	r29
+     824:	cd b7       	in	r28, 0x3d	; 61
+     826:	de b7       	in	r29, 0x3e	; 62
+     828:	64 97       	sbiw	r28, 0x14	; 20
+     82a:	0f b6       	in	r0, 0x3f	; 63
+     82c:	f8 94       	cli
+     82e:	de bf       	out	0x3e, r29	; 62
+     830:	0f be       	out	0x3f, r0	; 63
+     832:	cd bf       	out	0x3d, r28	; 61
     const StepperConfig stepper_config =
- 2aa:	84 e1       	ldi	r24, 0x14	; 20
- 2ac:	e6 e0       	ldi	r30, 0x06	; 6
- 2ae:	f1 e0       	ldi	r31, 0x01	; 1
- 2b0:	de 01       	movw	r26, r28
- 2b2:	11 96       	adiw	r26, 0x01	; 1
- 2b4:	01 90       	ld	r0, Z+
- 2b6:	0d 92       	st	X+, r0
- 2b8:	8a 95       	dec	r24
- 2ba:	e1 f7       	brne	.-8      	; 0x2b4 <main+0x1e>
+     834:	84 e1       	ldi	r24, 0x14	; 20
+     836:	e5 e0       	ldi	r30, 0x05	; 5
+     838:	f1 e0       	ldi	r31, 0x01	; 1
+     83a:	de 01       	movw	r26, r28
+     83c:	11 96       	adiw	r26, 0x01	; 1
+     83e:	01 90       	ld	r0, Z+
+     840:	0d 92       	st	X+, r0
+     842:	8a 95       	dec	r24
+     844:	e1 f7       	brne	.-8      	; 0x83e <main+0x1e>
+        {PD2, PD3, PD4, PD5}
     };
-    StepperState stepper_state;
-    uint8_t status = 0U;
-    uint8_t infrared_level = 1U;
+    uint8_t delay_ms;
 
-    if (InfraRojo_Init(
- 2bc:	00 e0       	ldi	r16, 0x00	; 0
- 2be:	20 e0       	ldi	r18, 0x00	; 0
- 2c0:	46 e2       	ldi	r20, 0x26	; 38
- 2c2:	50 e0       	ldi	r21, 0x00	; 0
- 2c4:	68 e2       	ldi	r22, 0x28	; 40
- 2c6:	70 e0       	ldi	r23, 0x00	; 0
- 2c8:	87 e2       	ldi	r24, 0x27	; 39
- 2ca:	90 e0       	ldi	r25, 0x00	; 0
- 2cc:	0e 94 c2 00 	call	0x184	; 0x184 <InfraRojo_Init>
- 2d0:	81 11       	cpse	r24, r1
- 2d2:	02 c0       	rjmp	.+4      	; 0x2d8 <main+0x42>
-        { &DDRD, &DDRD, &DDRD, &DDRD },
-        { &PORTD, &PORTD, &PORTD, &PORTD },
-        { PD2, PD3, PD4, PD5 }
-    };
-    StepperState stepper_state;
-    uint8_t status = 0U;
- 2d4:	10 e0       	ldi	r17, 0x00	; 0
- 2d6:	01 c0       	rjmp	.+2      	; 0x2da <main+0x44>
-            &PORTC,
-            &PINC,
-            PC0,
-            0U) != 0U)
+    // Configura IR, stepper, servo de puerta e I2C Slave.
+    infrared_initialized = InfraRojo_Init(&DDRC,
+     846:	00 e0       	ldi	r16, 0x00	; 0
+     848:	20 e0       	ldi	r18, 0x00	; 0
+     84a:	46 e2       	ldi	r20, 0x26	; 38
+     84c:	50 e0       	ldi	r21, 0x00	; 0
+     84e:	68 e2       	ldi	r22, 0x28	; 40
+     850:	70 e0       	ldi	r23, 0x00	; 0
+     852:	87 e2       	ldi	r24, 0x27	; 39
+     854:	90 e0       	ldi	r25, 0x00	; 0
+     856:	0e 94 12 02 	call	0x424	; 0x424 <InfraRojo_Init>
+     85a:	80 93 6f 01 	sts	0x016F, r24	; 0x80016f <infrared_initialized>
+                                          &PORTC,
+                                          &PINC,
+                                          PC0,
+                                          0U);
+    stepper_initialized = Stepper_Init(&stepper_config,
+     85e:	61 e0       	ldi	r22, 0x01	; 1
+     860:	ce 01       	movw	r24, r28
+     862:	01 96       	adiw	r24, 0x01	; 1
+     864:	0e 94 59 07 	call	0xeb2	; 0xeb2 <Stepper_Init>
+     868:	80 93 6e 01 	sts	0x016E, r24	; 0x80016e <stepper_initialized>
+                                       STEPPER_MODE_HALF_STEP);
+    servo_door_initialized = Servo_Init(&DDRD, &PORTD, PD6);
+     86c:	46 e0       	ldi	r20, 0x06	; 6
+     86e:	6b e2       	ldi	r22, 0x2B	; 43
+     870:	70 e0       	ldi	r23, 0x00	; 0
+     872:	8a e2       	ldi	r24, 0x2A	; 42
+     874:	90 e0       	ldi	r25, 0x00	; 0
+     876:	0e 94 d3 05 	call	0xba6	; 0xba6 <Servo_Init>
+     87a:	80 93 6d 01 	sts	0x016D, r24	; 0x80016d <servo_door_initialized>
+    if (servo_door_initialized != 0U)
+     87e:	88 23       	and	r24, r24
+     880:	19 f0       	breq	.+6      	; 0x888 <main+0x68>
     {
-        status |= SLAVE2_STATUS_IR_OK;
- 2d8:	11 e0       	ldi	r17, 0x01	; 1
-    }
-
-    if (Stepper_Init(&stepper_config, STEPPER_MODE_HALF_STEP) != 0U)
- 2da:	61 e0       	ldi	r22, 0x01	; 1
- 2dc:	ce 01       	movw	r24, r28
- 2de:	01 96       	adiw	r24, 0x01	; 1
- 2e0:	0e 94 d5 02 	call	0x5aa	; 0x5aa <Stepper_Init>
- 2e4:	81 11       	cpse	r24, r1
-    {
-        status |= SLAVE2_STATUS_STEPPER_OK;
- 2e6:	12 60       	ori	r17, 0x02	; 2
+        (void)Servo_SetAngle(140U);
+     882:	8c e8       	ldi	r24, 0x8C	; 140
+     884:	0e 94 1b 06 	call	0xc36	; 0xc36 <Servo_SetAngle>
     }
 
     (void)I2C_Slave_Init(SLAVE2_I2C_ADDRESS);
- 2e8:	82 e1       	ldi	r24, 0x12	; 18
- 2ea:	0e 94 ac 00 	call	0x158	; 0x158 <I2C_Slave_Init>
+     888:	82 e1       	ldi	r24, 0x12	; 18
+     88a:	0e 94 94 00 	call	0x128	; 0x128 <I2C_Slave_Init>
     sei();
- 2ee:	78 94       	sei
-        { &PORTD, &PORTD, &PORTD, &PORTD },
-        { PD2, PD3, PD4, PD5 }
-    };
-    StepperState stepper_state;
-    uint8_t status = 0U;
-    uint8_t infrared_level = 1U;
- 2f0:	01 e0       	ldi	r16, 0x01	; 1
-    (void)I2C_Slave_Init(SLAVE2_I2C_ADDRESS);
-    sei();
+     88e:	78 94       	sei
 
+    // Actualiza el IR y atiende solicitudes sin bloquear el stepper.
     while (1)
     {
-        Slave2_ExecutePendingCommand();
- 2f2:	0e 94 1a 01 	call	0x234	; 0x234 <Slave2_ExecutePendingCommand>
+        Slave2_ServiceI2C();
+     890:	0e 94 d5 03 	call	0x7aa	; 0x7aa <Slave2_ServiceI2C>
+        Slave2_UpdateSensor();
+     894:	0e 94 56 02 	call	0x4ac	; 0x4ac <Slave2_UpdateSensor>
 
-        if ((status & SLAVE2_STATUS_IR_OK) != 0U)
- 2f6:	10 ff       	sbrs	r17, 0
- 2f8:	03 c0       	rjmp	.+6      	; 0x300 <main+0x6a>
+        for (delay_ms = 0U;
+     898:	10 e0       	ldi	r17, 0x00	; 0
+     89a:	09 c0       	rjmp	.+18     	; 0x8ae <main+0x8e>
+             delay_ms < SLAVE2_SAMPLE_INTERVAL_MS;
+             delay_ms++)
         {
-            infrared_level = InfraRojo_ReadPinLevel();
- 2fa:	0e 94 f7 00 	call	0x1ee	; 0x1ee <InfraRojo_ReadPinLevel>
- 2fe:	08 2f       	mov	r16, r24
-        }
-
-        Stepper_GetState(&stepper_state);
- 300:	ce 01       	movw	r24, r28
- 302:	45 96       	adiw	r24, 0x15	; 21
- 304:	0e 94 7e 03 	call	0x6fc	; 0x6fc <Stepper_GetState>
-        Slave2_UpdateResponse(status, infrared_level, &stepper_state);
- 308:	ae 01       	movw	r20, r28
- 30a:	4b 5e       	subi	r20, 0xEB	; 235
- 30c:	5f 4f       	sbci	r21, 0xFF	; 255
- 30e:	60 2f       	mov	r22, r16
- 310:	81 2f       	mov	r24, r17
- 312:	0e 94 06 01 	call	0x20c	; 0x20c <Slave2_UpdateResponse>
+            Slave2_ServiceI2C();
+     89c:	0e 94 d5 03 	call	0x7aa	; 0x7aa <Slave2_ServiceI2C>
 	#else
 		//round up by default
 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
 	#endif
 
 	__builtin_avr_delay_cycles(__ticks_dc);
- 316:	8f e3       	ldi	r24, 0x3F	; 63
- 318:	9c e9       	ldi	r25, 0x9C	; 156
- 31a:	01 97       	sbiw	r24, 0x01	; 1
- 31c:	f1 f7       	brne	.-4      	; 0x31a <main+0x84>
- 31e:	00 c0       	rjmp	.+0      	; 0x320 <main+0x8a>
- 320:	00 00       	nop
- 322:	e7 cf       	rjmp	.-50     	; 0x2f2 <main+0x5c>
+     8a0:	8f e9       	ldi	r24, 0x9F	; 159
+     8a2:	9f e0       	ldi	r25, 0x0F	; 15
+     8a4:	01 97       	sbiw	r24, 0x01	; 1
+     8a6:	f1 f7       	brne	.-4      	; 0x8a4 <main+0x84>
+     8a8:	00 c0       	rjmp	.+0      	; 0x8aa <main+0x8a>
+     8aa:	00 00       	nop
+        Slave2_ServiceI2C();
+        Slave2_UpdateSensor();
 
-00000324 <__vector_24>:
-        _delay_ms(10);
-    }
-}
-
-ISR(TWI_vect)
-{
- 324:	1f 92       	push	r1
- 326:	0f 92       	push	r0
- 328:	0f b6       	in	r0, 0x3f	; 63
- 32a:	0f 92       	push	r0
- 32c:	11 24       	eor	r1, r1
- 32e:	8f 93       	push	r24
- 330:	9f 93       	push	r25
- 332:	af 93       	push	r26
- 334:	bf 93       	push	r27
- 336:	ef 93       	push	r30
- 338:	ff 93       	push	r31
-    uint8_t twi_status = (uint8_t)(TWSR & 0xF8U);
- 33a:	80 91 b9 00 	lds	r24, 0x00B9	; 0x8000b9 <__TEXT_REGION_LENGTH__+0x7f80b9>
- 33e:	e8 2f       	mov	r30, r24
- 340:	e8 7f       	andi	r30, 0xF8	; 248
-
-    switch (twi_status)
- 342:	8e 2f       	mov	r24, r30
- 344:	90 e0       	ldi	r25, 0x00	; 0
- 346:	fc 01       	movw	r30, r24
- 348:	e0 56       	subi	r30, 0x60	; 96
- 34a:	f1 09       	sbc	r31, r1
- 34c:	e9 35       	cpi	r30, 0x59	; 89
- 34e:	f1 05       	cpc	r31, r1
- 350:	08 f0       	brcs	.+2      	; 0x354 <__vector_24+0x30>
- 352:	44 c0       	rjmp	.+136    	; 0x3dc <__vector_24+0xb8>
- 354:	ec 5c       	subi	r30, 0xCC	; 204
- 356:	ff 4f       	sbci	r31, 0xFF	; 255
- 358:	0c 94 20 04 	jmp	0x840	; 0x840 <__tablejump2__>
+        for (delay_ms = 0U;
+             delay_ms < SLAVE2_SAMPLE_INTERVAL_MS;
+             delay_ms++)
+     8ac:	1f 5f       	subi	r17, 0xFF	; 255
+    while (1)
     {
-        case 0x60U:
-        case 0x68U:
-        case 0x70U:
-        case 0x78U:
-            slave2_tx_index = 0U;
- 35c:	10 92 41 01 	sts	0x0141, r1	; 0x800141 <slave2_tx_index>
-            SLAVE2_TWI_ACK();
- 360:	85 ec       	ldi	r24, 0xC5	; 197
- 362:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
-            break;
- 366:	3d c0       	rjmp	.+122    	; 0x3e2 <__vector_24+0xbe>
+        Slave2_ServiceI2C();
+        Slave2_UpdateSensor();
 
-        case 0x80U:
-        case 0x90U:
-            slave2_command = TWDR;
- 368:	80 91 bb 00 	lds	r24, 0x00BB	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
- 36c:	80 93 40 01 	sts	0x0140, r24	; 0x800140 <slave2_command>
-            slave2_command_pending = 1U;
- 370:	81 e0       	ldi	r24, 0x01	; 1
- 372:	80 93 3f 01 	sts	0x013F, r24	; 0x80013f <slave2_command_pending>
-            SLAVE2_TWI_ACK();
- 376:	85 ec       	ldi	r24, 0xC5	; 197
- 378:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
-            break;
- 37c:	32 c0       	rjmp	.+100    	; 0x3e2 <__vector_24+0xbe>
+        for (delay_ms = 0U;
+     8ae:	1a 30       	cpi	r17, 0x0A	; 10
+     8b0:	a8 f3       	brcs	.-22     	; 0x89c <main+0x7c>
+     8b2:	ee cf       	rjmp	.-36     	; 0x890 <main+0x70>
 
-        case 0xA0U:
-            SLAVE2_TWI_ACK();
- 37e:	85 ec       	ldi	r24, 0xC5	; 197
- 380:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
-            break;
- 384:	2e c0       	rjmp	.+92     	; 0x3e2 <__vector_24+0xbe>
+000008b4 <Protocol_Clear>:
 
-        case 0xA8U:
-        case 0xB0U:
-            slave2_tx_index = 0U;
- 386:	10 92 41 01 	sts	0x0141, r1	; 0x800141 <slave2_tx_index>
-            TWDR = slave2_tx_buffer[slave2_tx_index];
- 38a:	e0 91 41 01 	lds	r30, 0x0141	; 0x800141 <slave2_tx_index>
- 38e:	f0 e0       	ldi	r31, 0x00	; 0
- 390:	e0 50       	subi	r30, 0x00	; 0
- 392:	ff 4f       	sbci	r31, 0xFF	; 255
- 394:	80 81       	ld	r24, Z
- 396:	80 93 bb 00 	sts	0x00BB, r24	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
-            slave2_tx_index++;
- 39a:	80 91 41 01 	lds	r24, 0x0141	; 0x800141 <slave2_tx_index>
- 39e:	8f 5f       	subi	r24, 0xFF	; 255
- 3a0:	80 93 41 01 	sts	0x0141, r24	; 0x800141 <slave2_tx_index>
-            SLAVE2_TWI_ACK();
- 3a4:	85 ec       	ldi	r24, 0xC5	; 197
- 3a6:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
-            break;
- 3aa:	1b c0       	rjmp	.+54     	; 0x3e2 <__vector_24+0xbe>
-
-        case 0xB8U:
-            if (slave2_tx_index < SLAVE2_RESPONSE_BYTES)
- 3ac:	80 91 41 01 	lds	r24, 0x0141	; 0x800141 <slave2_tx_index>
- 3b0:	84 30       	cpi	r24, 0x04	; 4
- 3b2:	70 f4       	brcc	.+28     	; 0x3d0 <__vector_24+0xac>
-            {
-                TWDR = slave2_tx_buffer[slave2_tx_index];
- 3b4:	e0 91 41 01 	lds	r30, 0x0141	; 0x800141 <slave2_tx_index>
- 3b8:	f0 e0       	ldi	r31, 0x00	; 0
- 3ba:	e0 50       	subi	r30, 0x00	; 0
- 3bc:	ff 4f       	sbci	r31, 0xFF	; 255
- 3be:	80 81       	ld	r24, Z
- 3c0:	80 93 bb 00 	sts	0x00BB, r24	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
-                slave2_tx_index++;
- 3c4:	80 91 41 01 	lds	r24, 0x0141	; 0x800141 <slave2_tx_index>
- 3c8:	8f 5f       	subi	r24, 0xFF	; 255
- 3ca:	80 93 41 01 	sts	0x0141, r24	; 0x800141 <slave2_tx_index>
- 3ce:	02 c0       	rjmp	.+4      	; 0x3d4 <__vector_24+0xb0>
-            }
-            else
-            {
-                TWDR = 0U;
- 3d0:	10 92 bb 00 	sts	0x00BB, r1	; 0x8000bb <__TEXT_REGION_LENGTH__+0x7f80bb>
-            }
-            SLAVE2_TWI_ACK();
- 3d4:	85 ec       	ldi	r24, 0xC5	; 197
- 3d6:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
-            break;
- 3da:	03 c0       	rjmp	.+6      	; 0x3e2 <__vector_24+0xbe>
-
-        case 0xC0U:
-        case 0xC8U:
-        default:
-            SLAVE2_TWI_ACK();
- 3dc:	85 ec       	ldi	r24, 0xC5	; 197
- 3de:	80 93 bc 00 	sts	0x00BC, r24	; 0x8000bc <__TEXT_REGION_LENGTH__+0x7f80bc>
-            break;
-    }
-}
- 3e2:	ff 91       	pop	r31
- 3e4:	ef 91       	pop	r30
- 3e6:	bf 91       	pop	r27
- 3e8:	af 91       	pop	r26
- 3ea:	9f 91       	pop	r25
- 3ec:	8f 91       	pop	r24
- 3ee:	0f 90       	pop	r0
- 3f0:	0f be       	out	0x3f, r0	; 63
- 3f2:	0f 90       	pop	r0
- 3f4:	1f 90       	pop	r1
- 3f6:	18 95       	reti
-
-000003f8 <Stepper_ConfigureRate>:
+    for (index = 0U; index < PROTOCOL_REQUEST_DATA_SIZE; index++)
     {
-        running = stepper_state.running;
+        frame[index + 3U] = request->data[index];
     }
-
-    return running;
 }
- 3f8:	ff 92       	push	r15
- 3fa:	0f 93       	push	r16
- 3fc:	1f 93       	push	r17
- 3fe:	cf 93       	push	r28
- 400:	df 93       	push	r29
- 402:	8c 01       	movw	r16, r24
- 404:	89 2b       	or	r24, r25
- 406:	91 f1       	breq	.+100    	; 0x46c <__EEPROM_REGION_LENGTH__+0x6c>
- 408:	f1 2c       	mov	r15, r1
- 40a:	2b c0       	rjmp	.+86     	; 0x462 <__EEPROM_REGION_LENGTH__+0x62>
- 40c:	cf 2d       	mov	r28, r15
- 40e:	d0 e0       	ldi	r29, 0x00	; 0
- 410:	fe 01       	movw	r30, r28
- 412:	ee 0f       	add	r30, r30
- 414:	ff 1f       	adc	r31, r31
- 416:	ef 5d       	subi	r30, 0xDF	; 223
- 418:	fe 4f       	sbci	r31, 0xFE	; 254
- 41a:	20 81       	ld	r18, Z
- 41c:	31 81       	ldd	r19, Z+1	; 0x01
- 41e:	d8 01       	movw	r26, r16
- 420:	0e 94 26 04 	call	0x84c	; 0x84c <__umulhisi3>
- 424:	9b 01       	movw	r18, r22
- 426:	ac 01       	movw	r20, r24
- 428:	60 e0       	ldi	r22, 0x00	; 0
- 42a:	74 e2       	ldi	r23, 0x24	; 36
- 42c:	84 ef       	ldi	r24, 0xF4	; 244
- 42e:	90 e0       	ldi	r25, 0x00	; 0
- 430:	0e 94 fe 03 	call	0x7fc	; 0x7fc <__udivmodsi4>
- 434:	82 2f       	mov	r24, r18
- 436:	ba 01       	movw	r22, r20
- 438:	a9 01       	movw	r20, r18
- 43a:	42 50       	subi	r20, 0x02	; 2
- 43c:	51 09       	sbc	r21, r1
- 43e:	61 09       	sbc	r22, r1
- 440:	71 09       	sbc	r23, r1
- 442:	4f 3f       	cpi	r20, 0xFF	; 255
- 444:	51 05       	cpc	r21, r1
- 446:	61 05       	cpc	r22, r1
- 448:	71 05       	cpc	r23, r1
- 44a:	50 f4       	brcc	.+20     	; 0x460 <__EEPROM_REGION_LENGTH__+0x60>
- 44c:	81 50       	subi	r24, 0x01	; 1
- 44e:	80 93 b3 00 	sts	0x00B3, r24	; 0x8000b3 <__TEXT_REGION_LENGTH__+0x7f80b3>
- 452:	c6 5e       	subi	r28, 0xE6	; 230
- 454:	de 4f       	sbci	r29, 0xFE	; 254
- 456:	88 81       	ld	r24, Y
- 458:	80 93 b1 00 	sts	0x00B1, r24	; 0x8000b1 <__TEXT_REGION_LENGTH__+0x7f80b1>
- 45c:	81 e0       	ldi	r24, 0x01	; 1
- 45e:	07 c0       	rjmp	.+14     	; 0x46e <__EEPROM_REGION_LENGTH__+0x6e>
- 460:	f3 94       	inc	r15
- 462:	86 e0       	ldi	r24, 0x06	; 6
- 464:	8f 15       	cp	r24, r15
- 466:	90 f6       	brcc	.-92     	; 0x40c <__EEPROM_REGION_LENGTH__+0xc>
- 468:	80 e0       	ldi	r24, 0x00	; 0
- 46a:	01 c0       	rjmp	.+2      	; 0x46e <__EEPROM_REGION_LENGTH__+0x6e>
- 46c:	80 e0       	ldi	r24, 0x00	; 0
- 46e:	df 91       	pop	r29
- 470:	cf 91       	pop	r28
- 472:	1f 91       	pop	r17
- 474:	0f 91       	pop	r16
- 476:	ff 90       	pop	r15
- 478:	08 95       	ret
+     8b4:	9c 01       	movw	r18, r24
+     8b6:	90 e0       	ldi	r25, 0x00	; 0
+     8b8:	05 c0       	rjmp	.+10     	; 0x8c4 <Protocol_Clear+0x10>
+     8ba:	f9 01       	movw	r30, r18
+     8bc:	e9 0f       	add	r30, r25
+     8be:	f1 1d       	adc	r31, r1
+     8c0:	10 82       	st	Z, r1
+     8c2:	9f 5f       	subi	r25, 0xFF	; 255
+     8c4:	96 17       	cp	r25, r22
+     8c6:	c8 f3       	brcs	.-14     	; 0x8ba <Protocol_Clear+0x6>
+     8c8:	08 95       	ret
 
-0000047a <Stepper_WritePattern>:
- 47a:	a0 e0       	ldi	r26, 0x00	; 0
- 47c:	32 c0       	rjmp	.+100    	; 0x4e2 <Stepper_WritePattern+0x68>
- 47e:	2a 2f       	mov	r18, r26
- 480:	30 e0       	ldi	r19, 0x00	; 0
- 482:	f9 01       	movw	r30, r18
- 484:	e5 5b       	subi	r30, 0xB5	; 181
- 486:	fe 4f       	sbci	r31, 0xFE	; 254
- 488:	41 e0       	ldi	r20, 0x01	; 1
- 48a:	50 e0       	ldi	r21, 0x00	; 0
- 48c:	00 88       	ldd	r0, Z+16	; 0x10
- 48e:	02 c0       	rjmp	.+4      	; 0x494 <Stepper_WritePattern+0x1a>
- 490:	44 0f       	add	r20, r20
- 492:	55 1f       	adc	r21, r21
- 494:	0a 94       	dec	r0
- 496:	e2 f7       	brpl	.-8      	; 0x490 <Stepper_WritePattern+0x16>
- 498:	68 2f       	mov	r22, r24
- 49a:	70 e0       	ldi	r23, 0x00	; 0
- 49c:	0a 2e       	mov	r0, r26
- 49e:	02 c0       	rjmp	.+4      	; 0x4a4 <Stepper_WritePattern+0x2a>
- 4a0:	76 95       	lsr	r23
- 4a2:	67 95       	ror	r22
- 4a4:	0a 94       	dec	r0
- 4a6:	e2 f7       	brpl	.-8      	; 0x4a0 <Stepper_WritePattern+0x26>
- 4a8:	60 ff       	sbrs	r22, 0
- 4aa:	0d c0       	rjmp	.+26     	; 0x4c6 <Stepper_WritePattern+0x4c>
- 4ac:	f9 01       	movw	r30, r18
- 4ae:	34 96       	adiw	r30, 0x04	; 4
- 4b0:	ee 0f       	add	r30, r30
- 4b2:	ff 1f       	adc	r31, r31
- 4b4:	e5 5b       	subi	r30, 0xB5	; 181
- 4b6:	fe 4f       	sbci	r31, 0xFE	; 254
- 4b8:	01 90       	ld	r0, Z+
- 4ba:	f0 81       	ld	r31, Z
- 4bc:	e0 2d       	mov	r30, r0
- 4be:	90 81       	ld	r25, Z
- 4c0:	49 2b       	or	r20, r25
- 4c2:	40 83       	st	Z, r20
- 4c4:	0d c0       	rjmp	.+26     	; 0x4e0 <Stepper_WritePattern+0x66>
- 4c6:	f9 01       	movw	r30, r18
- 4c8:	34 96       	adiw	r30, 0x04	; 4
- 4ca:	ee 0f       	add	r30, r30
- 4cc:	ff 1f       	adc	r31, r31
- 4ce:	e5 5b       	subi	r30, 0xB5	; 181
- 4d0:	fe 4f       	sbci	r31, 0xFE	; 254
- 4d2:	01 90       	ld	r0, Z+
- 4d4:	f0 81       	ld	r31, Z
- 4d6:	e0 2d       	mov	r30, r0
- 4d8:	90 81       	ld	r25, Z
- 4da:	40 95       	com	r20
- 4dc:	49 23       	and	r20, r25
- 4de:	40 83       	st	Z, r20
- 4e0:	af 5f       	subi	r26, 0xFF	; 255
- 4e2:	a4 30       	cpi	r26, 0x04	; 4
- 4e4:	60 f2       	brcs	.-104    	; 0x47e <Stepper_WritePattern+0x4>
- 4e6:	08 95       	ret
+000008ca <Protocol_Copy>:
+     8ca:	cf 93       	push	r28
+     8cc:	df 93       	push	r29
+     8ce:	dc 01       	movw	r26, r24
+     8d0:	90 e0       	ldi	r25, 0x00	; 0
+     8d2:	0b c0       	rjmp	.+22     	; 0x8ea <Protocol_Copy+0x20>
+     8d4:	29 2f       	mov	r18, r25
+     8d6:	30 e0       	ldi	r19, 0x00	; 0
+     8d8:	fd 01       	movw	r30, r26
+     8da:	e2 0f       	add	r30, r18
+     8dc:	f3 1f       	adc	r31, r19
+     8de:	eb 01       	movw	r28, r22
+     8e0:	c2 0f       	add	r28, r18
+     8e2:	d3 1f       	adc	r29, r19
+     8e4:	28 81       	ld	r18, Y
+     8e6:	20 83       	st	Z, r18
+     8e8:	9f 5f       	subi	r25, 0xFF	; 255
+     8ea:	94 17       	cp	r25, r20
+     8ec:	98 f3       	brcs	.-26     	; 0x8d4 <Protocol_Copy+0xa>
+     8ee:	df 91       	pop	r29
+     8f0:	cf 91       	pop	r28
+     8f2:	08 95       	ret
 
-000004e8 <Stepper_ApplyCurrentStep>:
- 4e8:	80 91 04 01 	lds	r24, 0x0104	; 0x800104 <stepper_mode>
- 4ec:	81 30       	cpi	r24, 0x01	; 1
- 4ee:	39 f4       	brne	.+14     	; 0x4fe <Stepper_ApplyCurrentStep+0x16>
- 4f0:	e0 91 43 01 	lds	r30, 0x0143	; 0x800143 <stepper_index>
- 4f4:	f0 e0       	ldi	r31, 0x00	; 0
- 4f6:	ed 5c       	subi	r30, 0xCD	; 205
- 4f8:	fe 4f       	sbci	r31, 0xFE	; 254
- 4fa:	80 81       	ld	r24, Z
- 4fc:	06 c0       	rjmp	.+12     	; 0x50a <Stepper_ApplyCurrentStep+0x22>
- 4fe:	e0 91 43 01 	lds	r30, 0x0143	; 0x800143 <stepper_index>
- 502:	f0 e0       	ldi	r31, 0x00	; 0
- 504:	e1 5d       	subi	r30, 0xD1	; 209
- 506:	fe 4f       	sbci	r31, 0xFE	; 254
- 508:	80 81       	ld	r24, Z
- 50a:	0e 94 3d 02 	call	0x47a	; 0x47a <Stepper_WritePattern>
- 50e:	08 95       	ret
+000008f4 <Protocol_IsKnownCommand>:
+     8f4:	81 50       	subi	r24, 0x01	; 1
+     8f6:	86 30       	cpi	r24, 0x06	; 6
+     8f8:	10 f4       	brcc	.+4      	; 0x8fe <Protocol_IsKnownCommand+0xa>
+     8fa:	81 e0       	ldi	r24, 0x01	; 1
+     8fc:	08 95       	ret
+     8fe:	80 e0       	ldi	r24, 0x00	; 0
+     900:	08 95       	ret
 
-00000510 <Stepper_Start>:
- 510:	df 92       	push	r13
- 512:	ef 92       	push	r14
- 514:	ff 92       	push	r15
- 516:	0f 93       	push	r16
- 518:	1f 93       	push	r17
- 51a:	cf 93       	push	r28
- 51c:	df 93       	push	r29
- 51e:	98 2f       	mov	r25, r24
- 520:	80 91 42 01 	lds	r24, 0x0142	; 0x800142 <stepper_initialized>
- 524:	88 23       	and	r24, r24
- 526:	c9 f1       	breq	.+114    	; 0x59a <Stepper_Start+0x8a>
- 528:	92 30       	cpi	r25, 0x02	; 2
- 52a:	a0 f5       	brcc	.+104    	; 0x594 <Stepper_Start+0x84>
- 52c:	21 11       	cpse	r18, r1
- 52e:	03 c0       	rjmp	.+6      	; 0x536 <Stepper_Start+0x26>
- 530:	61 15       	cp	r22, r1
- 532:	71 05       	cpc	r23, r1
- 534:	89 f1       	breq	.+98     	; 0x598 <Stepper_Start+0x88>
- 536:	e2 2e       	mov	r14, r18
- 538:	ea 01       	movw	r28, r20
- 53a:	8b 01       	movw	r16, r22
- 53c:	f9 2e       	mov	r15, r25
- 53e:	df b6       	in	r13, 0x3f	; 63
- 540:	f8 94       	cli
- 542:	81 e0       	ldi	r24, 0x01	; 1
- 544:	22 c0       	rjmp	.+68     	; 0x58a <Stepper_Start+0x7a>
- 546:	e0 e7       	ldi	r30, 0x70	; 112
- 548:	f0 e0       	ldi	r31, 0x00	; 0
- 54a:	90 81       	ld	r25, Z
- 54c:	9d 7f       	andi	r25, 0xFD	; 253
- 54e:	90 83       	st	Z, r25
- 550:	10 92 b1 00 	sts	0x00B1, r1	; 0x8000b1 <__TEXT_REGION_LENGTH__+0x7f80b1>
- 554:	10 92 b2 00 	sts	0x00B2, r1	; 0x8000b2 <__TEXT_REGION_LENGTH__+0x7f80b2>
- 558:	ce 01       	movw	r24, r28
- 55a:	0e 94 fc 01 	call	0x3f8	; 0x3f8 <Stepper_ConfigureRate>
- 55e:	81 11       	cpse	r24, r1
- 560:	02 c0       	rjmp	.+4      	; 0x566 <Stepper_Start+0x56>
- 562:	df be       	out	0x3f, r13	; 63
- 564:	1a c0       	rjmp	.+52     	; 0x59a <Stepper_Start+0x8a>
- 566:	e4 e4       	ldi	r30, 0x44	; 68
- 568:	f1 e0       	ldi	r31, 0x01	; 1
- 56a:	f0 82       	st	Z, r15
- 56c:	d2 83       	std	Z+2, r29	; 0x02
- 56e:	c1 83       	std	Z+1, r28	; 0x01
- 570:	14 83       	std	Z+4, r17	; 0x04
- 572:	03 83       	std	Z+3, r16	; 0x03
- 574:	e6 82       	std	Z+6, r14	; 0x06
- 576:	81 e0       	ldi	r24, 0x01	; 1
- 578:	85 83       	std	Z+5, r24	; 0x05
- 57a:	82 e0       	ldi	r24, 0x02	; 2
- 57c:	87 bb       	out	0x17, r24	; 23
- 57e:	e0 e7       	ldi	r30, 0x70	; 112
- 580:	f0 e0       	ldi	r31, 0x00	; 0
- 582:	90 81       	ld	r25, Z
- 584:	92 60       	ori	r25, 0x02	; 2
- 586:	90 83       	st	Z, r25
- 588:	80 e0       	ldi	r24, 0x00	; 0
- 58a:	81 11       	cpse	r24, r1
- 58c:	dc cf       	rjmp	.-72     	; 0x546 <Stepper_Start+0x36>
- 58e:	df be       	out	0x3f, r13	; 63
- 590:	81 e0       	ldi	r24, 0x01	; 1
- 592:	03 c0       	rjmp	.+6      	; 0x59a <Stepper_Start+0x8a>
- 594:	80 e0       	ldi	r24, 0x00	; 0
- 596:	01 c0       	rjmp	.+2      	; 0x59a <Stepper_Start+0x8a>
- 598:	80 e0       	ldi	r24, 0x00	; 0
- 59a:	df 91       	pop	r29
- 59c:	cf 91       	pop	r28
- 59e:	1f 91       	pop	r17
- 5a0:	0f 91       	pop	r16
- 5a2:	ff 90       	pop	r15
- 5a4:	ef 90       	pop	r14
- 5a6:	df 90       	pop	r13
- 5a8:	08 95       	ret
+00000902 <Protocol_IsKnownDevice>:
+     902:	9f ef       	ldi	r25, 0xFF	; 255
+     904:	98 0f       	add	r25, r24
+     906:	96 30       	cpi	r25, 0x06	; 6
+     908:	20 f0       	brcs	.+8      	; 0x912 <Protocol_IsKnownDevice+0x10>
+     90a:	8f 37       	cpi	r24, 0x7F	; 127
+     90c:	21 f4       	brne	.+8      	; 0x916 <Protocol_IsKnownDevice+0x14>
+     90e:	81 e0       	ldi	r24, 0x01	; 1
+     910:	08 95       	ret
+     912:	81 e0       	ldi	r24, 0x01	; 1
+     914:	08 95       	ret
+     916:	80 e0       	ldi	r24, 0x00	; 0
+     918:	08 95       	ret
 
-000005aa <Stepper_Init>:
- 5aa:	00 97       	sbiw	r24, 0x00	; 0
- 5ac:	09 f4       	brne	.+2      	; 0x5b0 <Stepper_Init+0x6>
- 5ae:	74 c0       	rjmp	.+232    	; 0x698 <Stepper_Init+0xee>
- 5b0:	62 30       	cpi	r22, 0x02	; 2
- 5b2:	08 f0       	brcs	.+2      	; 0x5b6 <Stepper_Init+0xc>
- 5b4:	73 c0       	rjmp	.+230    	; 0x69c <Stepper_Init+0xf2>
- 5b6:	40 e0       	ldi	r20, 0x00	; 0
- 5b8:	20 c0       	rjmp	.+64     	; 0x5fa <Stepper_Init+0x50>
- 5ba:	24 2f       	mov	r18, r20
- 5bc:	30 e0       	ldi	r19, 0x00	; 0
- 5be:	f9 01       	movw	r30, r18
- 5c0:	ee 0f       	add	r30, r30
- 5c2:	ff 1f       	adc	r31, r31
- 5c4:	e8 0f       	add	r30, r24
- 5c6:	f9 1f       	adc	r31, r25
- 5c8:	01 90       	ld	r0, Z+
- 5ca:	f0 81       	ld	r31, Z
- 5cc:	e0 2d       	mov	r30, r0
- 5ce:	ef 2b       	or	r30, r31
- 5d0:	09 f4       	brne	.+2      	; 0x5d4 <Stepper_Init+0x2a>
- 5d2:	66 c0       	rjmp	.+204    	; 0x6a0 <Stepper_Init+0xf6>
- 5d4:	d9 01       	movw	r26, r18
- 5d6:	14 96       	adiw	r26, 0x04	; 4
- 5d8:	aa 0f       	add	r26, r26
- 5da:	bb 1f       	adc	r27, r27
- 5dc:	a8 0f       	add	r26, r24
- 5de:	b9 1f       	adc	r27, r25
- 5e0:	ed 91       	ld	r30, X+
- 5e2:	fc 91       	ld	r31, X
- 5e4:	ef 2b       	or	r30, r31
- 5e6:	09 f4       	brne	.+2      	; 0x5ea <Stepper_Init+0x40>
- 5e8:	5d c0       	rjmp	.+186    	; 0x6a4 <Stepper_Init+0xfa>
- 5ea:	fc 01       	movw	r30, r24
- 5ec:	e2 0f       	add	r30, r18
- 5ee:	f3 1f       	adc	r31, r19
- 5f0:	20 89       	ldd	r18, Z+16	; 0x10
- 5f2:	28 30       	cpi	r18, 0x08	; 8
- 5f4:	08 f0       	brcs	.+2      	; 0x5f8 <Stepper_Init+0x4e>
- 5f6:	58 c0       	rjmp	.+176    	; 0x6a8 <Stepper_Init+0xfe>
- 5f8:	4f 5f       	subi	r20, 0xFF	; 255
- 5fa:	44 30       	cpi	r20, 0x04	; 4
- 5fc:	f0 f2       	brcs	.-68     	; 0x5ba <Stepper_Init+0x10>
- 5fe:	24 e1       	ldi	r18, 0x14	; 20
- 600:	fc 01       	movw	r30, r24
- 602:	ab e4       	ldi	r26, 0x4B	; 75
- 604:	b1 e0       	ldi	r27, 0x01	; 1
- 606:	01 90       	ld	r0, Z+
- 608:	0d 92       	st	X+, r0
- 60a:	2a 95       	dec	r18
- 60c:	e1 f7       	brne	.-8      	; 0x606 <Stepper_Init+0x5c>
- 60e:	60 93 04 01 	sts	0x0104, r22	; 0x800104 <stepper_mode>
- 612:	61 30       	cpi	r22, 0x01	; 1
- 614:	11 f4       	brne	.+4      	; 0x61a <Stepper_Init+0x70>
- 616:	88 e0       	ldi	r24, 0x08	; 8
- 618:	01 c0       	rjmp	.+2      	; 0x61c <Stepper_Init+0x72>
- 61a:	84 e0       	ldi	r24, 0x04	; 4
- 61c:	80 93 05 01 	sts	0x0105, r24	; 0x800105 <stepper_sequence_length>
- 620:	40 e0       	ldi	r20, 0x00	; 0
- 622:	1a c0       	rjmp	.+52     	; 0x658 <Stepper_Init+0xae>
- 624:	24 2f       	mov	r18, r20
- 626:	30 e0       	ldi	r19, 0x00	; 0
- 628:	f9 01       	movw	r30, r18
- 62a:	ee 0f       	add	r30, r30
- 62c:	ff 1f       	adc	r31, r31
- 62e:	e5 5b       	subi	r30, 0xB5	; 181
- 630:	fe 4f       	sbci	r31, 0xFE	; 254
- 632:	01 90       	ld	r0, Z+
- 634:	f0 81       	ld	r31, Z
- 636:	e0 2d       	mov	r30, r0
- 638:	50 81       	ld	r21, Z
- 63a:	d9 01       	movw	r26, r18
- 63c:	a5 5b       	subi	r26, 0xB5	; 181
- 63e:	be 4f       	sbci	r27, 0xFE	; 254
- 640:	81 e0       	ldi	r24, 0x01	; 1
- 642:	90 e0       	ldi	r25, 0x00	; 0
- 644:	50 96       	adiw	r26, 0x10	; 16
- 646:	0c 90       	ld	r0, X
- 648:	02 c0       	rjmp	.+4      	; 0x64e <Stepper_Init+0xa4>
- 64a:	88 0f       	add	r24, r24
- 64c:	99 1f       	adc	r25, r25
- 64e:	0a 94       	dec	r0
- 650:	e2 f7       	brpl	.-8      	; 0x64a <Stepper_Init+0xa0>
- 652:	85 2b       	or	r24, r21
- 654:	80 83       	st	Z, r24
- 656:	4f 5f       	subi	r20, 0xFF	; 255
- 658:	44 30       	cpi	r20, 0x04	; 4
- 65a:	20 f3       	brcs	.-56     	; 0x624 <Stepper_Init+0x7a>
- 65c:	82 e0       	ldi	r24, 0x02	; 2
- 65e:	80 93 b0 00 	sts	0x00B0, r24	; 0x8000b0 <__TEXT_REGION_LENGTH__+0x7f80b0>
- 662:	10 92 b1 00 	sts	0x00B1, r1	; 0x8000b1 <__TEXT_REGION_LENGTH__+0x7f80b1>
- 666:	10 92 b2 00 	sts	0x00B2, r1	; 0x8000b2 <__TEXT_REGION_LENGTH__+0x7f80b2>
- 66a:	e0 e7       	ldi	r30, 0x70	; 112
- 66c:	f0 e0       	ldi	r31, 0x00	; 0
- 66e:	80 81       	ld	r24, Z
- 670:	8d 7f       	andi	r24, 0xFD	; 253
- 672:	80 83       	st	Z, r24
- 674:	80 e0       	ldi	r24, 0x00	; 0
- 676:	0e 94 3d 02 	call	0x47a	; 0x47a <Stepper_WritePattern>
- 67a:	10 92 43 01 	sts	0x0143, r1	; 0x800143 <stepper_index>
- 67e:	e4 e4       	ldi	r30, 0x44	; 68
- 680:	f1 e0       	ldi	r31, 0x01	; 1
- 682:	81 e0       	ldi	r24, 0x01	; 1
- 684:	80 83       	st	Z, r24
- 686:	12 82       	std	Z+2, r1	; 0x02
- 688:	11 82       	std	Z+1, r1	; 0x01
- 68a:	14 82       	std	Z+4, r1	; 0x04
- 68c:	13 82       	std	Z+3, r1	; 0x03
- 68e:	15 82       	std	Z+5, r1	; 0x05
- 690:	16 82       	std	Z+6, r1	; 0x06
- 692:	80 93 42 01 	sts	0x0142, r24	; 0x800142 <stepper_initialized>
- 696:	08 95       	ret
- 698:	80 e0       	ldi	r24, 0x00	; 0
- 69a:	08 95       	ret
- 69c:	80 e0       	ldi	r24, 0x00	; 0
- 69e:	08 95       	ret
- 6a0:	80 e0       	ldi	r24, 0x00	; 0
- 6a2:	08 95       	ret
- 6a4:	80 e0       	ldi	r24, 0x00	; 0
- 6a6:	08 95       	ret
- 6a8:	80 e0       	ldi	r24, 0x00	; 0
- 6aa:	08 95       	ret
+0000091a <Protocol_IsKnownStatus>:
+     91a:	89 30       	cpi	r24, 0x09	; 9
+     91c:	10 f4       	brcc	.+4      	; 0x922 <Protocol_IsKnownStatus+0x8>
+     91e:	81 e0       	ldi	r24, 0x01	; 1
+     920:	08 95       	ret
+     922:	80 e0       	ldi	r24, 0x00	; 0
+     924:	08 95       	ret
 
-000006ac <Stepper_RunContinuous>:
- 6ac:	ab 01       	movw	r20, r22
- 6ae:	21 e0       	ldi	r18, 0x01	; 1
- 6b0:	60 e0       	ldi	r22, 0x00	; 0
- 6b2:	70 e0       	ldi	r23, 0x00	; 0
- 6b4:	0e 94 88 02 	call	0x510	; 0x510 <Stepper_Start>
- 6b8:	08 95       	ret
+00000926 <Protocol_ValidateRequest>:
+     926:	0f 93       	push	r16
+     928:	1f 93       	push	r17
+     92a:	cf 93       	push	r28
+     92c:	df 93       	push	r29
+     92e:	00 97       	sbiw	r24, 0x00	; 0
+     930:	09 f4       	brne	.+2      	; 0x934 <Protocol_ValidateRequest+0xe>
+     932:	66 c0       	rjmp	.+204    	; 0xa00 <Protocol_ValidateRequest+0xda>
+     934:	ec 01       	movw	r28, r24
+     936:	18 81       	ld	r17, Y
+     938:	81 2f       	mov	r24, r17
+     93a:	0e 94 7a 04 	call	0x8f4	; 0x8f4 <Protocol_IsKnownCommand>
+     93e:	88 23       	and	r24, r24
+     940:	09 f4       	brne	.+2      	; 0x944 <Protocol_ValidateRequest+0x1e>
+     942:	60 c0       	rjmp	.+192    	; 0xa04 <Protocol_ValidateRequest+0xde>
+     944:	09 81       	ldd	r16, Y+1	; 0x01
+     946:	80 2f       	mov	r24, r16
+     948:	0e 94 81 04 	call	0x902	; 0x902 <Protocol_IsKnownDevice>
+     94c:	88 23       	and	r24, r24
+     94e:	09 f4       	brne	.+2      	; 0x952 <Protocol_ValidateRequest+0x2c>
+     950:	5b c0       	rjmp	.+182    	; 0xa08 <Protocol_ValidateRequest+0xe2>
+     952:	2a 81       	ldd	r18, Y+2	; 0x02
+     954:	26 30       	cpi	r18, 0x06	; 6
+     956:	08 f0       	brcs	.+2      	; 0x95a <Protocol_ValidateRequest+0x34>
+     958:	59 c0       	rjmp	.+178    	; 0xa0c <Protocol_ValidateRequest+0xe6>
+     95a:	82 2f       	mov	r24, r18
+     95c:	07 c0       	rjmp	.+14     	; 0x96c <Protocol_ValidateRequest+0x46>
+     95e:	fe 01       	movw	r30, r28
+     960:	e8 0f       	add	r30, r24
+     962:	f1 1d       	adc	r31, r1
+     964:	93 81       	ldd	r25, Z+3	; 0x03
+     966:	91 11       	cpse	r25, r1
+     968:	53 c0       	rjmp	.+166    	; 0xa10 <Protocol_ValidateRequest+0xea>
+     96a:	8f 5f       	subi	r24, 0xFF	; 255
+     96c:	85 30       	cpi	r24, 0x05	; 5
+     96e:	b8 f3       	brcs	.-18     	; 0x95e <Protocol_ValidateRequest+0x38>
+     970:	13 30       	cpi	r17, 0x03	; 3
+     972:	c1 f0       	breq	.+48     	; 0x9a4 <Protocol_ValidateRequest+0x7e>
+     974:	28 f4       	brcc	.+10     	; 0x980 <Protocol_ValidateRequest+0x5a>
+     976:	11 30       	cpi	r17, 0x01	; 1
+     978:	49 f0       	breq	.+18     	; 0x98c <Protocol_ValidateRequest+0x66>
+     97a:	12 30       	cpi	r17, 0x02	; 2
+     97c:	59 f0       	breq	.+22     	; 0x994 <Protocol_ValidateRequest+0x6e>
+     97e:	4a c0       	rjmp	.+148    	; 0xa14 <Protocol_ValidateRequest+0xee>
+     980:	15 30       	cpi	r17, 0x05	; 5
+     982:	19 f1       	breq	.+70     	; 0x9ca <Protocol_ValidateRequest+0xa4>
+     984:	c8 f0       	brcs	.+50     	; 0x9b8 <Protocol_ValidateRequest+0x92>
+     986:	16 30       	cpi	r17, 0x06	; 6
+     988:	89 f1       	breq	.+98     	; 0x9ec <Protocol_ValidateRequest+0xc6>
+     98a:	44 c0       	rjmp	.+136    	; 0xa14 <Protocol_ValidateRequest+0xee>
+     98c:	21 11       	cpse	r18, r1
+     98e:	44 c0       	rjmp	.+136    	; 0xa18 <Protocol_ValidateRequest+0xf2>
+     990:	80 e0       	ldi	r24, 0x00	; 0
+     992:	5f c0       	rjmp	.+190    	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     994:	01 50       	subi	r16, 0x01	; 1
+     996:	02 30       	cpi	r16, 0x02	; 2
+     998:	08 f0       	brcs	.+2      	; 0x99c <Protocol_ValidateRequest+0x76>
+     99a:	40 c0       	rjmp	.+128    	; 0xa1c <Protocol_ValidateRequest+0xf6>
+     99c:	21 11       	cpse	r18, r1
+     99e:	40 c0       	rjmp	.+128    	; 0xa20 <Protocol_ValidateRequest+0xfa>
+     9a0:	80 e0       	ldi	r24, 0x00	; 0
+     9a2:	57 c0       	rjmp	.+174    	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     9a4:	03 50       	subi	r16, 0x03	; 3
+     9a6:	02 30       	cpi	r16, 0x02	; 2
+     9a8:	e8 f5       	brcc	.+122    	; 0xa24 <Protocol_ValidateRequest+0xfe>
+     9aa:	21 30       	cpi	r18, 0x01	; 1
+     9ac:	e9 f5       	brne	.+122    	; 0xa28 <Protocol_ValidateRequest+0x102>
+     9ae:	8b 81       	ldd	r24, Y+3	; 0x03
+     9b0:	85 3b       	cpi	r24, 0xB5	; 181
+     9b2:	e0 f5       	brcc	.+120    	; 0xa2c <Protocol_ValidateRequest+0x106>
+     9b4:	80 e0       	ldi	r24, 0x00	; 0
+     9b6:	4d c0       	rjmp	.+154    	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     9b8:	05 30       	cpi	r16, 0x05	; 5
+     9ba:	d1 f5       	brne	.+116    	; 0xa30 <Protocol_ValidateRequest+0x10a>
+     9bc:	22 30       	cpi	r18, 0x02	; 2
+     9be:	d1 f5       	brne	.+116    	; 0xa34 <Protocol_ValidateRequest+0x10e>
+     9c0:	8b 81       	ldd	r24, Y+3	; 0x03
+     9c2:	82 30       	cpi	r24, 0x02	; 2
+     9c4:	c8 f5       	brcc	.+114    	; 0xa38 <Protocol_ValidateRequest+0x112>
+     9c6:	80 e0       	ldi	r24, 0x00	; 0
+     9c8:	44 c0       	rjmp	.+136    	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     9ca:	06 30       	cpi	r16, 0x06	; 6
+     9cc:	b9 f5       	brne	.+110    	; 0xa3c <Protocol_ValidateRequest+0x116>
+     9ce:	25 30       	cpi	r18, 0x05	; 5
+     9d0:	b9 f5       	brne	.+110    	; 0xa40 <Protocol_ValidateRequest+0x11a>
+     9d2:	8b 81       	ldd	r24, Y+3	; 0x03
+     9d4:	82 30       	cpi	r24, 0x02	; 2
+     9d6:	b0 f5       	brcc	.+108    	; 0xa44 <Protocol_ValidateRequest+0x11e>
+     9d8:	8e 81       	ldd	r24, Y+6	; 0x06
+     9da:	90 e0       	ldi	r25, 0x00	; 0
+     9dc:	98 2f       	mov	r25, r24
+     9de:	88 27       	eor	r24, r24
+     9e0:	2f 81       	ldd	r18, Y+7	; 0x07
+     9e2:	82 2b       	or	r24, r18
+     9e4:	89 2b       	or	r24, r25
+     9e6:	81 f1       	breq	.+96     	; 0xa48 <Protocol_ValidateRequest+0x122>
+     9e8:	80 e0       	ldi	r24, 0x00	; 0
+     9ea:	33 c0       	rjmp	.+102    	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     9ec:	8b ef       	ldi	r24, 0xFB	; 251
+     9ee:	80 0f       	add	r24, r16
+     9f0:	82 30       	cpi	r24, 0x02	; 2
+     9f2:	10 f0       	brcs	.+4      	; 0x9f8 <Protocol_ValidateRequest+0xd2>
+     9f4:	0f 37       	cpi	r16, 0x7F	; 127
+     9f6:	51 f5       	brne	.+84     	; 0xa4c <Protocol_ValidateRequest+0x126>
+     9f8:	21 11       	cpse	r18, r1
+     9fa:	2a c0       	rjmp	.+84     	; 0xa50 <Protocol_ValidateRequest+0x12a>
+     9fc:	80 e0       	ldi	r24, 0x00	; 0
+     9fe:	29 c0       	rjmp	.+82     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a00:	86 e0       	ldi	r24, 0x06	; 6
+     a02:	27 c0       	rjmp	.+78     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a04:	83 e0       	ldi	r24, 0x03	; 3
+     a06:	25 c0       	rjmp	.+74     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a08:	84 e0       	ldi	r24, 0x04	; 4
+     a0a:	23 c0       	rjmp	.+70     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a0c:	85 e0       	ldi	r24, 0x05	; 5
+     a0e:	21 c0       	rjmp	.+66     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a10:	86 e0       	ldi	r24, 0x06	; 6
+     a12:	1f c0       	rjmp	.+62     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a14:	83 e0       	ldi	r24, 0x03	; 3
+     a16:	1d c0       	rjmp	.+58     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a18:	85 e0       	ldi	r24, 0x05	; 5
+     a1a:	1b c0       	rjmp	.+54     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a1c:	84 e0       	ldi	r24, 0x04	; 4
+     a1e:	19 c0       	rjmp	.+50     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a20:	85 e0       	ldi	r24, 0x05	; 5
+     a22:	17 c0       	rjmp	.+46     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a24:	84 e0       	ldi	r24, 0x04	; 4
+     a26:	15 c0       	rjmp	.+42     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a28:	85 e0       	ldi	r24, 0x05	; 5
+     a2a:	13 c0       	rjmp	.+38     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a2c:	86 e0       	ldi	r24, 0x06	; 6
+     a2e:	11 c0       	rjmp	.+34     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a30:	84 e0       	ldi	r24, 0x04	; 4
+     a32:	0f c0       	rjmp	.+30     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a34:	85 e0       	ldi	r24, 0x05	; 5
+     a36:	0d c0       	rjmp	.+26     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a38:	86 e0       	ldi	r24, 0x06	; 6
+     a3a:	0b c0       	rjmp	.+22     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a3c:	84 e0       	ldi	r24, 0x04	; 4
+     a3e:	09 c0       	rjmp	.+18     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a40:	85 e0       	ldi	r24, 0x05	; 5
+     a42:	07 c0       	rjmp	.+14     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a44:	86 e0       	ldi	r24, 0x06	; 6
+     a46:	05 c0       	rjmp	.+10     	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a48:	86 e0       	ldi	r24, 0x06	; 6
+     a4a:	03 c0       	rjmp	.+6      	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a4c:	84 e0       	ldi	r24, 0x04	; 4
+     a4e:	01 c0       	rjmp	.+2      	; 0xa52 <Protocol_ValidateRequest+0x12c>
+     a50:	85 e0       	ldi	r24, 0x05	; 5
+     a52:	df 91       	pop	r29
+     a54:	cf 91       	pop	r28
+     a56:	1f 91       	pop	r17
+     a58:	0f 91       	pop	r16
+     a5a:	08 95       	ret
 
-000006ba <Stepper_Stop>:
- 6ba:	2f b7       	in	r18, 0x3f	; 63
- 6bc:	f8 94       	cli
- 6be:	91 e0       	ldi	r25, 0x01	; 1
- 6c0:	10 c0       	rjmp	.+32     	; 0x6e2 <Stepper_Stop+0x28>
- 6c2:	e0 e7       	ldi	r30, 0x70	; 112
- 6c4:	f0 e0       	ldi	r31, 0x00	; 0
- 6c6:	90 81       	ld	r25, Z
- 6c8:	9d 7f       	andi	r25, 0xFD	; 253
- 6ca:	90 83       	st	Z, r25
- 6cc:	10 92 b1 00 	sts	0x00B1, r1	; 0x8000b1 <__TEXT_REGION_LENGTH__+0x7f80b1>
- 6d0:	e4 e4       	ldi	r30, 0x44	; 68
- 6d2:	f1 e0       	ldi	r31, 0x01	; 1
- 6d4:	15 82       	std	Z+5, r1	; 0x05
- 6d6:	16 82       	std	Z+6, r1	; 0x06
- 6d8:	14 82       	std	Z+4, r1	; 0x04
- 6da:	13 82       	std	Z+3, r1	; 0x03
- 6dc:	12 82       	std	Z+2, r1	; 0x02
- 6de:	11 82       	std	Z+1, r1	; 0x01
- 6e0:	90 e0       	ldi	r25, 0x00	; 0
- 6e2:	91 11       	cpse	r25, r1
- 6e4:	ee cf       	rjmp	.-36     	; 0x6c2 <Stepper_Stop+0x8>
- 6e6:	2f bf       	out	0x3f, r18	; 63
- 6e8:	90 91 42 01 	lds	r25, 0x0142	; 0x800142 <stepper_initialized>
- 6ec:	99 23       	and	r25, r25
- 6ee:	29 f0       	breq	.+10     	; 0x6fa <Stepper_Stop+0x40>
- 6f0:	88 23       	and	r24, r24
- 6f2:	19 f0       	breq	.+6      	; 0x6fa <Stepper_Stop+0x40>
- 6f4:	80 e0       	ldi	r24, 0x00	; 0
- 6f6:	0e 94 3d 02 	call	0x47a	; 0x47a <Stepper_WritePattern>
- 6fa:	08 95       	ret
+00000a5c <Protocol_CreateResponse>:
+     a5c:	cf 92       	push	r12
+     a5e:	df 92       	push	r13
+     a60:	ef 92       	push	r14
+     a62:	ff 92       	push	r15
+     a64:	0f 93       	push	r16
+     a66:	1f 93       	push	r17
+     a68:	cf 93       	push	r28
+     a6a:	df 93       	push	r29
+     a6c:	00 97       	sbiw	r24, 0x00	; 0
+     a6e:	11 f1       	breq	.+68     	; 0xab4 <Protocol_CreateResponse+0x58>
+     a70:	12 2f       	mov	r17, r18
+     a72:	d4 2e       	mov	r13, r20
+     a74:	c6 2e       	mov	r12, r22
+     a76:	ec 01       	movw	r28, r24
+     a78:	82 2f       	mov	r24, r18
+     a7a:	0e 94 8d 04 	call	0x91a	; 0x91a <Protocol_IsKnownStatus>
+     a7e:	88 23       	and	r24, r24
+     a80:	d9 f0       	breq	.+54     	; 0xab8 <Protocol_CreateResponse+0x5c>
+     a82:	05 30       	cpi	r16, 0x05	; 5
+     a84:	d8 f4       	brcc	.+54     	; 0xabc <Protocol_CreateResponse+0x60>
+     a86:	00 23       	and	r16, r16
+     a88:	19 f0       	breq	.+6      	; 0xa90 <Protocol_CreateResponse+0x34>
+     a8a:	e1 14       	cp	r14, r1
+     a8c:	f1 04       	cpc	r15, r1
+     a8e:	c1 f0       	breq	.+48     	; 0xac0 <Protocol_CreateResponse+0x64>
+     a90:	c8 82       	st	Y, r12
+     a92:	d9 82       	std	Y+1, r13	; 0x01
+     a94:	1a 83       	std	Y+2, r17	; 0x02
+     a96:	0b 83       	std	Y+3, r16	; 0x03
+     a98:	24 96       	adiw	r28, 0x04	; 4
+     a9a:	64 e0       	ldi	r22, 0x04	; 4
+     a9c:	ce 01       	movw	r24, r28
+     a9e:	0e 94 5a 04 	call	0x8b4	; 0x8b4 <Protocol_Clear>
+     aa2:	00 23       	and	r16, r16
+     aa4:	79 f0       	breq	.+30     	; 0xac4 <Protocol_CreateResponse+0x68>
+     aa6:	40 2f       	mov	r20, r16
+     aa8:	b7 01       	movw	r22, r14
+     aaa:	ce 01       	movw	r24, r28
+     aac:	0e 94 65 04 	call	0x8ca	; 0x8ca <Protocol_Copy>
+     ab0:	80 e0       	ldi	r24, 0x00	; 0
+     ab2:	09 c0       	rjmp	.+18     	; 0xac6 <Protocol_CreateResponse+0x6a>
+     ab4:	86 e0       	ldi	r24, 0x06	; 6
+     ab6:	07 c0       	rjmp	.+14     	; 0xac6 <Protocol_CreateResponse+0x6a>
+     ab8:	86 e0       	ldi	r24, 0x06	; 6
+     aba:	05 c0       	rjmp	.+10     	; 0xac6 <Protocol_CreateResponse+0x6a>
+     abc:	85 e0       	ldi	r24, 0x05	; 5
+     abe:	03 c0       	rjmp	.+6      	; 0xac6 <Protocol_CreateResponse+0x6a>
+     ac0:	86 e0       	ldi	r24, 0x06	; 6
+     ac2:	01 c0       	rjmp	.+2      	; 0xac6 <Protocol_CreateResponse+0x6a>
+     ac4:	80 e0       	ldi	r24, 0x00	; 0
+     ac6:	df 91       	pop	r29
+     ac8:	cf 91       	pop	r28
+     aca:	1f 91       	pop	r17
+     acc:	0f 91       	pop	r16
+     ace:	ff 90       	pop	r15
+     ad0:	ef 90       	pop	r14
+     ad2:	df 90       	pop	r13
+     ad4:	cf 90       	pop	r12
+     ad6:	08 95       	ret
 
-000006fc <Stepper_GetState>:
+00000ad8 <Protocol_EncodeResponse>:
 
-void Stepper_GetState(StepperState *state)
+// Convierte una respuesta estructurada en ocho bytes para transporte.
+void Protocol_EncodeResponse(
+    const ProtocolResponse *response,
+    uint8_t frame[PROTOCOL_FRAME_SIZE])
 {
-    if (state == NULL)
- 6fc:	00 97       	sbiw	r24, 0x00	; 0
- 6fe:	81 f0       	breq	.+32     	; 0x720 <Stepper_GetState+0x24>
+     ad8:	cf 93       	push	r28
+     ada:	df 93       	push	r29
+     adc:	dc 01       	movw	r26, r24
+     ade:	eb 01       	movw	r28, r22
+    uint8_t index;
+
+    if ((response == NULL) || (frame == NULL))
+     ae0:	89 2b       	or	r24, r25
+     ae2:	11 f1       	breq	.+68     	; 0xb28 <Protocol_EncodeResponse+0x50>
+     ae4:	20 97       	sbiw	r28, 0x00	; 0
+     ae6:	01 f1       	breq	.+64     	; 0xb28 <Protocol_EncodeResponse+0x50>
     {
         return;
     }
 
+    frame[0] = response->command;
+     ae8:	8c 91       	ld	r24, X
+     aea:	88 83       	st	Y, r24
+    frame[1] = response->device;
+     aec:	11 96       	adiw	r26, 0x01	; 1
+     aee:	8c 91       	ld	r24, X
+     af0:	11 97       	sbiw	r26, 0x01	; 1
+     af2:	89 83       	std	Y+1, r24	; 0x01
+    frame[2] = response->status;
+     af4:	12 96       	adiw	r26, 0x02	; 2
+     af6:	8c 91       	ld	r24, X
+     af8:	12 97       	sbiw	r26, 0x02	; 2
+     afa:	8a 83       	std	Y+2, r24	; 0x02
+    frame[3] = response->length;
+     afc:	13 96       	adiw	r26, 0x03	; 3
+     afe:	8c 91       	ld	r24, X
+     b00:	13 97       	sbiw	r26, 0x03	; 3
+     b02:	8b 83       	std	Y+3, r24	; 0x03
+
+    for (index = 0U; index < PROTOCOL_RESPONSE_DATA_SIZE; index++)
+     b04:	90 e0       	ldi	r25, 0x00	; 0
+     b06:	0e c0       	rjmp	.+28     	; 0xb24 <Protocol_EncodeResponse+0x4c>
+    {
+        frame[index + 4U] = response->data[index];
+     b08:	29 2f       	mov	r18, r25
+     b0a:	30 e0       	ldi	r19, 0x00	; 0
+     b0c:	f9 01       	movw	r30, r18
+     b0e:	34 96       	adiw	r30, 0x04	; 4
+     b10:	af 01       	movw	r20, r30
+     b12:	4c 0f       	add	r20, r28
+     b14:	5d 1f       	adc	r21, r29
+     b16:	2a 0f       	add	r18, r26
+     b18:	3b 1f       	adc	r19, r27
+     b1a:	f9 01       	movw	r30, r18
+     b1c:	84 81       	ldd	r24, Z+4	; 0x04
+     b1e:	fa 01       	movw	r30, r20
+     b20:	80 83       	st	Z, r24
+    frame[0] = response->command;
+    frame[1] = response->device;
+    frame[2] = response->status;
+    frame[3] = response->length;
+
+    for (index = 0U; index < PROTOCOL_RESPONSE_DATA_SIZE; index++)
+     b22:	9f 5f       	subi	r25, 0xFF	; 255
+     b24:	94 30       	cpi	r25, 0x04	; 4
+     b26:	80 f3       	brcs	.-32     	; 0xb08 <Protocol_EncodeResponse+0x30>
+    {
+        frame[index + 4U] = response->data[index];
+    }
+}
+     b28:	df 91       	pop	r29
+     b2a:	cf 91       	pop	r28
+     b2c:	08 95       	ret
+
+00000b2e <Protocol_DecodeRequest>:
+
+// Separa los ocho bytes recibidos y valida la solicitud obtenida.
+ProtocolStatus Protocol_DecodeRequest(
+    const uint8_t frame[PROTOCOL_FRAME_SIZE],
+    ProtocolRequest *request)
+{
+     b2e:	fc 01       	movw	r30, r24
+    uint8_t index;
+
+    if ((frame == NULL) || (request == NULL))
+     b30:	89 2b       	or	r24, r25
+     b32:	11 f1       	breq	.+68     	; 0xb78 <Protocol_DecodeRequest+0x4a>
+     b34:	61 15       	cp	r22, r1
+     b36:	71 05       	cpc	r23, r1
+     b38:	09 f1       	breq	.+66     	; 0xb7c <Protocol_DecodeRequest+0x4e>
+    {
+        return INVALID_VALUE;
+    }
+
+    request->command = frame[0];
+     b3a:	80 81       	ld	r24, Z
+     b3c:	db 01       	movw	r26, r22
+     b3e:	8c 93       	st	X, r24
+    request->device = frame[1];
+     b40:	81 81       	ldd	r24, Z+1	; 0x01
+     b42:	11 96       	adiw	r26, 0x01	; 1
+     b44:	8c 93       	st	X, r24
+     b46:	11 97       	sbiw	r26, 0x01	; 1
+    request->length = frame[2];
+     b48:	82 81       	ldd	r24, Z+2	; 0x02
+     b4a:	12 96       	adiw	r26, 0x02	; 2
+     b4c:	8c 93       	st	X, r24
+
+    for (index = 0U; index < PROTOCOL_REQUEST_DATA_SIZE; index++)
+     b4e:	90 e0       	ldi	r25, 0x00	; 0
+     b50:	0d c0       	rjmp	.+26     	; 0xb6c <Protocol_DecodeRequest+0x3e>
+    {
+        request->data[index] = frame[index + 3U];
+     b52:	29 2f       	mov	r18, r25
+     b54:	30 e0       	ldi	r19, 0x00	; 0
+     b56:	df 01       	movw	r26, r30
+     b58:	a2 0f       	add	r26, r18
+     b5a:	b3 1f       	adc	r27, r19
+     b5c:	13 96       	adiw	r26, 0x03	; 3
+     b5e:	8c 91       	ld	r24, X
+     b60:	db 01       	movw	r26, r22
+     b62:	a2 0f       	add	r26, r18
+     b64:	b3 1f       	adc	r27, r19
+     b66:	13 96       	adiw	r26, 0x03	; 3
+     b68:	8c 93       	st	X, r24
+
+    request->command = frame[0];
+    request->device = frame[1];
+    request->length = frame[2];
+
+    for (index = 0U; index < PROTOCOL_REQUEST_DATA_SIZE; index++)
+     b6a:	9f 5f       	subi	r25, 0xFF	; 255
+     b6c:	95 30       	cpi	r25, 0x05	; 5
+     b6e:	88 f3       	brcs	.-30     	; 0xb52 <Protocol_DecodeRequest+0x24>
+     b70:	cb 01       	movw	r24, r22
+    {
+        request->data[index] = frame[index + 3U];
+    }
+
+    return Protocol_ValidateRequest(request);
+     b72:	0e 94 93 04 	call	0x926	; 0x926 <Protocol_ValidateRequest>
+     b76:	08 95       	ret
+{
+    uint8_t index;
+
+    if ((frame == NULL) || (request == NULL))
+    {
+        return INVALID_VALUE;
+     b78:	86 e0       	ldi	r24, 0x06	; 6
+     b7a:	08 95       	ret
+     b7c:	86 e0       	ldi	r24, 0x06	; 6
+    {
+        request->data[index] = frame[index + 3U];
+    }
+
+    return Protocol_ValidateRequest(request);
+}
+     b7e:	08 95       	ret
+
+00000b80 <Servo_AngleToTicks>:
+{
+    uint32_t pulse_ticks = SERVO_MIN_PULSE_TICKS;
+
+    pulse_ticks +=
+        ((uint32_t)(SERVO_MAX_PULSE_TICKS -
+                    SERVO_MIN_PULSE_TICKS) * angle) /
+     b80:	28 2f       	mov	r18, r24
+     b82:	30 e0       	ldi	r19, 0x00	; 0
+     b84:	a0 ed       	ldi	r26, 0xD0	; 208
+     b86:	b7 e0       	ldi	r27, 0x07	; 7
+     b88:	0e 94 a8 08 	call	0x1150	; 0x1150 <__umulhisi3>
+     b8c:	24 eb       	ldi	r18, 0xB4	; 180
+     b8e:	30 e0       	ldi	r19, 0x00	; 0
+     b90:	40 e0       	ldi	r20, 0x00	; 0
+     b92:	50 e0       	ldi	r21, 0x00	; 0
+     b94:	0e 94 86 08 	call	0x110c	; 0x110c <__udivmodsi4>
+// Convierte un angulo de 0 a 180 grados al ancho de pulso de Timer1.
+static uint16_t Servo_AngleToTicks(uint8_t angle)
+{
+    uint32_t pulse_ticks = SERVO_MIN_PULSE_TICKS;
+
+    pulse_ticks +=
+     b98:	da 01       	movw	r26, r20
+     b9a:	c9 01       	movw	r24, r18
+     b9c:	80 53       	subi	r24, 0x30	; 48
+     b9e:	98 4f       	sbci	r25, 0xF8	; 248
+     ba0:	af 4f       	sbci	r26, 0xFF	; 255
+     ba2:	bf 4f       	sbci	r27, 0xFF	; 255
+        ((uint32_t)(SERVO_MAX_PULSE_TICKS -
+                    SERVO_MIN_PULSE_TICKS) * angle) /
+        SERVO_MAX_ANGLE;
+
+    return (uint16_t)pulse_ticks;
+}
+     ba4:	08 95       	ret
+
+00000ba6 <Servo_Init>:
+// Configura el pin de salida y Timer1 para producir periodos de 20 ms.
+uint8_t Servo_Init(volatile uint8_t *ddr,
+                   volatile uint8_t *port,
+                   uint8_t pin)
+{
+    if ((ddr == NULL) || (port == NULL) || (pin > 7u))
+     ba6:	00 97       	sbiw	r24, 0x00	; 0
+     ba8:	09 f4       	brne	.+2      	; 0xbac <Servo_Init+0x6>
+     baa:	3f c0       	rjmp	.+126    	; 0xc2a <Servo_Init+0x84>
+     bac:	61 15       	cp	r22, r1
+     bae:	71 05       	cpc	r23, r1
+     bb0:	f1 f1       	breq	.+124    	; 0xc2e <Servo_Init+0x88>
+     bb2:	48 30       	cpi	r20, 0x08	; 8
+     bb4:	f0 f5       	brcc	.+124    	; 0xc32 <Servo_Init+0x8c>
+    {
+        return 0u;
+    }
+
+    servo_port = port;
+     bb6:	70 93 74 01 	sts	0x0174, r23	; 0x800174 <servo_port+0x1>
+     bba:	60 93 73 01 	sts	0x0173, r22	; 0x800173 <servo_port>
+    servo_pin_mask = (uint8_t)(1u << pin);
+     bbe:	21 e0       	ldi	r18, 0x01	; 1
+     bc0:	30 e0       	ldi	r19, 0x00	; 0
+     bc2:	02 c0       	rjmp	.+4      	; 0xbc8 <Servo_Init+0x22>
+     bc4:	22 0f       	add	r18, r18
+     bc6:	33 1f       	adc	r19, r19
+     bc8:	4a 95       	dec	r20
+     bca:	e2 f7       	brpl	.-8      	; 0xbc4 <Servo_Init+0x1e>
+     bcc:	20 93 72 01 	sts	0x0172, r18	; 0x800172 <servo_pin_mask>
+    *ddr |= servo_pin_mask;
+     bd0:	fc 01       	movw	r30, r24
+     bd2:	30 81       	ld	r19, Z
+     bd4:	32 2b       	or	r19, r18
+     bd6:	30 83       	st	Z, r19
+    *servo_port &= (uint8_t)~servo_pin_mask;
+     bd8:	fb 01       	movw	r30, r22
+     bda:	80 81       	ld	r24, Z
+     bdc:	20 95       	com	r18
+     bde:	28 23       	and	r18, r24
+     be0:	20 83       	st	Z, r18
+
+    TCCR1A = 0u;
+     be2:	a0 e8       	ldi	r26, 0x80	; 128
+     be4:	b0 e0       	ldi	r27, 0x00	; 0
+     be6:	1c 92       	st	X, r1
+    TCCR1B = 0u;
+     be8:	e1 e8       	ldi	r30, 0x81	; 129
+     bea:	f0 e0       	ldi	r31, 0x00	; 0
+     bec:	10 82       	st	Z, r1
+    TCNT1 = 0u;
+     bee:	10 92 85 00 	sts	0x0085, r1	; 0x800085 <__TEXT_REGION_LENGTH__+0x7f8085>
+     bf2:	10 92 84 00 	sts	0x0084, r1	; 0x800084 <__TEXT_REGION_LENGTH__+0x7f8084>
+    ICR1 = SERVO_TIMER_TOP;
+     bf6:	8f e3       	ldi	r24, 0x3F	; 63
+     bf8:	9c e9       	ldi	r25, 0x9C	; 156
+     bfa:	90 93 87 00 	sts	0x0087, r25	; 0x800087 <__TEXT_REGION_LENGTH__+0x7f8087>
+     bfe:	80 93 86 00 	sts	0x0086, r24	; 0x800086 <__TEXT_REGION_LENGTH__+0x7f8086>
+    OCR1A = SERVO_MIN_PULSE_TICKS;
+     c02:	80 ed       	ldi	r24, 0xD0	; 208
+     c04:	97 e0       	ldi	r25, 0x07	; 7
+     c06:	90 93 89 00 	sts	0x0089, r25	; 0x800089 <__TEXT_REGION_LENGTH__+0x7f8089>
+     c0a:	80 93 88 00 	sts	0x0088, r24	; 0x800088 <__TEXT_REGION_LENGTH__+0x7f8088>
+    TIFR1 = (1u << TOV1) | (1u << OCF1A);
+     c0e:	83 e0       	ldi	r24, 0x03	; 3
+     c10:	86 bb       	out	0x16, r24	; 22
+
+    TCCR1A = (1u << WGM11);
+     c12:	92 e0       	ldi	r25, 0x02	; 2
+     c14:	9c 93       	st	X, r25
+    TCCR1B = (1u << WGM13) | (1u << WGM12) |
+     c16:	9a e1       	ldi	r25, 0x1A	; 26
+     c18:	90 83       	st	Z, r25
+             (1u << CS11);
+    TIMSK1 = (1u << TOIE1) | (1u << OCIE1A);
+     c1a:	80 93 6f 00 	sts	0x006F, r24	; 0x80006f <__TEXT_REGION_LENGTH__+0x7f806f>
+
+    servo_angle = SERVO_MIN_ANGLE;
+     c1e:	10 92 71 01 	sts	0x0171, r1	; 0x800171 <servo_angle>
+    servo_initialized = 1u;
+     c22:	81 e0       	ldi	r24, 0x01	; 1
+     c24:	80 93 70 01 	sts	0x0170, r24	; 0x800170 <servo_initialized>
+    return 1u;
+     c28:	08 95       	ret
+                   volatile uint8_t *port,
+                   uint8_t pin)
+{
+    if ((ddr == NULL) || (port == NULL) || (pin > 7u))
+    {
+        return 0u;
+     c2a:	80 e0       	ldi	r24, 0x00	; 0
+     c2c:	08 95       	ret
+     c2e:	80 e0       	ldi	r24, 0x00	; 0
+     c30:	08 95       	ret
+     c32:	80 e0       	ldi	r24, 0x00	; 0
+    TIMSK1 = (1u << TOIE1) | (1u << OCIE1A);
+
+    servo_angle = SERVO_MIN_ANGLE;
+    servo_initialized = 1u;
+    return 1u;
+}
+     c34:	08 95       	ret
+
+00000c36 <Servo_SetAngle>:
+
+// Actualiza de forma atomica el angulo y el ancho del siguiente pulso.
+uint8_t Servo_SetAngle(uint8_t angle)
+{
+     c36:	cf 93       	push	r28
+    uint16_t ticks;
+
+    if ((servo_initialized == 0u) || (angle > SERVO_MAX_ANGLE))
+     c38:	90 91 70 01 	lds	r25, 0x0170	; 0x800170 <servo_initialized>
+     c3c:	99 23       	and	r25, r25
+     c3e:	b9 f0       	breq	.+46     	; 0xc6e <Servo_SetAngle+0x38>
+     c40:	85 3b       	cpi	r24, 0xB5	; 181
+     c42:	a0 f4       	brcc	.+40     	; 0xc6c <Servo_SetAngle+0x36>
+     c44:	c8 2f       	mov	r28, r24
+    {
+        return 0u;
+    }
+
+    ticks = Servo_AngleToTicks(angle);
+     c46:	0e 94 c0 05 	call	0xb80	; 0xb80 <Servo_AngleToTicks>
+     c4a:	9c 01       	movw	r18, r24
+
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
- 700:	3f b7       	in	r19, 0x3f	; 63
+     c4c:	8f b7       	in	r24, 0x3f	; 63
     return 1;
 }
 
 static __inline__ uint8_t __iCliRetVal(void)
 {
     cli();
- 702:	f8 94       	cli
- 704:	21 e0       	ldi	r18, 0x01	; 1
- 706:	09 c0       	rjmp	.+18     	; 0x71a <Stepper_GetState+0x1e>
+     c4e:	f8 94       	cli
+     c50:	91 e0       	ldi	r25, 0x01	; 1
+     c52:	07 c0       	rjmp	.+14     	; 0xc62 <Servo_SetAngle+0x2c>
     {
-        *state = stepper_state;
- 708:	27 e0       	ldi	r18, 0x07	; 7
- 70a:	e4 e4       	ldi	r30, 0x44	; 68
- 70c:	f1 e0       	ldi	r31, 0x01	; 1
- 70e:	dc 01       	movw	r26, r24
- 710:	01 90       	ld	r0, Z+
- 712:	0d 92       	st	X+, r0
- 714:	2a 95       	dec	r18
- 716:	e1 f7       	brne	.-8      	; 0x710 <Stepper_GetState+0x14>
-    if (state == NULL)
-    {
-        return;
+        OCR1A = ticks;
+     c54:	30 93 89 00 	sts	0x0089, r19	; 0x800089 <__TEXT_REGION_LENGTH__+0x7f8089>
+     c58:	20 93 88 00 	sts	0x0088, r18	; 0x800088 <__TEXT_REGION_LENGTH__+0x7f8088>
+        servo_angle = angle;
+     c5c:	c0 93 71 01 	sts	0x0171, r28	; 0x800171 <servo_angle>
+        return 0u;
     }
 
+    ticks = Servo_AngleToTicks(angle);
+
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
- 718:	20 e0       	ldi	r18, 0x00	; 0
- 71a:	21 11       	cpse	r18, r1
- 71c:	f5 cf       	rjmp	.-22     	; 0x708 <Stepper_GetState+0xc>
+     c60:	90 e0       	ldi	r25, 0x00	; 0
+     c62:	91 11       	cpse	r25, r1
+     c64:	f7 cf       	rjmp	.-18     	; 0xc54 <Servo_SetAngle+0x1e>
     (void)__s;
 }
 
 static __inline__ void __iRestore(const  uint8_t *__s)
 {
     SREG = *__s;
- 71e:	3f bf       	out	0x3f, r19	; 63
-    __asm__ volatile ("" ::: "memory");
- 720:	08 95       	ret
-
-00000722 <__vector_7>:
-        *state = stepper_state;
+     c66:	8f bf       	out	0x3f, r24	; 63
+    {
+        OCR1A = ticks;
+        servo_angle = angle;
     }
+
+    return 1u;
+     c68:	91 e0       	ldi	r25, 0x01	; 1
+     c6a:	01 c0       	rjmp	.+2      	; 0xc6e <Servo_SetAngle+0x38>
+{
+    uint16_t ticks;
+
+    if ((servo_initialized == 0u) || (angle > SERVO_MAX_ANGLE))
+    {
+        return 0u;
+     c6c:	90 e0       	ldi	r25, 0x00	; 0
+        OCR1A = ticks;
+        servo_angle = angle;
+    }
+
+    return 1u;
+}
+     c6e:	89 2f       	mov	r24, r25
+     c70:	cf 91       	pop	r28
+     c72:	08 95       	ret
+
+00000c74 <Servo_GetAngle>:
+// Devuelve de forma atomica el ultimo angulo solicitado.
+uint8_t Servo_GetAngle(void)
+{
+    uint8_t angle;
+
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+     c74:	2f b7       	in	r18, 0x3f	; 63
+    return 1;
 }
 
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+     c76:	f8 94       	cli
+     c78:	91 e0       	ldi	r25, 0x01	; 1
+     c7a:	03 c0       	rjmp	.+6      	; 0xc82 <Servo_GetAngle+0xe>
+    {
+        angle = servo_angle;
+     c7c:	80 91 71 01 	lds	r24, 0x0171	; 0x800171 <servo_angle>
+// Devuelve de forma atomica el ultimo angulo solicitado.
+uint8_t Servo_GetAngle(void)
+{
+    uint8_t angle;
+
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+     c80:	90 e0       	ldi	r25, 0x00	; 0
+     c82:	91 11       	cpse	r25, r1
+     c84:	fb cf       	rjmp	.-10     	; 0xc7c <Servo_GetAngle+0x8>
+    (void)__s;
+}
+
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+     c86:	2f bf       	out	0x3f, r18	; 63
+    {
+        angle = servo_angle;
+    }
+
+    return angle;
+}
+     c88:	08 95       	ret
+
+00000c8a <__vector_13>:
+/****************************************/
+// Interrupt routines
+
+// Coloca el pin en alto al iniciar cada periodo de 20 ms.
+ISR(TIMER1_OVF_vect)
+{
+     c8a:	1f 92       	push	r1
+     c8c:	0f 92       	push	r0
+     c8e:	0f b6       	in	r0, 0x3f	; 63
+     c90:	0f 92       	push	r0
+     c92:	11 24       	eor	r1, r1
+     c94:	8f 93       	push	r24
+     c96:	9f 93       	push	r25
+     c98:	ef 93       	push	r30
+     c9a:	ff 93       	push	r31
+    if (servo_port != NULL)
+     c9c:	e0 91 73 01 	lds	r30, 0x0173	; 0x800173 <servo_port>
+     ca0:	f0 91 74 01 	lds	r31, 0x0174	; 0x800174 <servo_port+0x1>
+     ca4:	30 97       	sbiw	r30, 0x00	; 0
+     ca6:	29 f0       	breq	.+10     	; 0xcb2 <__vector_13+0x28>
+    {
+        *servo_port |= servo_pin_mask;
+     ca8:	90 81       	ld	r25, Z
+     caa:	80 91 72 01 	lds	r24, 0x0172	; 0x800172 <servo_pin_mask>
+     cae:	89 2b       	or	r24, r25
+     cb0:	80 83       	st	Z, r24
+    }
+}
+     cb2:	ff 91       	pop	r31
+     cb4:	ef 91       	pop	r30
+     cb6:	9f 91       	pop	r25
+     cb8:	8f 91       	pop	r24
+     cba:	0f 90       	pop	r0
+     cbc:	0f be       	out	0x3f, r0	; 63
+     cbe:	0f 90       	pop	r0
+     cc0:	1f 90       	pop	r1
+     cc2:	18 95       	reti
+
+00000cc4 <__vector_11>:
+
+// Coloca el pin en bajo al completar el ancho de pulso programado.
+ISR(TIMER1_COMPA_vect)
+{
+     cc4:	1f 92       	push	r1
+     cc6:	0f 92       	push	r0
+     cc8:	0f b6       	in	r0, 0x3f	; 63
+     cca:	0f 92       	push	r0
+     ccc:	11 24       	eor	r1, r1
+     cce:	8f 93       	push	r24
+     cd0:	9f 93       	push	r25
+     cd2:	ef 93       	push	r30
+     cd4:	ff 93       	push	r31
+    if (servo_port != NULL)
+     cd6:	e0 91 73 01 	lds	r30, 0x0173	; 0x800173 <servo_port>
+     cda:	f0 91 74 01 	lds	r31, 0x0174	; 0x800174 <servo_port+0x1>
+     cde:	30 97       	sbiw	r30, 0x00	; 0
+     ce0:	31 f0       	breq	.+12     	; 0xcee <__vector_11+0x2a>
+    {
+        *servo_port &= (uint8_t)~servo_pin_mask;
+     ce2:	90 81       	ld	r25, Z
+     ce4:	80 91 72 01 	lds	r24, 0x0172	; 0x800172 <servo_pin_mask>
+     ce8:	80 95       	com	r24
+     cea:	89 23       	and	r24, r25
+     cec:	80 83       	st	Z, r24
+    }
+}
+     cee:	ff 91       	pop	r31
+     cf0:	ef 91       	pop	r30
+     cf2:	9f 91       	pop	r25
+     cf4:	8f 91       	pop	r24
+     cf6:	0f 90       	pop	r0
+     cf8:	0f be       	out	0x3f, r0	; 63
+     cfa:	0f 90       	pop	r0
+     cfc:	1f 90       	pop	r1
+     cfe:	18 95       	reti
+
+00000d00 <Stepper_ConfigureRate>:
+    {
+        running = stepper_state.running;
+    }
+
+    return running;
+}
+     d00:	ff 92       	push	r15
+     d02:	0f 93       	push	r16
+     d04:	1f 93       	push	r17
+     d06:	cf 93       	push	r28
+     d08:	df 93       	push	r29
+     d0a:	8c 01       	movw	r16, r24
+     d0c:	89 2b       	or	r24, r25
+     d0e:	91 f1       	breq	.+100    	; 0xd74 <Stepper_ConfigureRate+0x74>
+     d10:	f1 2c       	mov	r15, r1
+     d12:	2b c0       	rjmp	.+86     	; 0xd6a <Stepper_ConfigureRate+0x6a>
+     d14:	cf 2d       	mov	r28, r15
+     d16:	d0 e0       	ldi	r29, 0x00	; 0
+     d18:	fe 01       	movw	r30, r28
+     d1a:	ee 0f       	add	r30, r30
+     d1c:	ff 1f       	adc	r31, r31
+     d1e:	e0 5e       	subi	r30, 0xE0	; 224
+     d20:	fe 4f       	sbci	r31, 0xFE	; 254
+     d22:	20 81       	ld	r18, Z
+     d24:	31 81       	ldd	r19, Z+1	; 0x01
+     d26:	d8 01       	movw	r26, r16
+     d28:	0e 94 a8 08 	call	0x1150	; 0x1150 <__umulhisi3>
+     d2c:	9b 01       	movw	r18, r22
+     d2e:	ac 01       	movw	r20, r24
+     d30:	60 e0       	ldi	r22, 0x00	; 0
+     d32:	74 e2       	ldi	r23, 0x24	; 36
+     d34:	84 ef       	ldi	r24, 0xF4	; 244
+     d36:	90 e0       	ldi	r25, 0x00	; 0
+     d38:	0e 94 86 08 	call	0x110c	; 0x110c <__udivmodsi4>
+     d3c:	82 2f       	mov	r24, r18
+     d3e:	ba 01       	movw	r22, r20
+     d40:	a9 01       	movw	r20, r18
+     d42:	42 50       	subi	r20, 0x02	; 2
+     d44:	51 09       	sbc	r21, r1
+     d46:	61 09       	sbc	r22, r1
+     d48:	71 09       	sbc	r23, r1
+     d4a:	4f 3f       	cpi	r20, 0xFF	; 255
+     d4c:	51 05       	cpc	r21, r1
+     d4e:	61 05       	cpc	r22, r1
+     d50:	71 05       	cpc	r23, r1
+     d52:	50 f4       	brcc	.+20     	; 0xd68 <Stepper_ConfigureRate+0x68>
+     d54:	81 50       	subi	r24, 0x01	; 1
+     d56:	80 93 b3 00 	sts	0x00B3, r24	; 0x8000b3 <__TEXT_REGION_LENGTH__+0x7f80b3>
+     d5a:	c7 5e       	subi	r28, 0xE7	; 231
+     d5c:	de 4f       	sbci	r29, 0xFE	; 254
+     d5e:	88 81       	ld	r24, Y
+     d60:	80 93 b1 00 	sts	0x00B1, r24	; 0x8000b1 <__TEXT_REGION_LENGTH__+0x7f80b1>
+     d64:	81 e0       	ldi	r24, 0x01	; 1
+     d66:	07 c0       	rjmp	.+14     	; 0xd76 <Stepper_ConfigureRate+0x76>
+     d68:	f3 94       	inc	r15
+     d6a:	86 e0       	ldi	r24, 0x06	; 6
+     d6c:	8f 15       	cp	r24, r15
+     d6e:	90 f6       	brcc	.-92     	; 0xd14 <Stepper_ConfigureRate+0x14>
+     d70:	80 e0       	ldi	r24, 0x00	; 0
+     d72:	01 c0       	rjmp	.+2      	; 0xd76 <Stepper_ConfigureRate+0x76>
+     d74:	80 e0       	ldi	r24, 0x00	; 0
+     d76:	df 91       	pop	r29
+     d78:	cf 91       	pop	r28
+     d7a:	1f 91       	pop	r17
+     d7c:	0f 91       	pop	r16
+     d7e:	ff 90       	pop	r15
+     d80:	08 95       	ret
+
+00000d82 <Stepper_WritePattern>:
+     d82:	a0 e0       	ldi	r26, 0x00	; 0
+     d84:	32 c0       	rjmp	.+100    	; 0xdea <Stepper_WritePattern+0x68>
+     d86:	2a 2f       	mov	r18, r26
+     d88:	30 e0       	ldi	r19, 0x00	; 0
+     d8a:	f9 01       	movw	r30, r18
+     d8c:	e2 58       	subi	r30, 0x82	; 130
+     d8e:	fe 4f       	sbci	r31, 0xFE	; 254
+     d90:	41 e0       	ldi	r20, 0x01	; 1
+     d92:	50 e0       	ldi	r21, 0x00	; 0
+     d94:	00 88       	ldd	r0, Z+16	; 0x10
+     d96:	02 c0       	rjmp	.+4      	; 0xd9c <Stepper_WritePattern+0x1a>
+     d98:	44 0f       	add	r20, r20
+     d9a:	55 1f       	adc	r21, r21
+     d9c:	0a 94       	dec	r0
+     d9e:	e2 f7       	brpl	.-8      	; 0xd98 <Stepper_WritePattern+0x16>
+     da0:	68 2f       	mov	r22, r24
+     da2:	70 e0       	ldi	r23, 0x00	; 0
+     da4:	0a 2e       	mov	r0, r26
+     da6:	02 c0       	rjmp	.+4      	; 0xdac <Stepper_WritePattern+0x2a>
+     da8:	76 95       	lsr	r23
+     daa:	67 95       	ror	r22
+     dac:	0a 94       	dec	r0
+     dae:	e2 f7       	brpl	.-8      	; 0xda8 <Stepper_WritePattern+0x26>
+     db0:	60 ff       	sbrs	r22, 0
+     db2:	0d c0       	rjmp	.+26     	; 0xdce <Stepper_WritePattern+0x4c>
+     db4:	f9 01       	movw	r30, r18
+     db6:	34 96       	adiw	r30, 0x04	; 4
+     db8:	ee 0f       	add	r30, r30
+     dba:	ff 1f       	adc	r31, r31
+     dbc:	e2 58       	subi	r30, 0x82	; 130
+     dbe:	fe 4f       	sbci	r31, 0xFE	; 254
+     dc0:	01 90       	ld	r0, Z+
+     dc2:	f0 81       	ld	r31, Z
+     dc4:	e0 2d       	mov	r30, r0
+     dc6:	90 81       	ld	r25, Z
+     dc8:	49 2b       	or	r20, r25
+     dca:	40 83       	st	Z, r20
+     dcc:	0d c0       	rjmp	.+26     	; 0xde8 <Stepper_WritePattern+0x66>
+     dce:	f9 01       	movw	r30, r18
+     dd0:	34 96       	adiw	r30, 0x04	; 4
+     dd2:	ee 0f       	add	r30, r30
+     dd4:	ff 1f       	adc	r31, r31
+     dd6:	e2 58       	subi	r30, 0x82	; 130
+     dd8:	fe 4f       	sbci	r31, 0xFE	; 254
+     dda:	01 90       	ld	r0, Z+
+     ddc:	f0 81       	ld	r31, Z
+     dde:	e0 2d       	mov	r30, r0
+     de0:	90 81       	ld	r25, Z
+     de2:	40 95       	com	r20
+     de4:	49 23       	and	r20, r25
+     de6:	40 83       	st	Z, r20
+     de8:	af 5f       	subi	r26, 0xFF	; 255
+     dea:	a4 30       	cpi	r26, 0x04	; 4
+     dec:	60 f2       	brcs	.-104    	; 0xd86 <Stepper_WritePattern+0x4>
+     dee:	08 95       	ret
+
+00000df0 <Stepper_ApplyCurrentStep>:
+     df0:	80 91 03 01 	lds	r24, 0x0103	; 0x800103 <stepper_mode>
+     df4:	81 30       	cpi	r24, 0x01	; 1
+     df6:	39 f4       	brne	.+14     	; 0xe06 <Stepper_ApplyCurrentStep+0x16>
+     df8:	e0 91 76 01 	lds	r30, 0x0176	; 0x800176 <stepper_index>
+     dfc:	f0 e0       	ldi	r31, 0x00	; 0
+     dfe:	ee 5c       	subi	r30, 0xCE	; 206
+     e00:	fe 4f       	sbci	r31, 0xFE	; 254
+     e02:	80 81       	ld	r24, Z
+     e04:	06 c0       	rjmp	.+12     	; 0xe12 <Stepper_ApplyCurrentStep+0x22>
+     e06:	e0 91 76 01 	lds	r30, 0x0176	; 0x800176 <stepper_index>
+     e0a:	f0 e0       	ldi	r31, 0x00	; 0
+     e0c:	e2 5d       	subi	r30, 0xD2	; 210
+     e0e:	fe 4f       	sbci	r31, 0xFE	; 254
+     e10:	80 81       	ld	r24, Z
+     e12:	0e 94 c1 06 	call	0xd82	; 0xd82 <Stepper_WritePattern>
+     e16:	08 95       	ret
+
+00000e18 <Stepper_Start>:
+     e18:	df 92       	push	r13
+     e1a:	ef 92       	push	r14
+     e1c:	ff 92       	push	r15
+     e1e:	0f 93       	push	r16
+     e20:	1f 93       	push	r17
+     e22:	cf 93       	push	r28
+     e24:	df 93       	push	r29
+     e26:	98 2f       	mov	r25, r24
+     e28:	80 91 75 01 	lds	r24, 0x0175	; 0x800175 <stepper_initialized>
+     e2c:	88 23       	and	r24, r24
+     e2e:	c9 f1       	breq	.+114    	; 0xea2 <Stepper_Start+0x8a>
+     e30:	92 30       	cpi	r25, 0x02	; 2
+     e32:	a0 f5       	brcc	.+104    	; 0xe9c <Stepper_Start+0x84>
+     e34:	21 11       	cpse	r18, r1
+     e36:	03 c0       	rjmp	.+6      	; 0xe3e <Stepper_Start+0x26>
+     e38:	61 15       	cp	r22, r1
+     e3a:	71 05       	cpc	r23, r1
+     e3c:	89 f1       	breq	.+98     	; 0xea0 <Stepper_Start+0x88>
+     e3e:	e2 2e       	mov	r14, r18
+     e40:	ea 01       	movw	r28, r20
+     e42:	8b 01       	movw	r16, r22
+     e44:	f9 2e       	mov	r15, r25
+     e46:	df b6       	in	r13, 0x3f	; 63
+     e48:	f8 94       	cli
+     e4a:	81 e0       	ldi	r24, 0x01	; 1
+     e4c:	22 c0       	rjmp	.+68     	; 0xe92 <Stepper_Start+0x7a>
+     e4e:	e0 e7       	ldi	r30, 0x70	; 112
+     e50:	f0 e0       	ldi	r31, 0x00	; 0
+     e52:	90 81       	ld	r25, Z
+     e54:	9d 7f       	andi	r25, 0xFD	; 253
+     e56:	90 83       	st	Z, r25
+     e58:	10 92 b1 00 	sts	0x00B1, r1	; 0x8000b1 <__TEXT_REGION_LENGTH__+0x7f80b1>
+     e5c:	10 92 b2 00 	sts	0x00B2, r1	; 0x8000b2 <__TEXT_REGION_LENGTH__+0x7f80b2>
+     e60:	ce 01       	movw	r24, r28
+     e62:	0e 94 80 06 	call	0xd00	; 0xd00 <Stepper_ConfigureRate>
+     e66:	81 11       	cpse	r24, r1
+     e68:	02 c0       	rjmp	.+4      	; 0xe6e <Stepper_Start+0x56>
+     e6a:	df be       	out	0x3f, r13	; 63
+     e6c:	1a c0       	rjmp	.+52     	; 0xea2 <Stepper_Start+0x8a>
+     e6e:	e7 e7       	ldi	r30, 0x77	; 119
+     e70:	f1 e0       	ldi	r31, 0x01	; 1
+     e72:	f0 82       	st	Z, r15
+     e74:	d2 83       	std	Z+2, r29	; 0x02
+     e76:	c1 83       	std	Z+1, r28	; 0x01
+     e78:	14 83       	std	Z+4, r17	; 0x04
+     e7a:	03 83       	std	Z+3, r16	; 0x03
+     e7c:	e6 82       	std	Z+6, r14	; 0x06
+     e7e:	81 e0       	ldi	r24, 0x01	; 1
+     e80:	85 83       	std	Z+5, r24	; 0x05
+     e82:	82 e0       	ldi	r24, 0x02	; 2
+     e84:	87 bb       	out	0x17, r24	; 23
+     e86:	e0 e7       	ldi	r30, 0x70	; 112
+     e88:	f0 e0       	ldi	r31, 0x00	; 0
+     e8a:	90 81       	ld	r25, Z
+     e8c:	92 60       	ori	r25, 0x02	; 2
+     e8e:	90 83       	st	Z, r25
+     e90:	80 e0       	ldi	r24, 0x00	; 0
+     e92:	81 11       	cpse	r24, r1
+     e94:	dc cf       	rjmp	.-72     	; 0xe4e <Stepper_Start+0x36>
+     e96:	df be       	out	0x3f, r13	; 63
+     e98:	81 e0       	ldi	r24, 0x01	; 1
+     e9a:	03 c0       	rjmp	.+6      	; 0xea2 <Stepper_Start+0x8a>
+     e9c:	80 e0       	ldi	r24, 0x00	; 0
+     e9e:	01 c0       	rjmp	.+2      	; 0xea2 <Stepper_Start+0x8a>
+     ea0:	80 e0       	ldi	r24, 0x00	; 0
+     ea2:	df 91       	pop	r29
+     ea4:	cf 91       	pop	r28
+     ea6:	1f 91       	pop	r17
+     ea8:	0f 91       	pop	r16
+     eaa:	ff 90       	pop	r15
+     eac:	ef 90       	pop	r14
+     eae:	df 90       	pop	r13
+     eb0:	08 95       	ret
+
+00000eb2 <Stepper_Init>:
+     eb2:	00 97       	sbiw	r24, 0x00	; 0
+     eb4:	09 f4       	brne	.+2      	; 0xeb8 <Stepper_Init+0x6>
+     eb6:	74 c0       	rjmp	.+232    	; 0xfa0 <Stepper_Init+0xee>
+     eb8:	62 30       	cpi	r22, 0x02	; 2
+     eba:	08 f0       	brcs	.+2      	; 0xebe <Stepper_Init+0xc>
+     ebc:	73 c0       	rjmp	.+230    	; 0xfa4 <Stepper_Init+0xf2>
+     ebe:	40 e0       	ldi	r20, 0x00	; 0
+     ec0:	20 c0       	rjmp	.+64     	; 0xf02 <Stepper_Init+0x50>
+     ec2:	24 2f       	mov	r18, r20
+     ec4:	30 e0       	ldi	r19, 0x00	; 0
+     ec6:	f9 01       	movw	r30, r18
+     ec8:	ee 0f       	add	r30, r30
+     eca:	ff 1f       	adc	r31, r31
+     ecc:	e8 0f       	add	r30, r24
+     ece:	f9 1f       	adc	r31, r25
+     ed0:	01 90       	ld	r0, Z+
+     ed2:	f0 81       	ld	r31, Z
+     ed4:	e0 2d       	mov	r30, r0
+     ed6:	ef 2b       	or	r30, r31
+     ed8:	09 f4       	brne	.+2      	; 0xedc <Stepper_Init+0x2a>
+     eda:	66 c0       	rjmp	.+204    	; 0xfa8 <Stepper_Init+0xf6>
+     edc:	d9 01       	movw	r26, r18
+     ede:	14 96       	adiw	r26, 0x04	; 4
+     ee0:	aa 0f       	add	r26, r26
+     ee2:	bb 1f       	adc	r27, r27
+     ee4:	a8 0f       	add	r26, r24
+     ee6:	b9 1f       	adc	r27, r25
+     ee8:	ed 91       	ld	r30, X+
+     eea:	fc 91       	ld	r31, X
+     eec:	ef 2b       	or	r30, r31
+     eee:	09 f4       	brne	.+2      	; 0xef2 <Stepper_Init+0x40>
+     ef0:	5d c0       	rjmp	.+186    	; 0xfac <Stepper_Init+0xfa>
+     ef2:	fc 01       	movw	r30, r24
+     ef4:	e2 0f       	add	r30, r18
+     ef6:	f3 1f       	adc	r31, r19
+     ef8:	20 89       	ldd	r18, Z+16	; 0x10
+     efa:	28 30       	cpi	r18, 0x08	; 8
+     efc:	08 f0       	brcs	.+2      	; 0xf00 <Stepper_Init+0x4e>
+     efe:	58 c0       	rjmp	.+176    	; 0xfb0 <Stepper_Init+0xfe>
+     f00:	4f 5f       	subi	r20, 0xFF	; 255
+     f02:	44 30       	cpi	r20, 0x04	; 4
+     f04:	f0 f2       	brcs	.-68     	; 0xec2 <Stepper_Init+0x10>
+     f06:	24 e1       	ldi	r18, 0x14	; 20
+     f08:	fc 01       	movw	r30, r24
+     f0a:	ae e7       	ldi	r26, 0x7E	; 126
+     f0c:	b1 e0       	ldi	r27, 0x01	; 1
+     f0e:	01 90       	ld	r0, Z+
+     f10:	0d 92       	st	X+, r0
+     f12:	2a 95       	dec	r18
+     f14:	e1 f7       	brne	.-8      	; 0xf0e <Stepper_Init+0x5c>
+     f16:	60 93 03 01 	sts	0x0103, r22	; 0x800103 <stepper_mode>
+     f1a:	61 30       	cpi	r22, 0x01	; 1
+     f1c:	11 f4       	brne	.+4      	; 0xf22 <Stepper_Init+0x70>
+     f1e:	88 e0       	ldi	r24, 0x08	; 8
+     f20:	01 c0       	rjmp	.+2      	; 0xf24 <Stepper_Init+0x72>
+     f22:	84 e0       	ldi	r24, 0x04	; 4
+     f24:	80 93 04 01 	sts	0x0104, r24	; 0x800104 <stepper_sequence_length>
+     f28:	40 e0       	ldi	r20, 0x00	; 0
+     f2a:	1a c0       	rjmp	.+52     	; 0xf60 <Stepper_Init+0xae>
+     f2c:	24 2f       	mov	r18, r20
+     f2e:	30 e0       	ldi	r19, 0x00	; 0
+     f30:	f9 01       	movw	r30, r18
+     f32:	ee 0f       	add	r30, r30
+     f34:	ff 1f       	adc	r31, r31
+     f36:	e2 58       	subi	r30, 0x82	; 130
+     f38:	fe 4f       	sbci	r31, 0xFE	; 254
+     f3a:	01 90       	ld	r0, Z+
+     f3c:	f0 81       	ld	r31, Z
+     f3e:	e0 2d       	mov	r30, r0
+     f40:	50 81       	ld	r21, Z
+     f42:	d9 01       	movw	r26, r18
+     f44:	a2 58       	subi	r26, 0x82	; 130
+     f46:	be 4f       	sbci	r27, 0xFE	; 254
+     f48:	81 e0       	ldi	r24, 0x01	; 1
+     f4a:	90 e0       	ldi	r25, 0x00	; 0
+     f4c:	50 96       	adiw	r26, 0x10	; 16
+     f4e:	0c 90       	ld	r0, X
+     f50:	02 c0       	rjmp	.+4      	; 0xf56 <Stepper_Init+0xa4>
+     f52:	88 0f       	add	r24, r24
+     f54:	99 1f       	adc	r25, r25
+     f56:	0a 94       	dec	r0
+     f58:	e2 f7       	brpl	.-8      	; 0xf52 <Stepper_Init+0xa0>
+     f5a:	85 2b       	or	r24, r21
+     f5c:	80 83       	st	Z, r24
+     f5e:	4f 5f       	subi	r20, 0xFF	; 255
+     f60:	44 30       	cpi	r20, 0x04	; 4
+     f62:	20 f3       	brcs	.-56     	; 0xf2c <Stepper_Init+0x7a>
+     f64:	82 e0       	ldi	r24, 0x02	; 2
+     f66:	80 93 b0 00 	sts	0x00B0, r24	; 0x8000b0 <__TEXT_REGION_LENGTH__+0x7f80b0>
+     f6a:	10 92 b1 00 	sts	0x00B1, r1	; 0x8000b1 <__TEXT_REGION_LENGTH__+0x7f80b1>
+     f6e:	10 92 b2 00 	sts	0x00B2, r1	; 0x8000b2 <__TEXT_REGION_LENGTH__+0x7f80b2>
+     f72:	e0 e7       	ldi	r30, 0x70	; 112
+     f74:	f0 e0       	ldi	r31, 0x00	; 0
+     f76:	80 81       	ld	r24, Z
+     f78:	8d 7f       	andi	r24, 0xFD	; 253
+     f7a:	80 83       	st	Z, r24
+     f7c:	80 e0       	ldi	r24, 0x00	; 0
+     f7e:	0e 94 c1 06 	call	0xd82	; 0xd82 <Stepper_WritePattern>
+     f82:	10 92 76 01 	sts	0x0176, r1	; 0x800176 <stepper_index>
+     f86:	e7 e7       	ldi	r30, 0x77	; 119
+     f88:	f1 e0       	ldi	r31, 0x01	; 1
+     f8a:	81 e0       	ldi	r24, 0x01	; 1
+     f8c:	80 83       	st	Z, r24
+     f8e:	12 82       	std	Z+2, r1	; 0x02
+     f90:	11 82       	std	Z+1, r1	; 0x01
+     f92:	14 82       	std	Z+4, r1	; 0x04
+     f94:	13 82       	std	Z+3, r1	; 0x03
+     f96:	15 82       	std	Z+5, r1	; 0x05
+     f98:	16 82       	std	Z+6, r1	; 0x06
+     f9a:	80 93 75 01 	sts	0x0175, r24	; 0x800175 <stepper_initialized>
+     f9e:	08 95       	ret
+     fa0:	80 e0       	ldi	r24, 0x00	; 0
+     fa2:	08 95       	ret
+     fa4:	80 e0       	ldi	r24, 0x00	; 0
+     fa6:	08 95       	ret
+     fa8:	80 e0       	ldi	r24, 0x00	; 0
+     faa:	08 95       	ret
+     fac:	80 e0       	ldi	r24, 0x00	; 0
+     fae:	08 95       	ret
+     fb0:	80 e0       	ldi	r24, 0x00	; 0
+     fb2:	08 95       	ret
+
+00000fb4 <Stepper_RunContinuous>:
+     fb4:	ab 01       	movw	r20, r22
+     fb6:	21 e0       	ldi	r18, 0x01	; 1
+     fb8:	60 e0       	ldi	r22, 0x00	; 0
+     fba:	70 e0       	ldi	r23, 0x00	; 0
+     fbc:	0e 94 0c 07 	call	0xe18	; 0xe18 <Stepper_Start>
+     fc0:	08 95       	ret
+
+00000fc2 <Stepper_Move>:
+     fc2:	20 e0       	ldi	r18, 0x00	; 0
+     fc4:	0e 94 0c 07 	call	0xe18	; 0xe18 <Stepper_Start>
+     fc8:	08 95       	ret
+
+00000fca <Stepper_Stop>:
+     fca:	2f b7       	in	r18, 0x3f	; 63
+     fcc:	f8 94       	cli
+     fce:	91 e0       	ldi	r25, 0x01	; 1
+     fd0:	10 c0       	rjmp	.+32     	; 0xff2 <Stepper_Stop+0x28>
+     fd2:	e0 e7       	ldi	r30, 0x70	; 112
+     fd4:	f0 e0       	ldi	r31, 0x00	; 0
+     fd6:	90 81       	ld	r25, Z
+     fd8:	9d 7f       	andi	r25, 0xFD	; 253
+     fda:	90 83       	st	Z, r25
+     fdc:	10 92 b1 00 	sts	0x00B1, r1	; 0x8000b1 <__TEXT_REGION_LENGTH__+0x7f80b1>
+     fe0:	e7 e7       	ldi	r30, 0x77	; 119
+     fe2:	f1 e0       	ldi	r31, 0x01	; 1
+     fe4:	15 82       	std	Z+5, r1	; 0x05
+     fe6:	16 82       	std	Z+6, r1	; 0x06
+     fe8:	14 82       	std	Z+4, r1	; 0x04
+     fea:	13 82       	std	Z+3, r1	; 0x03
+     fec:	12 82       	std	Z+2, r1	; 0x02
+     fee:	11 82       	std	Z+1, r1	; 0x01
+     ff0:	90 e0       	ldi	r25, 0x00	; 0
+     ff2:	91 11       	cpse	r25, r1
+     ff4:	ee cf       	rjmp	.-36     	; 0xfd2 <Stepper_Stop+0x8>
+     ff6:	2f bf       	out	0x3f, r18	; 63
+     ff8:	90 91 75 01 	lds	r25, 0x0175	; 0x800175 <stepper_initialized>
+     ffc:	99 23       	and	r25, r25
+     ffe:	29 f0       	breq	.+10     	; 0x100a <Stepper_Stop+0x40>
+    1000:	88 23       	and	r24, r24
+    1002:	19 f0       	breq	.+6      	; 0x100a <Stepper_Stop+0x40>
+    1004:	80 e0       	ldi	r24, 0x00	; 0
+    1006:	0e 94 c1 06 	call	0xd82	; 0xd82 <Stepper_WritePattern>
+    100a:	08 95       	ret
+
+0000100c <Stepper_GetState>:
+
+// Copia de forma atomica el estado actual del motor.
+void Stepper_GetState(StepperState *state)
+{
+    if (state == NULL)
+    100c:	00 97       	sbiw	r24, 0x00	; 0
+    100e:	81 f0       	breq	.+32     	; 0x1030 <Stepper_GetState+0x24>
+    {
+        return;
+    }
+
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    1010:	3f b7       	in	r19, 0x3f	; 63
+    return 1;
+}
+
+static __inline__ uint8_t __iCliRetVal(void)
+{
+    cli();
+    1012:	f8 94       	cli
+    1014:	21 e0       	ldi	r18, 0x01	; 1
+    1016:	09 c0       	rjmp	.+18     	; 0x102a <Stepper_GetState+0x1e>
+    {
+        *state = stepper_state;
+    1018:	27 e0       	ldi	r18, 0x07	; 7
+    101a:	e7 e7       	ldi	r30, 0x77	; 119
+    101c:	f1 e0       	ldi	r31, 0x01	; 1
+    101e:	dc 01       	movw	r26, r24
+    1020:	01 90       	ld	r0, Z+
+    1022:	0d 92       	st	X+, r0
+    1024:	2a 95       	dec	r18
+    1026:	e1 f7       	brne	.-8      	; 0x1020 <Stepper_GetState+0x14>
+    if (state == NULL)
+    {
+        return;
+    }
+
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    1028:	20 e0       	ldi	r18, 0x00	; 0
+    102a:	21 11       	cpse	r18, r1
+    102c:	f5 cf       	rjmp	.-22     	; 0x1018 <Stepper_GetState+0xc>
+    (void)__s;
+}
+
+static __inline__ void __iRestore(const  uint8_t *__s)
+{
+    SREG = *__s;
+    102e:	3f bf       	out	0x3f, r19	; 63
+    __asm__ volatile ("" ::: "memory");
+    1030:	08 95       	ret
+
+00001032 <__vector_7>:
+/****************************************/
+// Interrupt routines
+
+// Avanza una posicion y descuenta los pasos en cada interrupcion.
 ISR(TIMER2_COMPA_vect)
 {
- 722:	1f 92       	push	r1
- 724:	0f 92       	push	r0
- 726:	0f b6       	in	r0, 0x3f	; 63
- 728:	0f 92       	push	r0
- 72a:	11 24       	eor	r1, r1
- 72c:	2f 93       	push	r18
- 72e:	3f 93       	push	r19
- 730:	4f 93       	push	r20
- 732:	5f 93       	push	r21
- 734:	6f 93       	push	r22
- 736:	7f 93       	push	r23
- 738:	8f 93       	push	r24
- 73a:	9f 93       	push	r25
- 73c:	af 93       	push	r26
- 73e:	bf 93       	push	r27
- 740:	ef 93       	push	r30
- 742:	ff 93       	push	r31
+    1032:	1f 92       	push	r1
+    1034:	0f 92       	push	r0
+    1036:	0f b6       	in	r0, 0x3f	; 63
+    1038:	0f 92       	push	r0
+    103a:	11 24       	eor	r1, r1
+    103c:	2f 93       	push	r18
+    103e:	3f 93       	push	r19
+    1040:	4f 93       	push	r20
+    1042:	5f 93       	push	r21
+    1044:	6f 93       	push	r22
+    1046:	7f 93       	push	r23
+    1048:	8f 93       	push	r24
+    104a:	9f 93       	push	r25
+    104c:	af 93       	push	r26
+    104e:	bf 93       	push	r27
+    1050:	ef 93       	push	r30
+    1052:	ff 93       	push	r31
     if (stepper_state.running == 0u)
- 744:	80 91 49 01 	lds	r24, 0x0149	; 0x800149 <stepper_state+0x5>
- 748:	88 23       	and	r24, r24
- 74a:	09 f4       	brne	.+2      	; 0x74e <__vector_7+0x2c>
- 74c:	46 c0       	rjmp	.+140    	; 0x7da <__vector_7+0xb8>
+    1054:	80 91 7c 01 	lds	r24, 0x017C	; 0x80017c <stepper_state+0x5>
+    1058:	88 23       	and	r24, r24
+    105a:	09 f4       	brne	.+2      	; 0x105e <__vector_7+0x2c>
+    105c:	46 c0       	rjmp	.+140    	; 0x10ea <__vector_7+0xb8>
     {
         return;
     }
 
     if (stepper_state.direction == STEPPER_DIRECTION_FORWARD)
- 74e:	80 91 44 01 	lds	r24, 0x0144	; 0x800144 <stepper_state>
- 752:	81 30       	cpi	r24, 0x01	; 1
- 754:	71 f4       	brne	.+28     	; 0x772 <__vector_7+0x50>
+    105e:	80 91 77 01 	lds	r24, 0x0177	; 0x800177 <stepper_state>
+    1062:	81 30       	cpi	r24, 0x01	; 1
+    1064:	71 f4       	brne	.+28     	; 0x1082 <__vector_7+0x50>
     {
         stepper_index++;
- 756:	80 91 43 01 	lds	r24, 0x0143	; 0x800143 <stepper_index>
- 75a:	8f 5f       	subi	r24, 0xFF	; 255
- 75c:	80 93 43 01 	sts	0x0143, r24	; 0x800143 <stepper_index>
+    1066:	80 91 76 01 	lds	r24, 0x0176	; 0x800176 <stepper_index>
+    106a:	8f 5f       	subi	r24, 0xFF	; 255
+    106c:	80 93 76 01 	sts	0x0176, r24	; 0x800176 <stepper_index>
         if (stepper_index >= stepper_sequence_length)
- 760:	90 91 43 01 	lds	r25, 0x0143	; 0x800143 <stepper_index>
- 764:	80 91 05 01 	lds	r24, 0x0105	; 0x800105 <stepper_sequence_length>
- 768:	98 17       	cp	r25, r24
- 76a:	90 f0       	brcs	.+36     	; 0x790 <__vector_7+0x6e>
+    1070:	90 91 76 01 	lds	r25, 0x0176	; 0x800176 <stepper_index>
+    1074:	80 91 04 01 	lds	r24, 0x0104	; 0x800104 <stepper_sequence_length>
+    1078:	98 17       	cp	r25, r24
+    107a:	90 f0       	brcs	.+36     	; 0x10a0 <__vector_7+0x6e>
         {
             stepper_index = 0u;
- 76c:	10 92 43 01 	sts	0x0143, r1	; 0x800143 <stepper_index>
- 770:	0f c0       	rjmp	.+30     	; 0x790 <__vector_7+0x6e>
+    107c:	10 92 76 01 	sts	0x0176, r1	; 0x800176 <stepper_index>
+    1080:	0f c0       	rjmp	.+30     	; 0x10a0 <__vector_7+0x6e>
         }
     }
     else if (stepper_index == 0u)
- 772:	80 91 43 01 	lds	r24, 0x0143	; 0x800143 <stepper_index>
- 776:	81 11       	cpse	r24, r1
- 778:	06 c0       	rjmp	.+12     	; 0x786 <__vector_7+0x64>
+    1082:	80 91 76 01 	lds	r24, 0x0176	; 0x800176 <stepper_index>
+    1086:	81 11       	cpse	r24, r1
+    1088:	06 c0       	rjmp	.+12     	; 0x1096 <__vector_7+0x64>
     {
         stepper_index = (uint8_t)(stepper_sequence_length - 1u);
- 77a:	80 91 05 01 	lds	r24, 0x0105	; 0x800105 <stepper_sequence_length>
- 77e:	81 50       	subi	r24, 0x01	; 1
- 780:	80 93 43 01 	sts	0x0143, r24	; 0x800143 <stepper_index>
- 784:	05 c0       	rjmp	.+10     	; 0x790 <__vector_7+0x6e>
+    108a:	80 91 04 01 	lds	r24, 0x0104	; 0x800104 <stepper_sequence_length>
+    108e:	81 50       	subi	r24, 0x01	; 1
+    1090:	80 93 76 01 	sts	0x0176, r24	; 0x800176 <stepper_index>
+    1094:	05 c0       	rjmp	.+10     	; 0x10a0 <__vector_7+0x6e>
     }
     else
     {
         stepper_index--;
- 786:	80 91 43 01 	lds	r24, 0x0143	; 0x800143 <stepper_index>
- 78a:	81 50       	subi	r24, 0x01	; 1
- 78c:	80 93 43 01 	sts	0x0143, r24	; 0x800143 <stepper_index>
+    1096:	80 91 76 01 	lds	r24, 0x0176	; 0x800176 <stepper_index>
+    109a:	81 50       	subi	r24, 0x01	; 1
+    109c:	80 93 76 01 	sts	0x0176, r24	; 0x800176 <stepper_index>
     }
 
     Stepper_ApplyCurrentStep();
- 790:	0e 94 74 02 	call	0x4e8	; 0x4e8 <Stepper_ApplyCurrentStep>
+    10a0:	0e 94 f8 06 	call	0xdf0	; 0xdf0 <Stepper_ApplyCurrentStep>
 
     if (stepper_state.continuous == 0u)
- 794:	80 91 4a 01 	lds	r24, 0x014A	; 0x80014a <stepper_state+0x6>
- 798:	81 11       	cpse	r24, r1
- 79a:	1f c0       	rjmp	.+62     	; 0x7da <__vector_7+0xb8>
+    10a4:	80 91 7d 01 	lds	r24, 0x017D	; 0x80017d <stepper_state+0x6>
+    10a8:	81 11       	cpse	r24, r1
+    10aa:	1f c0       	rjmp	.+62     	; 0x10ea <__vector_7+0xb8>
     {
         if (stepper_state.remaining_steps > 0u)
- 79c:	80 91 47 01 	lds	r24, 0x0147	; 0x800147 <stepper_state+0x3>
- 7a0:	90 91 48 01 	lds	r25, 0x0148	; 0x800148 <stepper_state+0x4>
- 7a4:	89 2b       	or	r24, r25
- 7a6:	39 f0       	breq	.+14     	; 0x7b6 <__vector_7+0x94>
+    10ac:	80 91 7a 01 	lds	r24, 0x017A	; 0x80017a <stepper_state+0x3>
+    10b0:	90 91 7b 01 	lds	r25, 0x017B	; 0x80017b <stepper_state+0x4>
+    10b4:	89 2b       	or	r24, r25
+    10b6:	39 f0       	breq	.+14     	; 0x10c6 <__vector_7+0x94>
         {
             stepper_state.remaining_steps--;
- 7a8:	e4 e4       	ldi	r30, 0x44	; 68
- 7aa:	f1 e0       	ldi	r31, 0x01	; 1
- 7ac:	83 81       	ldd	r24, Z+3	; 0x03
- 7ae:	94 81       	ldd	r25, Z+4	; 0x04
- 7b0:	01 97       	sbiw	r24, 0x01	; 1
- 7b2:	94 83       	std	Z+4, r25	; 0x04
- 7b4:	83 83       	std	Z+3, r24	; 0x03
+    10b8:	e7 e7       	ldi	r30, 0x77	; 119
+    10ba:	f1 e0       	ldi	r31, 0x01	; 1
+    10bc:	83 81       	ldd	r24, Z+3	; 0x03
+    10be:	94 81       	ldd	r25, Z+4	; 0x04
+    10c0:	01 97       	sbiw	r24, 0x01	; 1
+    10c2:	94 83       	std	Z+4, r25	; 0x04
+    10c4:	83 83       	std	Z+3, r24	; 0x03
         }
 
         if (stepper_state.remaining_steps == 0u)
- 7b6:	80 91 47 01 	lds	r24, 0x0147	; 0x800147 <stepper_state+0x3>
- 7ba:	90 91 48 01 	lds	r25, 0x0148	; 0x800148 <stepper_state+0x4>
- 7be:	89 2b       	or	r24, r25
- 7c0:	61 f4       	brne	.+24     	; 0x7da <__vector_7+0xb8>
+    10c6:	80 91 7a 01 	lds	r24, 0x017A	; 0x80017a <stepper_state+0x3>
+    10ca:	90 91 7b 01 	lds	r25, 0x017B	; 0x80017b <stepper_state+0x4>
+    10ce:	89 2b       	or	r24, r25
+    10d0:	61 f4       	brne	.+24     	; 0x10ea <__vector_7+0xb8>
         {
             TIMSK2 &= (uint8_t)~(1u << OCIE2A);
- 7c2:	e0 e7       	ldi	r30, 0x70	; 112
- 7c4:	f0 e0       	ldi	r31, 0x00	; 0
- 7c6:	80 81       	ld	r24, Z
- 7c8:	8d 7f       	andi	r24, 0xFD	; 253
- 7ca:	80 83       	st	Z, r24
+    10d2:	e0 e7       	ldi	r30, 0x70	; 112
+    10d4:	f0 e0       	ldi	r31, 0x00	; 0
+    10d6:	80 81       	ld	r24, Z
+    10d8:	8d 7f       	andi	r24, 0xFD	; 253
+    10da:	80 83       	st	Z, r24
             TCCR2B = 0u;
- 7cc:	10 92 b1 00 	sts	0x00B1, r1	; 0x8000b1 <__TEXT_REGION_LENGTH__+0x7f80b1>
+    10dc:	10 92 b1 00 	sts	0x00B1, r1	; 0x8000b1 <__TEXT_REGION_LENGTH__+0x7f80b1>
             stepper_state.running = 0u;
- 7d0:	e4 e4       	ldi	r30, 0x44	; 68
- 7d2:	f1 e0       	ldi	r31, 0x01	; 1
- 7d4:	15 82       	std	Z+5, r1	; 0x05
+    10e0:	e7 e7       	ldi	r30, 0x77	; 119
+    10e2:	f1 e0       	ldi	r31, 0x01	; 1
+    10e4:	15 82       	std	Z+5, r1	; 0x05
             stepper_state.steps_per_second = 0u;
- 7d6:	12 82       	std	Z+2, r1	; 0x02
- 7d8:	11 82       	std	Z+1, r1	; 0x01
+    10e6:	12 82       	std	Z+2, r1	; 0x02
+    10e8:	11 82       	std	Z+1, r1	; 0x01
         }
     }
 }
- 7da:	ff 91       	pop	r31
- 7dc:	ef 91       	pop	r30
- 7de:	bf 91       	pop	r27
- 7e0:	af 91       	pop	r26
- 7e2:	9f 91       	pop	r25
- 7e4:	8f 91       	pop	r24
- 7e6:	7f 91       	pop	r23
- 7e8:	6f 91       	pop	r22
- 7ea:	5f 91       	pop	r21
- 7ec:	4f 91       	pop	r20
- 7ee:	3f 91       	pop	r19
- 7f0:	2f 91       	pop	r18
- 7f2:	0f 90       	pop	r0
- 7f4:	0f be       	out	0x3f, r0	; 63
- 7f6:	0f 90       	pop	r0
- 7f8:	1f 90       	pop	r1
- 7fa:	18 95       	reti
+    10ea:	ff 91       	pop	r31
+    10ec:	ef 91       	pop	r30
+    10ee:	bf 91       	pop	r27
+    10f0:	af 91       	pop	r26
+    10f2:	9f 91       	pop	r25
+    10f4:	8f 91       	pop	r24
+    10f6:	7f 91       	pop	r23
+    10f8:	6f 91       	pop	r22
+    10fa:	5f 91       	pop	r21
+    10fc:	4f 91       	pop	r20
+    10fe:	3f 91       	pop	r19
+    1100:	2f 91       	pop	r18
+    1102:	0f 90       	pop	r0
+    1104:	0f be       	out	0x3f, r0	; 63
+    1106:	0f 90       	pop	r0
+    1108:	1f 90       	pop	r1
+    110a:	18 95       	reti
 
-000007fc <__udivmodsi4>:
- 7fc:	a1 e2       	ldi	r26, 0x21	; 33
- 7fe:	1a 2e       	mov	r1, r26
- 800:	aa 1b       	sub	r26, r26
- 802:	bb 1b       	sub	r27, r27
- 804:	fd 01       	movw	r30, r26
- 806:	0d c0       	rjmp	.+26     	; 0x822 <__udivmodsi4_ep>
+0000110c <__udivmodsi4>:
+    110c:	a1 e2       	ldi	r26, 0x21	; 33
+    110e:	1a 2e       	mov	r1, r26
+    1110:	aa 1b       	sub	r26, r26
+    1112:	bb 1b       	sub	r27, r27
+    1114:	fd 01       	movw	r30, r26
+    1116:	0d c0       	rjmp	.+26     	; 0x1132 <__udivmodsi4_ep>
 
-00000808 <__udivmodsi4_loop>:
- 808:	aa 1f       	adc	r26, r26
- 80a:	bb 1f       	adc	r27, r27
- 80c:	ee 1f       	adc	r30, r30
- 80e:	ff 1f       	adc	r31, r31
- 810:	a2 17       	cp	r26, r18
- 812:	b3 07       	cpc	r27, r19
- 814:	e4 07       	cpc	r30, r20
- 816:	f5 07       	cpc	r31, r21
- 818:	20 f0       	brcs	.+8      	; 0x822 <__udivmodsi4_ep>
- 81a:	a2 1b       	sub	r26, r18
- 81c:	b3 0b       	sbc	r27, r19
- 81e:	e4 0b       	sbc	r30, r20
- 820:	f5 0b       	sbc	r31, r21
+00001118 <__udivmodsi4_loop>:
+    1118:	aa 1f       	adc	r26, r26
+    111a:	bb 1f       	adc	r27, r27
+    111c:	ee 1f       	adc	r30, r30
+    111e:	ff 1f       	adc	r31, r31
+    1120:	a2 17       	cp	r26, r18
+    1122:	b3 07       	cpc	r27, r19
+    1124:	e4 07       	cpc	r30, r20
+    1126:	f5 07       	cpc	r31, r21
+    1128:	20 f0       	brcs	.+8      	; 0x1132 <__udivmodsi4_ep>
+    112a:	a2 1b       	sub	r26, r18
+    112c:	b3 0b       	sbc	r27, r19
+    112e:	e4 0b       	sbc	r30, r20
+    1130:	f5 0b       	sbc	r31, r21
 
-00000822 <__udivmodsi4_ep>:
- 822:	66 1f       	adc	r22, r22
- 824:	77 1f       	adc	r23, r23
- 826:	88 1f       	adc	r24, r24
- 828:	99 1f       	adc	r25, r25
- 82a:	1a 94       	dec	r1
- 82c:	69 f7       	brne	.-38     	; 0x808 <__udivmodsi4_loop>
- 82e:	60 95       	com	r22
- 830:	70 95       	com	r23
- 832:	80 95       	com	r24
- 834:	90 95       	com	r25
- 836:	9b 01       	movw	r18, r22
- 838:	ac 01       	movw	r20, r24
- 83a:	bd 01       	movw	r22, r26
- 83c:	cf 01       	movw	r24, r30
- 83e:	08 95       	ret
+00001132 <__udivmodsi4_ep>:
+    1132:	66 1f       	adc	r22, r22
+    1134:	77 1f       	adc	r23, r23
+    1136:	88 1f       	adc	r24, r24
+    1138:	99 1f       	adc	r25, r25
+    113a:	1a 94       	dec	r1
+    113c:	69 f7       	brne	.-38     	; 0x1118 <__udivmodsi4_loop>
+    113e:	60 95       	com	r22
+    1140:	70 95       	com	r23
+    1142:	80 95       	com	r24
+    1144:	90 95       	com	r25
+    1146:	9b 01       	movw	r18, r22
+    1148:	ac 01       	movw	r20, r24
+    114a:	bd 01       	movw	r22, r26
+    114c:	cf 01       	movw	r24, r30
+    114e:	08 95       	ret
 
-00000840 <__tablejump2__>:
- 840:	ee 0f       	add	r30, r30
- 842:	ff 1f       	adc	r31, r31
- 844:	05 90       	lpm	r0, Z+
- 846:	f4 91       	lpm	r31, Z
- 848:	e0 2d       	mov	r30, r0
- 84a:	09 94       	ijmp
+00001150 <__umulhisi3>:
+    1150:	a2 9f       	mul	r26, r18
+    1152:	b0 01       	movw	r22, r0
+    1154:	b3 9f       	mul	r27, r19
+    1156:	c0 01       	movw	r24, r0
+    1158:	a3 9f       	mul	r26, r19
+    115a:	70 0d       	add	r23, r0
+    115c:	81 1d       	adc	r24, r1
+    115e:	11 24       	eor	r1, r1
+    1160:	91 1d       	adc	r25, r1
+    1162:	b2 9f       	mul	r27, r18
+    1164:	70 0d       	add	r23, r0
+    1166:	81 1d       	adc	r24, r1
+    1168:	11 24       	eor	r1, r1
+    116a:	91 1d       	adc	r25, r1
+    116c:	08 95       	ret
 
-0000084c <__umulhisi3>:
- 84c:	a2 9f       	mul	r26, r18
- 84e:	b0 01       	movw	r22, r0
- 850:	b3 9f       	mul	r27, r19
- 852:	c0 01       	movw	r24, r0
- 854:	a3 9f       	mul	r26, r19
- 856:	70 0d       	add	r23, r0
- 858:	81 1d       	adc	r24, r1
- 85a:	11 24       	eor	r1, r1
- 85c:	91 1d       	adc	r25, r1
- 85e:	b2 9f       	mul	r27, r18
- 860:	70 0d       	add	r23, r0
- 862:	81 1d       	adc	r24, r1
- 864:	11 24       	eor	r1, r1
- 866:	91 1d       	adc	r25, r1
- 868:	08 95       	ret
+0000116e <_exit>:
+    116e:	f8 94       	cli
 
-0000086a <_exit>:
- 86a:	f8 94       	cli
-
-0000086c <__stop_program>:
- 86c:	ff cf       	rjmp	.-2      	; 0x86c <__stop_program>
+00001170 <__stop_program>:
+    1170:	ff cf       	rjmp	.-2      	; 0x1170 <__stop_program>

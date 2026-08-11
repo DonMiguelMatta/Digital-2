@@ -1,8 +1,11 @@
 /*
- * Stepper.h
+ * Biblioteca Stepper
  *
- * Driver reutilizable para motores unipolares de cuatro fases.
+ * Author: Miguel Donis 22993 - Ian Farrington 21952
+ * Description: Interfaz para motores unipolares de cuatro fases
  */
+/****************************************/
+// Encabezado (Libraries)
 
 #ifndef STEPPER_H_
 #define STEPPER_H_
@@ -37,14 +40,23 @@ typedef struct
     uint8_t continuous;
 } StepperState;
 
+/****************************************/
+// Function prototypes
+
+// Recibe los cuatro pines y configura el modo de paso; devuelve 1 al iniciar.
 uint8_t Stepper_Init(const StepperConfig *config, StepperMode mode);
+// Gira sin limite de pasos hasta llamar Stepper_Stop.
 uint8_t Stepper_RunContinuous(StepperDirection direction,
                               uint16_t steps_per_second);
+// Gira la cantidad indicada de pasos a la velocidad solicitada.
 uint8_t Stepper_Move(StepperDirection direction,
                      uint16_t steps,
                      uint16_t steps_per_second);
+// Detiene el giro y permite conservar o liberar las bobinas.
 void Stepper_Stop(uint8_t release_coils);
+// Devuelve 1 mientras el Timer2 mantiene el movimiento.
 uint8_t Stepper_IsRunning(void);
+// Copia movimiento, direccion, pasos restantes y velocidad.
 void Stepper_GetState(StepperState *state);
 
 #endif /* STEPPER_H_ */
