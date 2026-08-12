@@ -1,0 +1,17 @@
+\section{Problemas encontrados y soluciones}
+
+\subsection{Verificación de la comunicación I2C}
+
+Durante la integración de la red I2C se presentó dificultad para determinar con certeza si los Slaves se encontraban operando correctamente y si las solicitudes enviadas por el Maestro estaban siendo recibidas y aceptadas. Esta condición complicaba el diagnóstico, ya que una ausencia de respuesta podía deberse tanto a un problema de conexión como a una solicitud no reconocida o a la falta de una muestra válida.
+
+Como medida de diagnóstico y robustez se incorporaron estados de respuesta dentro del protocolo de comunicación. Estos permiten distinguir entre una operación correcta, una solicitud aceptada, un dispositivo no soportado, un dispositivo desconocido y la ausencia de una muestra válida. De esta manera, el Maestro dispone de información adicional para identificar el estado de las transacciones y diferenciar distintos tipos de falla durante la ejecución.
+
+Adicionalmente, se implementó una verificación inicial de la comunicación I2C con los Slaves. Durante esta etapa se comprueba la presencia de cada dispositivo utilizando su dirección correspondiente antes de comenzar la secuencia principal del Car Wash. Esta verificación facilitó la detección de problemas de conexión y permitió confirmar que los nodos esperados se encontraban disponibles en el bus antes de iniciar el proceso.
+
+\subsection{Reinicio del Maestro durante el accionamiento del motor DC}
+
+Durante las pruebas del sistema se observó un problema asociado al accionamiento del motor DC de la estación de cepillado. Con el motor conectado, el microcontrolador Maestro llega a reiniciarse durante el proceso y, como consecuencia, la secuencia no alcanza la lectura final necesaria para declarar terminado el ciclo de lavado. Al desconectar el motor DC, el sistema sí logra continuar la secuencia y finalizar el proceso.
+
+A partir de este comportamiento se plantea como hipótesis que el accionamiento del motor introduce perturbaciones eléctricas sobre la alimentación o la referencia común del sistema. Estas perturbaciones pueden estar relacionadas con transitorios, ruido eléctrico o efectos parasitarios producidos por la naturaleza inductiva del motor y por los cambios de corriente durante su conmutación. Una caída momentánea de la tensión de alimentación o una perturbación suficientemente grande podría provocar el reinicio del microcontrolador como mecanismo de protección o por activación de las condiciones de reset del sistema.
+
+Por el momento, esta explicación se considera una hipótesis basada en el comportamiento observado y no una causa comprobada experimentalmente. Como trabajo de mejora se deberá revisar la distribución de potencia, desacoplar adecuadamente la alimentación lógica y la del motor, verificar las conexiones de tierra y evaluar medidas de supresión de transitorios y ruido antes de establecer una conclusión definitiva sobre el origen del reinicio.

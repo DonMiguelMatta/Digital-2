@@ -1,0 +1,79 @@
+\section{ESP32 y Adafruit IO}
+
+La versión final del código incorpora un ESP32 como puente entre el microcontrolador Maestro y la plataforma Adafruit IO. El ESP32 utiliza la librería \texttt{AdafruitIO\_WiFi} para establecer la conexión WiFi y administrar los feeds. Las credenciales de red y la clave privada de Adafruit IO se mantienen fuera de la documentación por razones de seguridad.
+
+\subsection{Enlace UART entre el Maestro y el ESP32}
+
+El enlace con el ESP32 trabaja a 9600 baudios y formato 8N1. En el ESP32 se utiliza \texttt{HardwareSerial(2)}, con GPIO16 como RX y GPIO17 como TX. La información enviada por el Maestro sale mediante su USART de hardware por PD1/D1 y es recibida por GPIO16 del ESP32. Para las órdenes en sentido contrario, GPIO17 del ESP32 se conecta al receptor implementado por software en PB4/D12 del Maestro.
+
+Esta separación permite conservar el USART principal del ATmega328P para la transmisión de telemetría y mensajes, mientras que las órdenes provenientes del ESP32 se reciben mediante una rutina UART por software basada en interrupción por cambio de pin y Timer1. El receptor utiliza un buffer circular de 64 bytes y valida los ocho bits de datos y el bit de parada.
+
+Debido a que el ATmega328P trabaja con lógica de 5 V y el ESP32 con lógica de 3.3 V, la conexión debe incorporar la adaptación de nivel correspondiente, particularmente en la señal transmitida desde el Maestro hacia el ESP32.
+
+\subsection{Formato de las tramas}
+
+La comunicación utiliza líneas ASCII terminadas en salto de línea. Para telemetría, el Maestro genera tramas con la estructura:
+
+\begin{center}
+\texttt{@CW,T,CLAVE,VALOR}
+\end{center}
+
+El ESP32 identifica la clave, conserva el valor más reciente y marca el feed correspondiente como pendiente de publicación. Para órdenes desde Adafruit IO hacia el Maestro se utiliza:
+
+\begin{center}
+\texttt{@CW,C,DISPOSITIVO,VALOR}
+\end{center}
+
+El Maestro solamente acepta estas órdenes cuando se encuentra en modo manual. De esta manera se evita que un cambio remoto interfiera directamente con la máquina de estados automática.
+
+\subsection{Feeds implementados}
+
+El programa del ESP32 define ocho feeds asociados a variables del Car Wash. La Tabla~\ref{tab:adafruit_feeds} resume su correspondencia.
+
+\begin{table}[H]
+\centering
+\caption{Feeds implementados para Adafruit IO.}
+\label{tab:adafruit_feeds}
+\begin{tabular}{lll}
+\toprule
+Clave UART & Feed & Información asociada \\
+\midrule
+\texttt{DC}  & \texttt{digital-2.dc} & Motor DC / valor firmado de control \\
+\texttt{HCR} & \texttt{digital-2.hcr} & Distancia del HC-SR04 \\
+\texttt{IR}  & \texttt{digital-2.ir} & Estado del sensor infrarrojo \\
+\texttt{LCD} & \texttt{digital-2.lcd} & Estado o mensaje del sistema \\
+\texttt{WA}  & \texttt{digital-2.servo-agua} & Ángulo del servo de agua \\
+\texttt{DO}  & \texttt{digital-2.servo-puerta} & Ángulo del servo de puerta \\
+\texttt{ST}  & \texttt{digital-2.stepper} & Velocidad y dirección del Stepper \\
+\texttt{VL}  & \texttt{digital-2.vl53l0x} & Distancia medida por el VL53L0X \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Además de estas claves, el Maestro transmite \texttt{MODE} para indicar si se encuentra en modo automático o manual. Esta variable es utilizada internamente por el ESP32 para decidir si debe aceptar y reenviar órdenes de control.
+
+\subsection{Publicación de telemetría}
+
+El ESP32 recibe continuamente las líneas del Maestro sin detener la ejecución de \texttt{io.run()}. Cuando un valor cambia, se almacena localmente y se marca como pendiente. La publicación se realiza de manera rotativa, enviando como máximo un feed pendiente aproximadamente cada 2200 ms. Esta estrategia evita concentrar múltiples publicaciones consecutivas y reduce la frecuencia de actualización hacia el servicio.
+
+El código también contempla la pérdida y recuperación de la conexión con Adafruit IO. Cuando se detecta una nueva conexión, el ESP32 solicita los valores actuales de los feeds que permiten control para sincronizar el estado de la interfaz.
+
+\subsection{Control manual desde Adafruit IO}
+
+El Maestro incorpora un botón en PB3/D11 que alterna entre modo automático y modo manual con un antirrebote de 40 ms. Al entrar al modo manual se detienen los actuadores, se apaga temporalmente el VL53L0X y la LCD muestra \textit{Modo manual / Adafruit IO}. Posteriormente el sistema permite recibir órdenes remotas para:
+
+\begin{itemize}
+    \item Motor DC: valores entre -255 y 255. El signo determina la dirección y la magnitud determina el PWM.
+    \item Servo de agua: ángulos entre 0 y 180 grados.
+    \item Servo de puerta: ángulos entre 0 y 180 grados.
+    \item Stepper: valores entre -1000 y 1000 pasos por segundo; el signo determina la dirección.
+    \item Parada general: al escribir \texttt{STOP} en el feed asociado a la LCD se solicita la detención segura de los actuadores.
+\end{itemize}
+
+Mientras el sistema permanece en modo manual, el Maestro actualiza también los sensores para visualizarlos en Adafruit IO. El HC-SR04 y el sensor infrarrojo se consultan alternadamente cada 250 ms, mientras que el VL53L0X se mantiene mediante su rutina no bloqueante. Un valor de -1 se utiliza cuando no existe una muestra válida o cuando no se logra obtener temporalmente la medición correspondiente.
+
+\subsection{Alcance de la implementación actual}
+
+El código entregado contiene la lógica completa de conexión WiFi, manejo de feeds, recepción de telemetría y envío de órdenes remotas. Sin embargo, la presencia de esta implementación en el código no constituye por sí sola evidencia experimental de que todas las publicaciones hayan sido recibidas correctamente por el servidor. Las capturas del dashboard, valores medidos y comportamiento observado se incorporarán en la sección de resultados únicamente a partir de pruebas realizadas sobre el prototipo.
+
+También se observó durante la revisión que la publicación periódica de HC-SR04, IR y VL53L0X está implementada explícitamente dentro del modo manual. En el modo automático, el código actual transmite periódicamente la variable \texttt{MODE}, pero no se identificaron llamadas equivalentes que publiquen continuamente las tres mediciones durante toda la secuencia automática. Este punto debe considerarse al verificar el cumplimiento del requisito de mediciones en tiempo real durante la prueba final.

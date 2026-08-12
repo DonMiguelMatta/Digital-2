@@ -124,6 +124,12 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ESPUART\ESPUART.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ESPUART\ESPUART.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="I2CLIB\I2CLIB.c">
       <SubType>compile</SubType>
     </Compile>
@@ -171,6 +177,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="ESPUART" />
     <Folder Include="I2CLIB" />
     <Folder Include="LCD" />
     <Folder Include="PROTOCOL" />

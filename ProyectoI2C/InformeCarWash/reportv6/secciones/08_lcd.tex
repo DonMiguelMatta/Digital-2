@@ -1,0 +1,5 @@
+\section{Pantalla LCD}
+
+La interfaz local utiliza una pantalla LCD 16x2 controlada directamente por el ATmega328P Maestro mediante una librería propia en modo paralelo de 8 bits. Las líneas D0--D5 se conectan a PD2--PD7, D6 a PB0 y D7 a PB1. La señal Enable se conecta a PC0/A0 y Register Select a PC1/A1; R/W se mantiene conectado a tierra para trabajar únicamente en escritura.
+
+La pantalla presenta mensajes asociados al estado del proceso. Entre los textos implementados se encuentran ``Bienvenido al / CarWash'' durante el reposo, ``Ingresando / tu auto'' durante la entrada, ``Enjabonando / tu auto'' durante la etapa de suministro, ``Lavando / tu auto'' durante el cepillado y ``Gracias por / elegirnos'' al completar el recorrido. De esta forma, la LCD funciona como interfaz de estado para el usuario además de cumplir con el requisito de visualización desde el microcontrolador Maestro.

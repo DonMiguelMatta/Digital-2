@@ -2,6 +2,8 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+ESPUART\ESPUART.c
+
 I2CLIB\I2CLIB.c
 
 LCD\lcd.c

@@ -1,0 +1,24 @@
+\section{Implementación del software}
+
+El software está dividido en tres proyectos principales para ATmega328P: Maestro, Slave 1 y Slave 2. Cada proyecto utiliza librerías propias para separar el manejo de hardware de la lógica de aplicación.
+
+\subsection{Programa Maestro}
+El Maestro concentra la máquina de estados del Car Wash. Inicializa la LCD, UART, I2C, la base de tiempo y el VL53L0X. La aplicación evita estructurar el proceso completo mediante retardos largos; en su lugar utiliza marcas de tiempo y estados para continuar atendiendo comunicaciones y verificaciones de enlace mientras avanza la secuencia.
+
+Los estados implementados cubren comprobación inicial, reposo, entrada, búsqueda de la estación de suministro, referencia y control del líquido, búsqueda y ejecución del lavado, búsqueda de salida, retorno final y estados de error/recuperación. El Maestro también mantiene una comprobación periódica de los Slaves y aplica acciones seguras si detecta una pérdida de comunicación.
+
+\subsection{Slave 1}
+El Slave 1 inicializa el HC-SR04, el servo de agua, el L298N y el módulo I2C en dirección 0x11. Su ciclo principal alterna la atención de solicitudes I2C con la actualización de la medición ultrasónica. El nodo no decide por sí mismo la secuencia global: recibe del Maestro las órdenes de posición del servo y control del motor DC.
+
+\subsection{Slave 2}
+El Slave 2 inicializa el sensor infrarrojo, el Stepper en modo de medio paso, el servo de puerta y el módulo I2C en dirección 0x12. La lectura infrarroja se actualiza localmente y el movimiento del Stepper es administrado mediante su librería, permitiendo que el nodo continúe atendiendo solicitudes I2C mientras el motor se encuentra activo.
+
+\subsection{Protocolo de aplicación}
+Además de la librería de bajo nivel para I2C, los tres proyectos comparten una librería de protocolo. Esta define comandos para lectura de sensores, posicionamiento de servos, control del motor DC, movimiento del Stepper, parada y verificación de dispositivos. Las respuestas incluyen códigos de estado que permiten al Maestro detectar solicitudes inválidas, Slaves no disponibles y condiciones de comunicación anormales.
+
+\subsection{Integración del ESP32}
+La versión final del proyecto incluye el programa del ESP32 basado en Arduino y la librería \texttt{AdafruitIO\_WiFi}. El programa mantiene simultáneamente la conexión con Adafruit IO y la recepción UART desde el Maestro. Las tramas recibidas se interpretan por clave, se almacenan en una estructura local y se publican de manera escalonada.
+
+En el Maestro se añadió además la librería \texttt{ESPUART}, que implementa una recepción UART por software en PB4/D12 mediante interrupción por cambio de pin y Timer1. El botón conectado a PB3/D11 permite alternar entre la máquina de estados automática y un modo manual destinado al control desde Adafruit IO. En modo manual el Maestro valida rangos, envía las órdenes a Slave 1 o Slave 2 mediante el protocolo I2C y solamente actualiza la telemetría del actuador cuando la orden ha sido aceptada.
+
+Las credenciales WiFi y la clave privada de Adafruit IO forman parte de la configuración local del programa, pero no se reproducen en este informe ni en fragmentos de código publicados.

@@ -1,0 +1,84 @@
+\section{Circuitos y conexiones}
+
+\subsection{ATmega328P Maestro}
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+Pin Nano & Pin ATmega328P & Función \\
+\midrule
+D0 & PD0 & RX UART \\
+D1 & PD1 & TX UART \\
+D2--D7 & PD2--PD7 & LCD D0--D5 \\
+D8 & PB0 & LCD D6 \\
+D9 & PB1 & LCD D7 \\
+D10 & PB2 & XSHUT VL53L0X \\
+A0 & PC0 & Enable LCD \\
+A1 & PC1 & RS LCD \\
+A4 & PC4 & SDA I2C \\
+A5 & PC5 & SCL I2C \\
+\bottomrule
+\end{tabular}
+\caption{Asignación principal de pines del Maestro.}
+\end{table}
+
+\subsection{Slave 1 -- 0x11}
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+Pin Nano & Pin ATmega328P & Función \\
+\midrule
+A2 & PC2 & ECHO HC-SR04 \\
+A3 & PC3 & TRIG HC-SR04 \\
+A4 & PC4 & SDA I2C \\
+A5 & PC5 & SCL I2C \\
+D11 & PB3 & Servo de agua \\
+D9 & PB1 & ENA L298N / PWM \\
+D7 & PD7 & IN1 L298N \\
+D8 & PB0 & IN2 L298N \\
+\bottomrule
+\end{tabular}
+\caption{Asignación principal de pines del Slave 1.}
+\end{table}
+
+\subsection{Slave 2 -- 0x12}
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+Pin Nano & Pin ATmega328P & Función \\
+\midrule
+A0 & PC0 & Sensor infrarrojo \\
+A4 & PC4 & SDA I2C \\
+A5 & PC5 & SCL I2C \\
+D2 & PD2 & ULN2003 IN1 \\
+D3 & PD3 & ULN2003 IN2 \\
+D4 & PD4 & ULN2003 IN3 \\
+D5 & PD5 & ULN2003 IN4 \\
+D6 & PD6 & Servo de puerta \\
+\bottomrule
+\end{tabular}
+\caption{Asignación principal de pines del Slave 2.}
+\end{table}
+
+El bus I2C comparte SDA y SCL entre los tres ATmega328P y el VL53L0X. Se conectan resistencias de 470~\(\Omega\) en configuración pull-up en las líneas SDA y SCL. El sistema debe mantener una referencia común de tierra. Los servos, el motor DC y el Stepper requieren una distribución de potencia apropiada para evitar que las corrientes de los actuadores afecten la lógica o la comunicación I2C. La interfaz con el ESP32 considera además la diferencia entre los niveles lógicos de 5 V y 3.3 V. El TX del Maestro (D1) se dirige al RX2 del ESP32 (GPIO16), mientras que el TX2 del ESP32 (GPIO17) se dirige al receptor por software del Maestro en D12. La señal de 5 V hacia el ESP32 debe pasar por la adaptación de nivel correspondiente.
+
+
+\subsection{Conexión del ESP32}
+\begin{table}[H]
+\centering
+\caption{Señales utilizadas entre el Maestro y el ESP32.}
+\begin{tabular}{lll}
+\toprule
+Origen & Destino & Función \\
+\midrule
+Master D1 / PD1 / TX & ESP32 GPIO16 / RX2 & Telemetría hacia Adafruit IO \\
+ESP32 GPIO17 / TX2 & Master D12 / PB4 & Órdenes desde Adafruit IO \\
+GND Master & GND ESP32 & Referencia común \\
+\bottomrule
+\end{tabular}
+\end{table}

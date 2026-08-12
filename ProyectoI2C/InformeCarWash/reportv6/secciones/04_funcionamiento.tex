@@ -1,0 +1,17 @@
+\section{Funcionamiento del sistema}
+
+La secuencia de operación prevista para el Car Wash Inteligente es la siguiente:
+
+\begin{enumerate}[leftmargin=*]
+    \item El sistema permanece en estado de espera hasta detectar un automóvil en la entrada.
+    \item El sensor infrarrojo informa la presencia del vehículo.
+    \item El servomotor de la puerta abre la talanquera de entrada.
+    \item El motor Stepper comienza a enrollar el hilo conectado al automóvil y lo desplaza a lo largo de la maqueta.
+    \item En la zona de agua, el HC-SR04 mide la distancia hasta la superficie del líquido para monitorear el nivel del depósito.
+    \item El automóvil continúa hacia la estación de cepillado, donde el motor DC acciona los cepillos durante la etapa correspondiente del proceso.
+    \item El vehículo continúa avanzando hacia la salida.
+    \item El sensor VL53L0X detecta la llegada del automóvil a la posición final.
+    \item El sistema detiene el desplazamiento y considera finalizado el ciclo de lavado.
+    \item Las variables y estados relevantes se muestran en la LCD y pueden enviarse al ESP32 mediante UART para su publicación en Adafruit IO. El sistema incorpora además un modo manual en el que Adafruit IO puede enviar órdenes de control hacia los actuadores a través del Maestro.
+\end{enumerate}
+

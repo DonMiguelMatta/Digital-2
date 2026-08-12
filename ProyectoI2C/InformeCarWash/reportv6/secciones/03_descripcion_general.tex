@@ -1,0 +1,9 @@
+\section{Descripción general del proyecto}
+
+El proyecto consiste en una maqueta funcional de un lavado de autos automatizado. Un automóvil de juguete recorre longitudinalmente una estructura diseñada para representar las etapas principales del proceso. El movimiento del vehículo se realiza mediante un motor paso a paso 28BYJ-48 ubicado debajo de la base, el cual enrolla un hilo conectado al automóvil para desplazarlo a través de la maqueta.
+
+En la entrada, un sensor infrarrojo detecta la presencia del vehículo. Esta detección permite iniciar la secuencia y controlar la apertura de una talanquera mediante un servomotor. Durante el recorrido, un sensor ultrasónico HC-SR04 mide la distancia entre su posición y la superficie del agua de un depósito, proporcionando una variable asociada al nivel disponible. En otra estación, un motor DC acciona el mecanismo de cepillado. Finalmente, un sensor VL53L0X con comunicación I2C detecta la llegada del automóvil a la zona final del recorrido.
+
+El control se distribuye entre tres ATmega328P. El Maestro concentra la interfaz LCD y el bus I2C, mientras que los dos Slaves controlan sensores y actuadores ubicados en distintas zonas del proceso. El sistema incorpora además un ESP32 para la etapa de conectividad con Adafruit IO. La distribución detallada de entradas y salidas se presenta posteriormente en la sección de arquitectura y conexiones.
+
+La maqueta fue diseñada en Autodesk Inventor y está planteada para fabricarse principalmente en MDF mediante corte láser. Su estructura es abierta, con paredes laterales y soportes localizados para los componentes que requieren montaje sobre el recorrido. El diseño también contempla una caja inferior para alojar y proteger el mecanismo del motor paso a paso.

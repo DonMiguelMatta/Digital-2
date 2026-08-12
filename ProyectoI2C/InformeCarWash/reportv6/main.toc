@@ -1,0 +1,56 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{\numberline {1}Introducción}{1}{section.1}%
+\contentsline {section}{\numberline {2}Objetivos}{1}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Objetivo general}{1}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Objetivos específicos}{2}{subsection.2.2}%
+\contentsline {section}{\numberline {3}Descripción general del proyecto}{2}{section.3}%
+\contentsline {section}{\numberline {4}Funcionamiento del sistema}{3}{section.4}%
+\contentsline {section}{\numberline {5}Arquitectura del sistema y distribución de microcontroladores}{4}{section.5}%
+\contentsline {subsection}{\numberline {5.1}ATmega328P Maestro}{4}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}ATmega328P Slave 1 -- dirección I2C 0x11}{4}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}ATmega328P Slave 2 -- dirección I2C 0x12}{4}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Bus I2C compartido}{5}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Alimentación}{5}{subsection.5.5}%
+\contentsline {section}{\numberline {6}Red de sensores}{5}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Sensor infrarrojo de entrada}{5}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}HC-SR04 y nivel del depósito}{6}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}VL53L0X}{6}{subsection.6.3}%
+\contentsline {section}{\numberline {7}Actuadores}{6}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Servomotores}{6}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Motor DC y L298N}{7}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Motor paso a paso y ULN2003}{7}{subsection.7.3}%
+\contentsline {section}{\numberline {8}Pantalla LCD}{7}{section.8}%
+\contentsline {section}{\numberline {9}Protocolos de comunicación}{8}{section.9}%
+\contentsline {subsection}{\numberline {9.1}I2C}{8}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}UART}{8}{subsection.9.2}%
+\contentsline {section}{\numberline {10}Diseño y construcción de la maqueta}{9}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Integración electrónica final}{11}{subsection.10.1}%
+\contentsline {section}{\numberline {11}Circuitos y conexiones}{14}{section.11}%
+\contentsline {subsection}{\numberline {11.1}ATmega328P Maestro}{14}{subsection.11.1}%
+\contentsline {subsection}{\numberline {11.2}Slave 1 -- 0x11}{14}{subsection.11.2}%
+\contentsline {subsection}{\numberline {11.3}Slave 2 -- 0x12}{15}{subsection.11.3}%
+\contentsline {subsection}{\numberline {11.4}Conexión del ESP32}{15}{subsection.11.4}%
+\contentsline {section}{\numberline {12}Diagrama de flujo y pseudocódigo}{15}{section.12}%
+\contentsline {section}{\numberline {13}Implementación del software}{16}{section.13}%
+\contentsline {subsection}{\numberline {13.1}Programa Maestro}{17}{subsection.13.1}%
+\contentsline {subsection}{\numberline {13.2}Slave 1}{17}{subsection.13.2}%
+\contentsline {subsection}{\numberline {13.3}Slave 2}{17}{subsection.13.3}%
+\contentsline {subsection}{\numberline {13.4}Protocolo de aplicación}{17}{subsection.13.4}%
+\contentsline {subsection}{\numberline {13.5}Integración del ESP32}{18}{subsection.13.5}%
+\contentsline {section}{\numberline {14}ESP32 y Adafruit IO}{18}{section.14}%
+\contentsline {subsection}{\numberline {14.1}Enlace UART entre el Maestro y el ESP32}{18}{subsection.14.1}%
+\contentsline {subsection}{\numberline {14.2}Formato de las tramas}{19}{subsection.14.2}%
+\contentsline {subsection}{\numberline {14.3}Feeds implementados}{19}{subsection.14.3}%
+\contentsline {subsection}{\numberline {14.4}Publicación de telemetría}{20}{subsection.14.4}%
+\contentsline {subsection}{\numberline {14.5}Control manual desde Adafruit IO}{20}{subsection.14.5}%
+\contentsline {subsection}{\numberline {14.6}Alcance de la implementación actual}{20}{subsection.14.6}%
+\contentsline {section}{\numberline {15}Pruebas y resultados}{21}{section.15}%
+\contentsline {section}{\numberline {16}Análisis de resultados}{21}{section.16}%
+\contentsline {section}{\numberline {17}Problemas encontrados y soluciones}{21}{section.17}%
+\contentsline {subsection}{\numberline {17.1}Verificación de la comunicación I2C}{21}{subsection.17.1}%
+\contentsline {subsection}{\numberline {17.2}Reinicio del Maestro durante el accionamiento del motor DC}{22}{subsection.17.2}%
+\contentsline {section}{\numberline {18}Conclusiones}{22}{section.18}%
+\contentsline {section}{\numberline {19}Bibliografía}{22}{section.19}%
+\contentsline {section}{\numberline {20}Anexos}{23}{section.20}%
+\contentsline {subsection}{\numberline {20.1}Organización del código fuente}{23}{subsection.20.1}%
+\contentsline {subsection}{\numberline {20.2}Video de demostración}{23}{subsection.20.2}%

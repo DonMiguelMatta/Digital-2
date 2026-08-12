@@ -15,7 +15,9 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <stdint.h>
+#include <string.h>
 
+#include "ESPUART/ESPUART.h"
 #include "I2CLIB/I2CLIB.h"
 #include "LCD/lcd.h"
 #include "PROTOCOL/Protocol.h"
@@ -29,9 +31,20 @@
 #define UART_BAUD                       9600UL
 #define UART_UBRR                       ((F_CPU / (16UL * UART_BAUD)) - 1UL)
 #define UART_TX_BUFFER_SIZE             256U
+#define ESP_COMMAND_BUFFER_SIZE          40U
 
 #define SLAVE1_I2C_ADDRESS              0x11U
 #define SLAVE2_I2C_ADDRESS              0x12U
+
+#define MODE_BUTTON_DDR                 DDRB
+#define MODE_BUTTON_PORT                PORTB
+#define MODE_BUTTON_INPUT               PINB
+#define MODE_BUTTON_PIN                 PB3
+#define MODE_BUTTON_DEBOUNCE_MS          40UL
+#define ESP_MODE_TELEMETRY_INTERVAL_MS 1000UL
+#define MANUAL_SENSOR_INTERVAL_MS       250UL
+#define MANUAL_VL_RETRY_MS             2000UL
+#define MANUAL_STEPPER_MAX_SPEED        1000
 
 #define CARWASH_WATER_CLOSED_ANGLE      0U
 #define CARWASH_WATER_OPEN_ANGLE        90U
@@ -140,6 +153,24 @@ typedef struct
     uint8_t found;
 } MasterI2CScan;
 
+typedef struct
+{
+    uint8_t last_raw;
+    uint8_t stable;
+    uint32_t changed_ms;
+} ModeButtonContext;
+
+typedef struct
+{
+    uint32_t next_sensor_ms;
+    uint32_t next_vl_retry_ms;
+    int16_t dc_value;
+    int16_t stepper_value;
+    uint8_t water_angle;
+    uint8_t door_angle;
+    uint8_t sensor_phase;
+} ManualModeContext;
+
 static volatile uint8_t uart_tx_buffer[UART_TX_BUFFER_SIZE];
 static volatile uint8_t uart_tx_head = 0U;
 static volatile uint8_t uart_tx_tail = 0U;
@@ -150,12 +181,28 @@ static MasterInfraredSample last_infrared_sample = {0U, 1U, 0U};
 static CarWashContext carwash;
 static MasterI2CScan i2c_scan = {0U, 0x08U, 0U};
 static uint8_t status_report_step = 0U;
+static ModeButtonContext mode_button = {1U, 1U, 0UL};
+static ManualModeContext manual_context =
+{
+    0UL,
+    0UL,
+    0,
+    0,
+    CARWASH_WATER_CLOSED_ANGLE,
+    CARWASH_DOOR_CLOSED_ANGLE,
+    0U
+};
+static uint8_t manual_mode = 0U;
+static uint32_t next_mode_telemetry_ms = 0UL;
+static char esp_command_buffer[ESP_COMMAND_BUFFER_SIZE];
+static uint8_t esp_command_length = 0U;
 
 /****************************************/
 // Function prototypes
 
 static void CarWash_EnterError(uint32_t now, PGM_P reason);
 static void CarWash_EnterIdle(uint32_t now);
+static void CarWash_EnterStartupCheck(uint32_t now);
 
 /****************************************/
 // NON-Interrupt subroutines
@@ -258,6 +305,24 @@ static void UART_WriteUInt16(uint16_t value)
     }
 }
 
+// Imprime un entero de 16 bits con signo por UART.
+static void UART_WriteInt16(int16_t value)
+{
+    uint16_t magnitude;
+
+    if (value < 0)
+    {
+        UART_WriteChar('-');
+        magnitude = (uint16_t)(-(value + 1)) + 1U;
+    }
+    else
+    {
+        magnitude = (uint16_t)value;
+    }
+
+    UART_WriteUInt16(magnitude);
+}
+
 // Imprime un nibble en hexadecimal.
 static void UART_WriteHexNibble(uint8_t value)
 {
@@ -290,6 +355,26 @@ static void Master_PrintCurrentI2CError(void)
 {
     Master_PrintI2CErrorValues((uint8_t)I2C_Master_GetLastError(),
                                I2C_Master_GetLastStatus());
+}
+
+// Envia una telemetria numerica al ESP32.
+static void Master_SendTelemetryInt(PGM_P key, int16_t value)
+{
+    UART_WriteString("@CW,T,");
+    UART_WriteFlashString(key);
+    UART_WriteChar(',');
+    UART_WriteInt16(value);
+    UART_WriteString("\r\n");
+}
+
+// Envia una telemetria de texto al ESP32.
+static void Master_SendTelemetryText(PGM_P key, PGM_P value)
+{
+    UART_WriteString("@CW,T,");
+    UART_WriteFlashString(key);
+    UART_WriteChar(',');
+    UART_WriteFlashString(value);
+    UART_WriteString("\r\n");
 }
 
 // Escribe en LCD un texto almacenado en Flash.
@@ -596,16 +681,16 @@ static uint8_t Master_SetDCMotor(uint8_t direction, uint8_t pwm)
                                   data);
 }
 
-// Inicia el stepper continuamente en la direccion indicada.
-static uint8_t Master_StartStepper(uint8_t direction)
+// Inicia el stepper continuamente con direccion y velocidad exactas.
+static uint8_t Master_StartStepperAtSpeed(uint8_t direction, uint16_t speed)
 {
     const uint8_t data[PROTOCOL_REQUEST_DATA_SIZE] =
     {
         direction,
         0U,
         0U,
-        (uint8_t)(CARWASH_STEPPER_SPEED >> 8U),
-        (uint8_t)CARWASH_STEPPER_SPEED
+        (uint8_t)(speed >> 8U),
+        (uint8_t)speed
     };
 
     return Master_CommandAccepted(SLAVE2_I2C_ADDRESS,
@@ -613,6 +698,12 @@ static uint8_t Master_StartStepper(uint8_t direction)
                                   (uint8_t)STEPPER,
                                   PROTOCOL_REQUEST_DATA_SIZE,
                                   data);
+}
+
+// Inicia el stepper con la velocidad usada por el modo automatico.
+static uint8_t Master_StartStepper(uint8_t direction)
+{
+    return Master_StartStepperAtSpeed(direction, CARWASH_STEPPER_SPEED);
 }
 
 // Detiene un dispositivo mediante Protocol.
@@ -915,8 +1006,16 @@ static void CarWash_PrintStateName(void)
 // Muestra las ultimas lecturas almacenadas.
 static void Master_PrintCachedStatus(void)
 {
-    UART_WriteString("\r\nEstado: ");
-    CarWash_PrintStateName();
+    UART_WriteString("\r\nModo: ");
+    if (manual_mode != 0U)
+    {
+        UART_WriteString("MANUAL ADAFRUIT");
+    }
+    else
+    {
+        UART_WriteString("AUTOMATICO, estado: ");
+        CarWash_PrintStateName();
+    }
     UART_WriteString("\r\nIR ultima valida: ");
     if (last_infrared_sample.available == 0U)
     {
@@ -1107,6 +1206,429 @@ static void Master_ServiceI2CScan(void)
     else
     {
         i2c_scan.address++;
+    }
+}
+
+// Configura D11 como boton con resistencia pull-up interna.
+static void Master_ModeButtonInit(uint32_t now)
+{
+    uint8_t raw;
+
+    MODE_BUTTON_DDR &= (uint8_t)~(1U << MODE_BUTTON_PIN);
+    MODE_BUTTON_PORT |= (1U << MODE_BUTTON_PIN);
+    raw = (uint8_t)((MODE_BUTTON_INPUT & (1U << MODE_BUTTON_PIN)) != 0U);
+    mode_button.last_raw = raw;
+    mode_button.stable = raw;
+    mode_button.changed_ms = now;
+}
+
+// Convierte un texto decimal completo a entero con signo.
+static uint8_t Master_ParseInt16(const char *text, int16_t *value)
+{
+    uint32_t magnitude = 0UL;
+    uint8_t negative = 0U;
+
+    if ((text == 0) || (value == 0) || (*text == '\0'))
+    {
+        return 0U;
+    }
+
+    if (*text == '-')
+    {
+        negative = 1U;
+        text++;
+    }
+    else if (*text == '+')
+    {
+        text++;
+    }
+
+    if (*text == '\0')
+    {
+        return 0U;
+    }
+
+    while (*text != '\0')
+    {
+        if ((*text < '0') || (*text > '9'))
+        {
+            return 0U;
+        }
+
+        magnitude = (magnitude * 10UL) + (uint8_t)(*text - '0');
+        if (magnitude > 32768UL)
+        {
+            return 0U;
+        }
+        text++;
+    }
+
+    if (negative != 0U)
+    {
+        if (magnitude == 32768UL)
+        {
+            *value = (int16_t)(-32767 - 1);
+        }
+        else
+        {
+            *value = (int16_t)-(int16_t)magnitude;
+        }
+    }
+    else
+    {
+        if (magnitude > 32767UL)
+        {
+            return 0U;
+        }
+        *value = (int16_t)magnitude;
+    }
+
+    return 1U;
+}
+
+// Publica las posiciones seguras de los actuadores manuales.
+static void Master_SendManualActuatorTelemetry(void)
+{
+    Master_SendTelemetryInt(PSTR("DC"), manual_context.dc_value);
+    Master_SendTelemetryInt(PSTR("WA"), manual_context.water_angle);
+    Master_SendTelemetryInt(PSTR("DO"), manual_context.door_angle);
+    Master_SendTelemetryInt(PSTR("ST"), manual_context.stepper_value);
+}
+
+// Detiene todos los actuadores y actualiza su telemetria.
+static uint8_t Master_StopManualActuators(void)
+{
+    if (Master_ApplySafeActions() == 0U)
+    {
+        return 0U;
+    }
+
+    manual_context.dc_value = 0;
+    manual_context.stepper_value = 0;
+    manual_context.water_angle = CARWASH_WATER_CLOSED_ANGLE;
+    manual_context.door_angle = CARWASH_DOOR_CLOSED_ANGLE;
+    Master_SendManualActuatorTelemetry();
+    return 1U;
+}
+
+// Entra al control manual y deja una base segura.
+static void Master_EnterManualMode(uint32_t now)
+{
+    uint8_t safe_ok;
+
+    manual_mode = 1U;
+    Master_ShutdownVL53L0X();
+    safe_ok = Master_StopManualActuators();
+
+    manual_context.next_sensor_ms = now;
+    manual_context.next_vl_retry_ms = now;
+    manual_context.sensor_phase = 0U;
+    carwash.last_vl_available = 0U;
+
+    Master_SetLCD(PSTR("Modo manual"), PSTR("Adafruit IO"));
+    Master_SendTelemetryInt(PSTR("MODE"), 1);
+    Master_SendTelemetryText(PSTR("LCD"), PSTR("Modo manual"));
+    UART_WriteString("Modo MANUAL Adafruit habilitado.\r\n");
+
+    if (safe_ok == 0U)
+    {
+        UART_WriteString("Manual: no se confirmo la parada segura.\r\n");
+    }
+}
+
+// Sale del modo manual y reinicia la revision automatica.
+static void Master_EnterAutomaticMode(uint32_t now)
+{
+    (void)Master_StopManualActuators();
+    Master_ShutdownVL53L0X();
+    manual_mode = 0U;
+    Master_SendTelemetryInt(PSTR("MODE"), 0);
+    UART_WriteString("Modo AUTOMATICO: reiniciando revision I2C.\r\n");
+    CarWash_EnterStartupCheck(now);
+}
+
+// Aplica antirrebote y alterna el modo al presionar D11.
+static void Master_ServiceModeButton(uint32_t now)
+{
+    uint8_t raw = (uint8_t)((MODE_BUTTON_INPUT &
+                             (1U << MODE_BUTTON_PIN)) != 0U);
+
+    if (raw != mode_button.last_raw)
+    {
+        mode_button.last_raw = raw;
+        mode_button.changed_ms = now;
+        return;
+    }
+
+    if ((raw != mode_button.stable) &&
+        (Master_TimeReached(now,
+                            mode_button.changed_ms +
+                            MODE_BUTTON_DEBOUNCE_MS) != 0U))
+    {
+        mode_button.stable = raw;
+        if (raw == 0U)
+        {
+            if (manual_mode == 0U)
+            {
+                Master_EnterManualMode(now);
+            }
+            else
+            {
+                Master_EnterAutomaticMode(now);
+            }
+        }
+    }
+}
+
+// Procesa una orden @CW,C,DISPOSITIVO,VALOR del ESP32.
+static void Master_ProcessESPCommand(char *line)
+{
+    char *device;
+    char *separator;
+    int16_t value;
+    uint8_t accepted = 0U;
+
+    if ((line == 0) || (strncmp(line, "@CW,C,", 6U) != 0))
+    {
+        return;
+    }
+
+    device = &line[6];
+    separator = strchr(device, ',');
+    if (separator == 0)
+    {
+        return;
+    }
+
+    *separator = '\0';
+    if (Master_ParseInt16(separator + 1, &value) == 0U)
+    {
+        UART_WriteString("Manual: valor recibido invalido.\r\n");
+        return;
+    }
+
+    if (manual_mode == 0U)
+    {
+        UART_WriteString("Orden Adafruit ignorada en modo automatico.\r\n");
+        return;
+    }
+
+    if ((strcmp(device, "DC") == 0) &&
+        (value >= -255) && (value <= 255))
+    {
+        if (value == 0)
+        {
+            accepted = Master_StopDevice(SLAVE1_I2C_ADDRESS,
+                                         (uint8_t)DC_MOTOR);
+        }
+        else
+        {
+            uint8_t direction = (value > 0) ?
+                (uint8_t)PROTOCOL_DIRECTION_FORWARD :
+                (uint8_t)PROTOCOL_DIRECTION_REVERSE;
+            uint8_t pwm = (uint8_t)((value > 0) ? value : -value);
+
+            accepted = Master_SetDCMotor(direction, pwm);
+        }
+
+        if (accepted != 0U)
+        {
+            manual_context.dc_value = value;
+            Master_SendTelemetryInt(PSTR("DC"), value);
+        }
+    }
+    else if ((strcmp(device, "WA") == 0) &&
+             (value >= 0) && (value <= 180))
+    {
+        accepted = Master_SetServo(SLAVE1_I2C_ADDRESS,
+                                   (uint8_t)SERVO_WATER,
+                                   (uint8_t)value);
+        if (accepted != 0U)
+        {
+            manual_context.water_angle = (uint8_t)value;
+            Master_SendTelemetryInt(PSTR("WA"), value);
+        }
+    }
+    else if ((strcmp(device, "DO") == 0) &&
+             (value >= 0) && (value <= 180))
+    {
+        accepted = Master_SetServo(SLAVE2_I2C_ADDRESS,
+                                   (uint8_t)SERVO_DOOR,
+                                   (uint8_t)value);
+        if (accepted != 0U)
+        {
+            manual_context.door_angle = (uint8_t)value;
+            Master_SendTelemetryInt(PSTR("DO"), value);
+        }
+    }
+    else if ((strcmp(device, "ST") == 0) &&
+             (value >= -MANUAL_STEPPER_MAX_SPEED) &&
+             (value <= MANUAL_STEPPER_MAX_SPEED))
+    {
+        if (value == 0)
+        {
+            accepted = Master_StopDevice(SLAVE2_I2C_ADDRESS,
+                                         (uint8_t)STEPPER);
+        }
+        else
+        {
+            uint8_t direction = (value > 0) ?
+                (uint8_t)PROTOCOL_DIRECTION_FORWARD :
+                (uint8_t)PROTOCOL_DIRECTION_REVERSE;
+            uint16_t speed = (uint16_t)((value > 0) ? value : -value);
+
+            accepted = Master_StartStepperAtSpeed(direction, speed);
+        }
+
+        if (accepted != 0U)
+        {
+            manual_context.stepper_value = value;
+            Master_SendTelemetryInt(PSTR("ST"), value);
+        }
+    }
+    else if ((strcmp(device, "STOP") == 0) && (value == 0))
+    {
+        accepted = Master_StopManualActuators();
+        if (accepted != 0U)
+        {
+            Master_SendTelemetryText(PSTR("LCD"), PSTR("Detenido"));
+        }
+    }
+    else
+    {
+        UART_WriteString("Manual: dispositivo o rango invalido.\r\n");
+        return;
+    }
+
+    if (accepted == 0U)
+    {
+        UART_WriteString("Manual: orden rechazada por el Slave.\r\n");
+        Master_SendTelemetryText(PSTR("LCD"), PSTR("Error comando"));
+    }
+}
+
+// Forma lineas completas recibidas por la UART de D12.
+static void Master_ServiceESPCommands(void)
+{
+    if (ESPUART_GetAndClearOverflow() != 0U)
+    {
+        esp_command_length = 0U;
+        UART_WriteString("ESP UART: buffer desbordado.\r\n");
+    }
+
+    while (ESPUART_Available() != 0U)
+    {
+        char data = ESPUART_ReadChar();
+
+        if (data == '\r')
+        {
+            continue;
+        }
+
+        if (data == '\n')
+        {
+            esp_command_buffer[esp_command_length] = '\0';
+            if (esp_command_length > 0U)
+            {
+                Master_ProcessESPCommand(esp_command_buffer);
+            }
+            esp_command_length = 0U;
+        }
+        else if (esp_command_length < (ESP_COMMAND_BUFFER_SIZE - 1U))
+        {
+            esp_command_buffer[esp_command_length] = data;
+            esp_command_length++;
+        }
+        else
+        {
+            esp_command_length = 0U;
+        }
+    }
+}
+
+// Mantiene actualizados los sensores visibles en Adafruit durante manual.
+static void Master_ServiceManualSensors(uint32_t now)
+{
+    MasterSampleResult sample_result;
+    MasterVLResult vl_result;
+    uint16_t sensor_value;
+    uint8_t counter;
+
+    if (Master_TimeReached(now, manual_context.next_sensor_ms) != 0U)
+    {
+        manual_context.next_sensor_ms = now + MANUAL_SENSOR_INTERVAL_MS;
+
+        if (manual_context.sensor_phase == 0U)
+        {
+            sample_result = Master_GetHCSR04(&sensor_value, &counter);
+            if (sample_result == MASTER_SAMPLE_VALID)
+            {
+                Master_SendTelemetryInt(
+                    PSTR("HCR"),
+                    (int16_t)Master_HCSR04EchoToMillimeters(sensor_value));
+            }
+            else if (sample_result == MASTER_SAMPLE_NO_SAMPLE)
+            {
+                Master_SendTelemetryInt(PSTR("HCR"), -1);
+            }
+        }
+        else
+        {
+            uint8_t raw_level;
+
+            sample_result = Master_GetInfrared(&raw_level, &counter);
+            if (sample_result == MASTER_SAMPLE_VALID)
+            {
+                Master_SendTelemetryInt(PSTR("IR"), raw_level);
+            }
+            else if (sample_result == MASTER_SAMPLE_NO_SAMPLE)
+            {
+                Master_SendTelemetryInt(PSTR("IR"), -1);
+            }
+        }
+
+        manual_context.sensor_phase ^= 1U;
+    }
+
+    if (carwash.vl_powered == 0U)
+    {
+        if (Master_TimeReached(now, manual_context.next_vl_retry_ms) != 0U)
+        {
+            if (Master_InitializeVL53L0X(now) == 0U)
+            {
+                manual_context.next_vl_retry_ms = now + MANUAL_VL_RETRY_MS;
+                Master_SendTelemetryInt(PSTR("VL"), -1);
+            }
+        }
+        return;
+    }
+
+    vl_result = Master_PollVL53L0X(now, &sensor_value);
+    if (vl_result == MASTER_VL_VALID_RESULT)
+    {
+        if ((sensor_value >= CARWASH_VL_MIN_MM) &&
+            (sensor_value <= CARWASH_VL_MAX_MM))
+        {
+            carwash.last_vl_mm = sensor_value;
+            carwash.last_vl_available = 1U;
+            Master_SendTelemetryInt(PSTR("VL"), (int16_t)sensor_value);
+        }
+    }
+    else if (vl_result == MASTER_VL_ERROR)
+    {
+        Master_ShutdownVL53L0X();
+        manual_context.next_vl_retry_ms = now + MANUAL_VL_RETRY_MS;
+        Master_SendTelemetryInt(PSTR("VL"), -1);
+    }
+}
+
+// Repite el modo para que el ESP32 pueda recuperarlo tras reiniciarse.
+static void Master_ServiceModeTelemetry(uint32_t now)
+{
+    if (Master_TimeReached(now, next_mode_telemetry_ms) != 0U)
+    {
+        next_mode_telemetry_ms = now + ESP_MODE_TELEMETRY_INTERVAL_MS;
+        Master_SendTelemetryInt(PSTR("MODE"), manual_mode);
     }
 }
 
@@ -1848,7 +2370,7 @@ static void Master_ServiceUART(void)
     }
     else
     {
-        UART_WriteString("Modo automatico: use p=estado o s=escaneo.\r\n");
+        UART_WriteString("Use p=estado, s=escaneo o boton D11 para modo.\r\n");
     }
 }
 
@@ -1872,6 +2394,7 @@ static void Master_ServiceDiagnostics(void)
 int main(void)
 {
     uint8_t reset_cause = MCUSR;
+    uint32_t now;
 
     MCUSR = 0U;
 
@@ -1886,19 +2409,36 @@ int main(void)
                               PB2);
     (void)VL53L0X_Shutdown(&vl53l0x_sensor);
     Timebase_Init();
+    ESPUART_Init();
+    Master_ModeButtonInit(Timebase_Millis());
     sei();
 
     UART_WriteString("MASTER12C listo.\r\n");
     UART_WriteString("Reset MCUSR: ");
     UART_WriteHexByte(reset_cause);
     UART_WriteString("\r\n");
-    UART_WriteString("p: estado  s: escaneo I2C\r\n");
+    UART_WriteString("p: estado  s: escaneo  D11: automatico/manual\r\n");
+    UART_WriteString("ESP RX comandos: D12 a 9600 baudios.\r\n");
+    Master_SendTelemetryInt(PSTR("MODE"), 0);
     CarWash_EnterStartupCheck(Timebase_Millis());
 
-    // Atiende continuamente control automatico, UART y diagnosticos.
+    // Atiende continuamente modo, ESP, control, UART y diagnosticos.
     while (1)
     {
-        CarWash_Service(Timebase_Millis());
+        now = Timebase_Millis();
+        Master_ServiceModeButton(now);
+        Master_ServiceESPCommands();
+        Master_ServiceModeTelemetry(now);
+
+        if (manual_mode != 0U)
+        {
+            Master_ServiceManualSensors(now);
+        }
+        else
+        {
+            CarWash_Service(now);
+        }
+
         Master_ServiceUART();
         Master_ServiceDiagnostics();
     }
