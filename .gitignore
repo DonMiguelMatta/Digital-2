@@ -1,0 +1,46 @@
+# Local IDE/workspace metadata
+**/.metadata/
+**/.settings/
+*.launch
+
+# Build outputs
+**/Debug/
+**/Release/
+**/build/
+**/dist/
+*.o
+*.obj
+*.d
+*.elf
+*.hex
+*.bin
+*.map
+*.lss
+*.srec
+*.eep
+*.list
+*.su
+
+# Generated/local analysis artifacts
+**/outputs/
+**/output/
+**/tmp/
+**/node_modules/
+*.inspect.ndjson
+*.ndjson
+
+# Codex/OpenAI local artifacts
+**/.codex/
+**/codex/
+.codex/
+codex-*
+codex_*
+*codex*.log
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+~$*
