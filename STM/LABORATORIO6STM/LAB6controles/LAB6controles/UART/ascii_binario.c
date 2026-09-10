@@ -7,6 +7,10 @@
 /****************************************/
 // Encabezado (Libraries)
 
+#ifndef F_CPU
+#define F_CPU 16000000UL
+#endif
+
 #include "ascii_binario.h"
 #include <util/delay.h>
 

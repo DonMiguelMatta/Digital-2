@@ -6,13 +6,12 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
-
+/* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -21,11 +20,15 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define ADC1_LIMITE_INFERIOR 1975
-#define ADC1_LIMITE_SUPERIOR 2030
+#define ADC1_LIMITE_INFERIOR 2048
+#define ADC1_LIMITE_SUPERIOR 2099
 
-#define ADC2_LIMITE_INFERIOR 2050
+#define ADC2_LIMITE_INFERIOR 1960
 #define ADC2_LIMITE_SUPERIOR 2100
+
+#define INTERVALO_JOYSTICK 200U
+#define TIEMPO_AGRUPACION_MANDO2 10U
+#define TAMANO_COLA 16U
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -42,7 +45,14 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 volatile uint16_t adcValores[2] = {0, 0};
 
-char mensaje[100];
+/* USART1 recibe un byte a la vez desde el ATmega */
+uint8_t datoUART1;
+uint8_t esperandoNumero = 0;
+
+/* Cola de comandos recibidos por interrupcion */
+volatile uint8_t colaComandos[TAMANO_COLA];
+volatile uint8_t posicionEscritura = 0;
+volatile uint8_t posicionLectura = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -52,16 +62,158 @@ static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
-
 /* USER CODE BEGIN PFP */
+static void guardarComando(uint8_t comando);
+static uint8_t leerComando(uint8_t *comando);
+static void mostrarMando1(const char *vertical,
+                          const char *horizontal,
+                          uint16_t adcVertical,
+                          uint16_t adcHorizontal);
+static void mostrarMando2(uint8_t comandos);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* Guarda un comando si todavia hay espacio */
+static void guardarComando(uint8_t comando)
+{
+  uint8_t siguiente = posicionEscritura + 1U;
+
+  if (siguiente >= TAMANO_COLA)
+  {
+    siguiente = 0;
+  }
+
+  if (siguiente != posicionLectura)
+  {
+    colaComandos[posicionEscritura] = comando;
+    posicionEscritura = siguiente;
+  }
+}
+
+/* Devuelve un comando pendiente sin consultar el periferico UART */
+static uint8_t leerComando(uint8_t *comando)
+{
+  if (posicionLectura == posicionEscritura)
+  {
+    return 0;
+  }
+
+  *comando = colaComandos[posicionLectura];
+  posicionLectura++;
+
+  if (posicionLectura >= TAMANO_COLA)
+  {
+    posicionLectura = 0;
+  }
+
+  return 1;
+}
+
+/* Muestra una o dos mediciones del joystick en la misma linea */
+static void mostrarMando1(const char *vertical,
+                          const char *horizontal,
+                          uint16_t adcVertical,
+                          uint16_t adcHorizontal)
+{
+  char mensaje[100];
+  int longitud;
+
+  if (vertical == NULL && horizontal == NULL)
+  {
+    return;
+  }
+
+  longitud = snprintf(mensaje, sizeof(mensaje), "Mando 1: ");
+
+  if (vertical != NULL)
+  {
+    longitud += snprintf(&mensaje[longitud],
+                         sizeof(mensaje) - (uint32_t)longitud,
+                         "%s (ADC1=%u)",
+                         vertical,
+                         (unsigned int)adcVertical);
+  }
+
+  if (horizontal != NULL)
+  {
+    if (vertical != NULL)
+    {
+      longitud += snprintf(&mensaje[longitud],
+                           sizeof(mensaje) - (uint32_t)longitud,
+                           " | ");
+    }
+
+    longitud += snprintf(&mensaje[longitud],
+                         sizeof(mensaje) - (uint32_t)longitud,
+                         "%s (ADC2=%u)",
+                         horizontal,
+                         (unsigned int)adcHorizontal);
+  }
+
+  longitud += snprintf(&mensaje[longitud],
+                       sizeof(mensaje) - (uint32_t)longitud,
+                       "\r\n");
+
+  HAL_UART_Transmit(&huart2,
+                    (uint8_t *)mensaje,
+                    (uint16_t)longitud,
+                    1000);
+}
+
+/* Muestra juntos los botones presionados al mismo tiempo */
+static void mostrarMando2(uint8_t comandos)
+{
+  const uint8_t orden[] = {4, 3, 5, 6, 2, 1};
+  const char *acciones[] = {
+      "Arriba", "Abajo", "Derecha", "Izquierda", "A", "B"
+  };
+
+  char mensaje[100];
+  uint8_t i;
+  uint8_t primeraAccion = 1;
+  int longitud;
+
+  longitud = snprintf(mensaje, sizeof(mensaje), "Mando 2: ");
+
+  for (i = 0; i < 6; i++)
+  {
+    if (comandos & (1U << (orden[i] - 1U)))
+    {
+      if (!primeraAccion)
+      {
+        longitud += snprintf(&mensaje[longitud],
+                             sizeof(mensaje) - (uint32_t)longitud,
+                             " | ");
+      }
+
+      longitud += snprintf(&mensaje[longitud],
+                           sizeof(mensaje) - (uint32_t)longitud,
+                           "%s",
+                           acciones[i]);
+
+      primeraAccion = 0;
+    }
+  }
+
+  longitud += snprintf(&mensaje[longitud],
+                       sizeof(mensaje) - (uint32_t)longitud,
+                       "\r\n");
+
+  HAL_UART_Transmit(&huart2,
+                    (uint8_t *)mensaje,
+                    (uint16_t)longitud,
+                    1000);
+}
 /* USER CODE END 0 */
 
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
   uint16_t adcVertical;
   uint16_t adcHorizontal;
@@ -69,20 +221,36 @@ int main(void)
   const char *vertical;
   const char *horizontal;
 
-  int longitud;
+  uint8_t comando;
+  uint8_t comandosMando2 = 0;
+  uint8_t mando2Pendiente = 0;
+  uint32_t tiempoJoystick = 0;
+  uint32_t ultimoComandoMando2 = 0;
   HAL_StatusTypeDef estadoADC;
   /* USER CODE END 1 */
 
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
   SystemClock_Config();
 
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
-
   /* USER CODE BEGIN 2 */
 
   /* Comprueba primero que USART2 funciona */
@@ -131,391 +299,400 @@ int main(void)
                     sizeof(adcOK) - 1,
                     1000);
 
+  /* Activa la recepcion del control por interrupciones */
+  HAL_NVIC_SetPriority(USART1_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(USART1_IRQn);
+
+  if (HAL_UART_Receive_IT(&huart1, &datoUART1, 1) != HAL_OK)
+  {
+    const char error[] = "ERROR: no se pudo iniciar USART1\r\n";
+
+    HAL_UART_Transmit(&huart2,
+                      (uint8_t *)error,
+                      sizeof(error) - 1,
+                      1000);
+
+    Error_Handler();
+  }
+
+  const char uartOK[] = "Control ATmega listo por USART1\r\n";
+
+  HAL_UART_Transmit(&huart2,
+                    (uint8_t *)uartOK,
+                    sizeof(uartOK) - 1,
+                    1000);
+
+  tiempoJoystick = HAL_GetTick();
+
   /* USER CODE END 2 */
 
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
-    adcVertical = adcValores[0];
-    adcHorizontal = adcValores[1];
-
-    uint8_t adc1Activo = 0;
-    uint8_t adc2Activo = 0;
-
-    /* ADC1: zona muerta 1975-2030 */
-    if (adcVertical > ADC1_LIMITE_SUPERIOR)
+    /* Atiende primero todos los botones pendientes */
+    while (leerComando(&comando))
     {
-      vertical = "Arriba";
-      adc1Activo = 1;
-    }
-    else if (adcVertical < ADC1_LIMITE_INFERIOR)
-    {
-      vertical = "Abajo";
-      adc1Activo = 1;
+      comandosMando2 |= (1U << (comando - 1U));
+      ultimoComandoMando2 = HAL_GetTick();
+      mando2Pendiente = 1;
     }
 
-    /* ADC2: zona muerta 2050-2100 */
-    if (adcHorizontal > ADC2_LIMITE_SUPERIOR)
+    /* Espera el final del grupo para mostrar una sola linea */
+    if (mando2Pendiente &&
+        (HAL_GetTick() - ultimoComandoMando2) >= TIEMPO_AGRUPACION_MANDO2)
     {
-      horizontal = "Izquierda";
-      adc2Activo = 1;
-    }
-    else if (adcHorizontal < ADC2_LIMITE_INFERIOR)
-    {
-      horizontal = "Derecha";
-      adc2Activo = 1;
+      mostrarMando2(comandosMando2);
+      comandosMando2 = 0;
+      mando2Pendiente = 0;
     }
 
-    /* Ambos ADC fuera de la zona muerta */
-    if (adc1Activo && adc2Activo)
+    /* Revisa el joystick cada 200 ms sin detener el programa */
+    if ((HAL_GetTick() - tiempoJoystick) >= INTERVALO_JOYSTICK)
     {
-      longitud = snprintf(mensaje,
-                          sizeof(mensaje),
-                          "ADC1: %u - %s | ADC2: %u - %s\r\n",
-                          (unsigned int)adcVertical,
-                          vertical,
-                          (unsigned int)adcHorizontal,
-                          horizontal);
+      tiempoJoystick = HAL_GetTick();
+      adcVertical = adcValores[0];
+      adcHorizontal = adcValores[1];
+      vertical = NULL;
+      horizontal = NULL;
 
-      HAL_UART_Transmit(&huart2,
-                        (uint8_t *)mensaje,
-                        longitud,
-                        1000);
+      if (adcVertical > ADC1_LIMITE_SUPERIOR)
+      {
+        vertical = "Arriba";
+      }
+      else if (adcVertical < ADC1_LIMITE_INFERIOR)
+      {
+        vertical = "Abajo";
+      }
+
+      /* Una diagonal muestra las dos acciones */
+      if (adcHorizontal > ADC2_LIMITE_SUPERIOR)
+      {
+        horizontal = "Izquierda";
+      }
+      else if (adcHorizontal < ADC2_LIMITE_INFERIOR)
+      {
+        horizontal = "Derecha";
+      }
+
+      mostrarMando1(vertical,
+                    horizontal,
+                    adcVertical,
+                    adcHorizontal);
     }
-    /* Solo ADC1 fuera de la zona muerta */
-    else if (adc1Activo)
-    {
-      longitud = snprintf(mensaje,
-                          sizeof(mensaje),
-                          "ADC1: %u - %s\r\n",
-                          (unsigned int)adcVertical,
-                          vertical);
+  }
 
-      HAL_UART_Transmit(&huart2,
-                        (uint8_t *)mensaje,
-                        longitud,
-                        1000);
-    }
-    /* Solo ADC2 fuera de la zona muerta */
-    else if (adc2Activo)
-    {
-      longitud = snprintf(mensaje,
-                          sizeof(mensaje),
-                          "ADC2: %u - %s\r\n",
-                          (unsigned int)adcHorizontal,
-                          horizontal);
-
-      HAL_UART_Transmit(&huart2,
-                        (uint8_t *)mensaje,
-                        longitud,
-                        1000);
-    }
-
-    /* Si ambos están en zona muerta, no transmite */
-    HAL_Delay(200);
-
-    /* USER CODE END 3 */
- }
+  /* USER CODE END 3 */
 }
+
 /**
-  * @brief Configuración del reloj.
+  * @brief System Clock Configuration
+  * @retval None
   */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
+  /** Configure the main internal regulator output voltage
+  */
   __HAL_RCC_PWR_CLK_ENABLE();
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
 
-  __HAL_PWR_VOLTAGESCALING_CONFIG(
-      PWR_REGULATOR_VOLTAGE_SCALE3);
-
-  RCC_OscInitStruct.OscillatorType =
-      RCC_OSCILLATORTYPE_HSI;
-
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-
-  RCC_OscInitStruct.HSICalibrationValue =
-      RCC_HSICALIBRATION_DEFAULT;
-
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 16;
+  RCC_OscInitStruct.PLL.PLLN = 336;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
+  RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
   }
 
-  RCC_ClkInitStruct.ClockType =
-      RCC_CLOCKTYPE_HCLK |
-      RCC_CLOCKTYPE_SYSCLK |
-      RCC_CLOCKTYPE_PCLK1 |
-      RCC_CLOCKTYPE_PCLK2;
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  RCC_ClkInitStruct.SYSCLKSource =
-      RCC_SYSCLKSOURCE_HSI;
-
-  RCC_ClkInitStruct.AHBCLKDivider =
-      RCC_SYSCLK_DIV1;
-
-  RCC_ClkInitStruct.APB1CLKDivider =
-      RCC_HCLK_DIV1;
-
-  RCC_ClkInitStruct.APB2CLKDivider =
-      RCC_HCLK_DIV1;
-
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct,
-                          FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
 }
 
 /**
-  * @brief Configuración ADC1.
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
   */
 static void MX_ADC1_Init(void)
 {
+
+  /* USER CODE BEGIN ADC1_Init 0 */
+
+  /* USER CODE END ADC1_Init 0 */
+
   ADC_ChannelConfTypeDef sConfig = {0};
 
+  /* USER CODE BEGIN ADC1_Init 1 */
+
+  /* USER CODE END ADC1_Init 1 */
+
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
   hadc1.Instance = ADC1;
-
-  hadc1.Init.ClockPrescaler =
-      ADC_CLOCK_SYNC_PCLK_DIV8;
-
-  hadc1.Init.Resolution =
-      ADC_RESOLUTION_12B;
-
-  hadc1.Init.ScanConvMode =
-      ENABLE;
-
-  hadc1.Init.ContinuousConvMode =
-      ENABLE;
-
-  hadc1.Init.DiscontinuousConvMode =
-      DISABLE;
-
-  hadc1.Init.ExternalTrigConvEdge =
-      ADC_EXTERNALTRIGCONVEDGE_NONE;
-
-  hadc1.Init.ExternalTrigConv =
-      ADC_SOFTWARE_START;
-
-  hadc1.Init.DataAlign =
-      ADC_DATAALIGN_RIGHT;
-
-  hadc1.Init.NbrOfConversion =
-      2;
-
-  hadc1.Init.DMAContinuousRequests =
-      ENABLE;
-
-  hadc1.Init.EOCSelection =
-      ADC_EOC_SEQ_CONV;
-
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.ScanConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 2;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
     Error_Handler();
   }
 
-  /* PA0: ADC1 canal 0, Rank 1 */
-  sConfig.Channel =
-      ADC_CHANNEL_0;
-
-  sConfig.Rank =
-      1;
-
-  sConfig.SamplingTime =
-      ADC_SAMPLETIME_84CYCLES;
-
-  if (HAL_ADC_ConfigChannel(&hadc1,
-                            &sConfig) != HAL_OK)
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_0;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
 
-  /* PA1: ADC1 canal 1, Rank 2 */
-  sConfig.Channel =
-      ADC_CHANNEL_1;
-
-  sConfig.Rank =
-      2;
-
-  sConfig.SamplingTime =
-      ADC_SAMPLETIME_84CYCLES;
-
-  if (HAL_ADC_ConfigChannel(&hadc1,
-                            &sConfig) != HAL_OK)
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_1;
+  sConfig.Rank = 2;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
 }
 
 /**
-  * @brief USART1 hacia el ATmega328P.
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
   */
 static void MX_USART1_UART_Init(void)
 {
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-
-  huart1.Init.BaudRate =
-      9600;
-
-  huart1.Init.WordLength =
-      UART_WORDLENGTH_8B;
-
-  huart1.Init.StopBits =
-      UART_STOPBITS_1;
-
-  huart1.Init.Parity =
-      UART_PARITY_NONE;
-
-  huart1.Init.Mode =
-      UART_MODE_TX_RX;
-
-  huart1.Init.HwFlowCtl =
-      UART_HWCONTROL_NONE;
-
-  huart1.Init.OverSampling =
-      UART_OVERSAMPLING_16;
-
+  huart1.Init.BaudRate = 9600;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     Error_Handler();
   }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
 }
 
 /**
-  * @brief USART2 hacia la computadora.
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
   */
 static void MX_USART2_UART_Init(void)
 {
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-
-  huart2.Init.BaudRate =
-      115200;
-
-  huart2.Init.WordLength =
-      UART_WORDLENGTH_8B;
-
-  huart2.Init.StopBits =
-      UART_STOPBITS_1;
-
-  huart2.Init.Parity =
-      UART_PARITY_NONE;
-
-  huart2.Init.Mode =
-      UART_MODE_TX_RX;
-
-  huart2.Init.HwFlowCtl =
-      UART_HWCONTROL_NONE;
-
-  huart2.Init.OverSampling =
-      UART_OVERSAMPLING_16;
-
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart2) != HAL_OK)
   {
     Error_Handler();
   }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
 }
 
 /**
-  * @brief Configuración DMA.
+  * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
 {
+
+  /* DMA controller clock enable */
   __HAL_RCC_DMA2_CLK_ENABLE();
 
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn,
-                       0,
-                       0);
-
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
 }
 
 /**
-  * @brief Configuración GPIO.
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
   */
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
 
+  /* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  HAL_GPIO_WritePin(LD2_GPIO_Port,
-                    LD2_Pin,
-                    GPIO_PIN_RESET);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
-  /* Botón azul de la Nucleo */
-  GPIO_InitStruct.Pin =
-      B1_Pin;
+  /*Configure GPIO pin : B1_Pin */
+  GPIO_InitStruct.Pin = B1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  GPIO_InitStruct.Mode =
-      GPIO_MODE_IT_FALLING;
+  /*Configure GPIO pin : JOY_SW_Pin */
+  GPIO_InitStruct.Pin = JOY_SW_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(JOY_SW_GPIO_Port, &GPIO_InitStruct);
 
-  GPIO_InitStruct.Pull =
-      GPIO_NOPULL;
+  /*Configure GPIO pin : LD2_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
-  HAL_GPIO_Init(B1_GPIO_Port,
-                &GPIO_InitStruct);
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
 
-  /* Botón del joystick PC0 */
-  GPIO_InitStruct.Pin =
-      GPIO_PIN_0;
-
-  GPIO_InitStruct.Mode =
-      GPIO_MODE_INPUT;
-
-  GPIO_InitStruct.Pull =
-      GPIO_PULLUP;
-
-  HAL_GPIO_Init(GPIOC,
-                &GPIO_InitStruct);
-
-  /* LED integrado */
-  GPIO_InitStruct.Pin =
-      LD2_Pin;
-
-  GPIO_InitStruct.Mode =
-      GPIO_MODE_OUTPUT_PP;
-
-  GPIO_InitStruct.Pull =
-      GPIO_NOPULL;
-
-  GPIO_InitStruct.Speed =
-      GPIO_SPEED_FREQ_LOW;
-
-  HAL_GPIO_Init(LD2_GPIO_Port,
-                &GPIO_InitStruct);
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
-/**
-  * @brief Manejo de errores.
-  */
-void Error_Handler(void)
+/* USER CODE BEGIN 4 */
+/* Vector de interrupcion de USART1 */
+void USART1_IRQHandler(void)
 {
-  __disable_irq();
+  HAL_UART_IRQHandler(&huart1);
+}
 
-  while (1)
+/* Recibe b1-b6 desde el ATmega */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  if (huart->Instance == USART1)
   {
+    if (datoUART1 == 'b')
+    {
+      esperandoNumero = 1;
+    }
+    else if (esperandoNumero && datoUART1 >= '1' && datoUART1 <= '6')
+    {
+      guardarComando((uint8_t)(datoUART1 - '0'));
+      esperandoNumero = 0;
+    }
+    else if (datoUART1 != '\r' && datoUART1 != '\n')
+    {
+      esperandoNumero = 0;
+    }
+
+    HAL_UART_Receive_IT(&huart1, &datoUART1, 1);
   }
 }
 
-#ifdef USE_FULL_ASSERT
+/* Reinicia la recepcion si la linea UART presenta un error */
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+  if (huart->Instance == USART1)
+  {
+    esperandoNumero = 0;
+    HAL_UART_Receive_IT(&huart1, &datoUART1, 1);
+  }
+}
+
+/* USER CODE END 4 */
 
 /**
-  * @brief Reporte de error de parámetros.
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
+#ifdef USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
   */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* Evita advertencias */
-  (void)file;
-  (void)line;
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
 }
-
-#endif
+#endif /* USE_FULL_ASSERT */
