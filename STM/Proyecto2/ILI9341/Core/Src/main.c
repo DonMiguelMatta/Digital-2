@@ -21,6 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <math.h>
+
 #include "ili9341.h"
 #include "level_1_texture.h"
 #include "level_background.h"
@@ -57,32 +59,53 @@ typedef struct
 #define GAME_PLAYER_WIDTH 18U
 #define GAME_PLAYER_HEIGHT 14U
 #define GAME_PLAYER_START_X 15U
-#define GAME_PLAYER_START_Y 230U
+#define GAME_PLAYER_START_Y 200U
 #define GAME_UPDATE_MS 20U
 #define GAME_FIXED_POINT_ONE 256L
+/* Usa multiplicadores con sufijo f y redondea al entero más cercano. */
+#define GAME_SCALE_ROUNDED(base, multiplier) \
+  ((int32_t)(((float)(base) * (multiplier)) + 0.5f))
 #define GAME_PLAYER_X_MAX (ILI9341_WIDTH - GAME_PLAYER_WIDTH)
 #define GAME_PLAYER_Y_MAX (ILI9341_HEIGHT - GAME_PLAYER_HEIGHT)
 #define GAME_PLAYER_START_X_FIXED \
   ((int32_t)GAME_PLAYER_START_X * GAME_FIXED_POINT_ONE)
 #define GAME_PLAYER_START_Y_FIXED \
   ((int32_t)GAME_PLAYER_START_Y * GAME_FIXED_POINT_ONE)
-#define GAME_HORIZONTAL_MAX_SPEED (1L * GAME_FIXED_POINT_ONE)
-#define GAME_HORIZONTAL_GROUND_ACCEL 96L
-#define GAME_HORIZONTAL_AIR_ACCEL 64L
+#define GAME_HORIZONTAL_MAX_SPEED_MULTIPLIER 2.0f
+#define GAME_HORIZONTAL_MAX_SPEED \
+  GAME_SCALE_ROUNDED(GAME_FIXED_POINT_ONE, \
+                     GAME_HORIZONTAL_MAX_SPEED_MULTIPLIER)
+#define GAME_HORIZONTAL_GROUND_ACCEL 180L
+#define GAME_HORIZONTAL_AIR_ACCEL 180L
 #define GAME_HORIZONTAL_DECEL 40L
 #define GAME_JUMP_COUNT_NORMAL_READY 0U
 #define GAME_JUMP_COUNT_SECOND_READY 1U
 #define GAME_JUMP_COUNT_EXHAUSTED 2U
-#define GAME_JUMP_HEIGHT (2U * GAME_PLAYER_HEIGHT)
-#define GAME_SECOND_JUMP_HEIGHT (3U * GAME_PLAYER_HEIGHT)
-#define GAME_JUMP_SPEED (-888L)
-#define GAME_SECOND_JUMP_SPEED (-1080L)
-#define GAME_SECOND_JUMP_SIDE_SPEED (3L * GAME_FIXED_POINT_ONE)
-#define GAME_SECOND_JUMP_DIAGONAL_SPEED (2L * GAME_FIXED_POINT_ONE)
-#define GAME_GRAVITY 51L
-#define GAME_APEX_GRAVITY 26L
+#define GAME_JUMP_HEIGHT_MULTIPLIER 2.5f
+#define GAME_SECOND_JUMP_HEIGHT_MULTIPLIER 3.0f
+#define GAME_JUMP_HEIGHT \
+  ((uint16_t)GAME_SCALE_ROUNDED(GAME_PLAYER_HEIGHT, \
+                                GAME_JUMP_HEIGHT_MULTIPLIER))
+#define GAME_SECOND_JUMP_HEIGHT \
+  ((uint16_t)GAME_SCALE_ROUNDED(GAME_PLAYER_HEIGHT, \
+                                GAME_SECOND_JUMP_HEIGHT_MULTIPLIER))
+#define GAME_SECOND_JUMP_SIDE_SPEED_MULTIPLIER 3.0f
+#define GAME_SECOND_JUMP_DIAGONAL_SPEED_MULTIPLIER 2.0f
+#define GAME_SECOND_JUMP_SIDE_SPEED \
+  GAME_SCALE_ROUNDED(GAME_FIXED_POINT_ONE, \
+                     GAME_SECOND_JUMP_SIDE_SPEED_MULTIPLIER)
+#define GAME_SECOND_JUMP_DIAGONAL_SPEED \
+  GAME_SCALE_ROUNDED(GAME_FIXED_POINT_ONE, \
+                     GAME_SECOND_JUMP_DIAGONAL_SPEED_MULTIPLIER)
+#define GAME_GRAVITY_BASE 32L
+#define GAME_APEX_GRAVITY_BASE 16L
+#define GAME_GRAVITY_MULTIPLIER 2.0f
+#define GAME_GRAVITY \
+  GAME_SCALE_ROUNDED(GAME_GRAVITY_BASE, GAME_GRAVITY_MULTIPLIER)
+#define GAME_APEX_GRAVITY \
+  GAME_SCALE_ROUNDED(GAME_APEX_GRAVITY_BASE, GAME_GRAVITY_MULTIPLIER)
 #define GAME_APEX_SPEED 48L
-#define GAME_MAX_FALL_SPEED (384L)
+#define GAME_MAX_FALL_SPEED (1000L)
 
 /* USER CODE END PD */
 
@@ -349,17 +372,35 @@ static void Game_UpdateHorizontalVelocity(int8_t horizontal_input,
                         : GAME_HORIZONTAL_AIR_ACCEL);
 }
 
+/* Calcula el impulso necesario para alcanzar la altura configurada. */
+static int32_t Game_CalculateJumpSpeed(uint16_t jump_height)
+{
+  float gravity = (float)GAME_GRAVITY;
+  float distance = (float)jump_height * (float)GAME_FIXED_POINT_ONE;
+  float speed = 0.5f *
+                (gravity +
+                 sqrtf((gravity * gravity) +
+                       (8.0f * gravity * distance)));
+  int32_t speed_rounded_up = (int32_t)speed;
+
+  if ((float)speed_rounded_up < speed)
+  {
+    speed_rounded_up++;
+  }
+
+  return -speed_rounded_up;
+}
+
 /* La altura se mide desde el punto exacto donde comienza el salto. */
 static void Game_StartJump(uint16_t player_y,
                            uint16_t jump_height,
-                           int32_t jump_speed,
                            int32_t *player_y_fixed,
                            int32_t *player_velocity_y,
                            uint16_t *jump_apex_y,
                            uint8_t *jump_limit_active)
 {
   *player_y_fixed = (int32_t)player_y * GAME_FIXED_POINT_ONE;
-  *player_velocity_y = jump_speed;
+  *player_velocity_y = Game_CalculateJumpSpeed(jump_height);
   *jump_apex_y = (player_y > jump_height) ? (player_y - jump_height) : 0U;
   *jump_limit_active = 1U;
 }
@@ -380,7 +421,6 @@ static void Game_StartSecondJump(uint16_t player_y,
 
   Game_StartJump(player_y,
                  GAME_SECOND_JUMP_HEIGHT,
-                 GAME_SECOND_JUMP_SPEED,
                  player_y_fixed,
                  player_velocity_y,
                  jump_apex_y,
@@ -747,7 +787,6 @@ int main(void)
         {
           Game_StartJump(player_y,
                          GAME_JUMP_HEIGHT,
-                         GAME_JUMP_SPEED,
                          &player_y_fixed,
                          &player_velocity_y,
                          &jump_apex_y,
