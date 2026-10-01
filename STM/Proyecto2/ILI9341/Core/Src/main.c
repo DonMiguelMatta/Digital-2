@@ -59,7 +59,7 @@ typedef struct
 #define GAME_PLAYER_WIDTH 18U
 #define GAME_PLAYER_HEIGHT 14U
 #define GAME_PLAYER_START_X 15U
-#define GAME_PLAYER_START_Y 200U
+#define GAME_PLAYER_START_Y 170U
 #define GAME_UPDATE_MS 20U
 #define GAME_FIXED_POINT_ONE 256L
 /* Usa multiplicadores con sufijo f y redondea al entero más cercano. */
@@ -106,6 +106,18 @@ typedef struct
   GAME_SCALE_ROUNDED(GAME_APEX_GRAVITY_BASE, GAME_GRAVITY_MULTIPLIER)
 #define GAME_APEX_SPEED 48L
 #define GAME_MAX_FALL_SPEED (1000L)
+#define GAME_LEVEL_1 1U
+#define GAME_LEVEL_2 2U
+/* Colores RGB565 equivalentes a #FA0300 y #FFEF00. */
+#define GAME_LEVEL_HAZARD_COLOR 0xF800U
+#define GAME_LEVEL_EXIT_COLOR 0xFF60U
+#define GAME_LEVEL_HAZARD_REACH 1U
+#define GAME_LEVEL_EXIT_REACH 2U
+#define GAME_LEVEL_2_BACKGROUND_COLOR 0x0000U
+#define GAME_LEVEL_2_FLOOR_COLOR 0xFFFFU
+#define GAME_LEVEL_2_FLOOR_Y (GAME_PLAYER_START_Y + GAME_PLAYER_HEIGHT)
+#define GAME_LEVEL_2_TITLE_X 92U
+#define GAME_LEVEL_2_TITLE_Y 40U
 
 /* USER CODE END PD */
 
@@ -122,6 +134,7 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 ILI9341_t lcd;
 Nieve_t nieve;
+static uint8_t game_current_level = GAME_LEVEL_1;
 volatile uint8_t uart_rx_byte;
 volatile uint8_t uart_rx_queue[UART_RX_QUEUE_SIZE];
 volatile uint8_t uart_rx_write = 0U;
@@ -315,10 +328,65 @@ static uint8_t Game_IsSolidPixel(int32_t x, int32_t y)
     return 1U;
   }
 
+  if (game_current_level == GAME_LEVEL_2)
+  {
+    return (y >= (int32_t)GAME_LEVEL_2_FLOOR_Y) ? 1U : 0U;
+  }
+
   return (Game_LevelTexturePixel((uint16_t)x, (uint16_t)y) !=
           LEVEL_1_TEXTURE_TRANSPARENT_COLOR)
              ? 1U
              : 0U;
+}
+
+/* Detecta contacto con el borde del jugador, sin exigir superposición. */
+static uint8_t Game_TouchesLevelColor(uint16_t player_x,
+                                      uint16_t player_y,
+                                      uint16_t color,
+                                      uint8_t reach)
+{
+  int32_t left = (int32_t)player_x - (int32_t)reach;
+  int32_t right = (int32_t)player_x + GAME_PLAYER_WIDTH - 1L + reach;
+  int32_t top = (int32_t)player_y - (int32_t)reach;
+  int32_t bottom = (int32_t)player_y + GAME_PLAYER_HEIGHT - 1L + reach;
+  int32_t x;
+  int32_t y;
+
+  if (game_current_level != GAME_LEVEL_1)
+  {
+    return 0U;
+  }
+
+  for (y = top; y <= bottom; y++)
+  {
+    if (y < 0L || y >= (int32_t)LEVEL_1_TEXTURE_HEIGHT)
+    {
+      continue;
+    }
+
+    for (x = left; x <= right; x++)
+    {
+      if (x < 0L || x >= (int32_t)LEVEL_1_TEXTURE_WIDTH)
+      {
+        continue;
+      }
+
+      if (x >= (int32_t)player_x &&
+          x < (int32_t)player_x + GAME_PLAYER_WIDTH &&
+          y >= (int32_t)player_y &&
+          y < (int32_t)player_y + GAME_PLAYER_HEIGHT)
+      {
+        continue;
+      }
+
+      if (Game_LevelTexturePixel((uint16_t)x, (uint16_t)y) == color)
+      {
+        return 1U;
+      }
+    }
+  }
+
+  return 0U;
 }
 
 static uint8_t Game_CollidesAt(int32_t x, int32_t y)
@@ -552,8 +620,39 @@ static void Game_MoveVertical(uint16_t player_x,
   }
 }
 
+/* Restaura posición y física usando el inicio configurado. */
+static void Game_ResetPlayerPosition(uint16_t *player_x,
+                                     uint16_t *player_y,
+                                     int32_t *player_x_fixed,
+                                     int32_t *player_y_fixed,
+                                     int32_t *player_velocity_x,
+                                     int32_t *player_velocity_y,
+                                     uint16_t *jump_apex_y,
+                                     uint8_t *jump_limit_active)
+{
+  *player_x = GAME_PLAYER_START_X;
+  *player_y = GAME_PLAYER_START_Y;
+  *player_x_fixed = GAME_PLAYER_START_X_FIXED;
+  *player_y_fixed = GAME_PLAYER_START_Y_FIXED;
+  *player_velocity_x = 0L;
+  *player_velocity_y = 0L;
+  *jump_apex_y = GAME_PLAYER_START_Y;
+  *jump_limit_active = 0U;
+}
+
 static void Game_ErasePlayer(uint16_t x, uint16_t y)
 {
+  if (game_current_level == GAME_LEVEL_2)
+  {
+    ILI9341_FillRect(&lcd,
+                     x,
+                     y,
+                     GAME_PLAYER_WIDTH,
+                     GAME_PLAYER_HEIGHT,
+                     GAME_LEVEL_2_BACKGROUND_COLOR);
+    return;
+  }
+
   ILI9341_DrawPackedBitmapRGB565KeyedRegion(&lcd,
                                              x,
                                              y,
@@ -571,6 +670,25 @@ static void Game_DrawScene(uint16_t player_x,
                            uint16_t player_y,
                            uint8_t animation_frame)
 {
+  if (game_current_level == GAME_LEVEL_2)
+  {
+    ILI9341_Clear(&lcd, GAME_LEVEL_2_BACKGROUND_COLOR);
+    ILI9341_DrawText(&lcd,
+                     "NIVEL 2",
+                     GAME_LEVEL_2_TITLE_X,
+                     GAME_LEVEL_2_TITLE_Y,
+                     0xFFFFU,
+                     GAME_LEVEL_2_BACKGROUND_COLOR);
+    ILI9341_FillRect(&lcd,
+                     0U,
+                     GAME_LEVEL_2_FLOOR_Y,
+                     ILI9341_WIDTH,
+                     ILI9341_HEIGHT - GAME_LEVEL_2_FLOOR_Y,
+                     GAME_LEVEL_2_FLOOR_COLOR);
+    Game_DrawPlayer(player_x, player_y, animation_frame);
+    return;
+  }
+
   ILI9341_DrawPackedBitmapRGB565Keyed(&lcd,
                                        0U,
                                        0U,
@@ -735,6 +853,7 @@ int main(void)
                     start_background,
                     START_BACKGROUND_WIDTH,
                     START_BACKGROUND_HEIGHT);
+        game_current_level = GAME_LEVEL_1;
         game_started = 1U;
         continue;
       }
@@ -758,6 +877,8 @@ int main(void)
         uint8_t second_jump_just_pressed =
             Game_ButtonTakePress(&button_second_jump);
         uint8_t on_ground;
+        uint8_t touched_hazard;
+        uint8_t touched_exit;
         int8_t horizontal_input;
 
         last_game_update_ms = HAL_GetTick();
@@ -816,12 +937,65 @@ int main(void)
                             player_y,
                             &player_x_fixed,
                             &player_velocity_x);
+        touched_hazard = Game_TouchesLevelColor(player_x,
+                                                player_y,
+                                                GAME_LEVEL_HAZARD_COLOR,
+                                                GAME_LEVEL_HAZARD_REACH);
+        touched_exit = Game_TouchesLevelColor(player_x,
+                                              player_y,
+                                              GAME_LEVEL_EXIT_COLOR,
+                                              GAME_LEVEL_EXIT_REACH);
         Game_MoveVertical(player_x,
                           &player_y,
                           &player_y_fixed,
                           &player_velocity_y,
                           jump_apex_y,
                           &jump_limit_active);
+        touched_hazard |= Game_TouchesLevelColor(player_x,
+                                                 player_y,
+                                                 GAME_LEVEL_HAZARD_COLOR,
+                                                 GAME_LEVEL_HAZARD_REACH);
+        touched_exit |= Game_TouchesLevelColor(player_x,
+                                               player_y,
+                                               GAME_LEVEL_EXIT_COLOR,
+                                               GAME_LEVEL_EXIT_REACH);
+
+        if (touched_hazard != 0U)
+        {
+          Game_ErasePlayer(previous_player_x, previous_player_y);
+          Game_ResetPlayerPosition(&player_x,
+                                   &player_y,
+                                   &player_x_fixed,
+                                   &player_y_fixed,
+                                   &player_velocity_x,
+                                   &player_velocity_y,
+                                   &jump_apex_y,
+                                   &jump_limit_active);
+          jump_count = GAME_JUMP_COUNT_NORMAL_READY;
+          was_on_ground = Game_IsOnGround(player_x, player_y);
+          player_animation_frame = 0U;
+          Game_DrawPlayer(player_x, player_y, player_animation_frame);
+          continue;
+        }
+
+        if (touched_exit != 0U)
+        {
+          game_current_level = GAME_LEVEL_2;
+          Game_ResetPlayerPosition(&player_x,
+                                   &player_y,
+                                   &player_x_fixed,
+                                   &player_y_fixed,
+                                   &player_velocity_x,
+                                   &player_velocity_y,
+                                   &jump_apex_y,
+                                   &jump_limit_active);
+          jump_count = GAME_JUMP_COUNT_NORMAL_READY;
+          was_on_ground = Game_IsOnGround(player_x, player_y);
+          player_animation_frame = 0U;
+          game_screen_drawn = 0U;
+          continue;
+        }
+
         was_on_ground = on_ground;
         player_moved = (player_x != previous_player_x ||
                         player_y != previous_player_y) ? 1U : 0U;
