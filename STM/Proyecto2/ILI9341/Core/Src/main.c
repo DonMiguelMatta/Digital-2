@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include <math.h>
 
+#include "graficos.h"
 #include "ili9341.h"
 #include "level_1_texture.h"
 #include "level_background.h"
@@ -42,6 +43,14 @@ typedef struct
   uint32_t last_raw_change_ms;
 } GameButton_t;
 
+typedef struct
+{
+  uint16_t x;
+  uint16_t y;
+  uint16_t width;
+  uint16_t height;
+} GameRect_t;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -58,6 +67,10 @@ typedef struct
 #define BUTTON_DEBOUNCE_MS 25U
 #define GAME_PLAYER_WIDTH 18U
 #define GAME_PLAYER_HEIGHT 14U
+#define GAME_PLAYER_SPRITE_TRANSPARENT_COLOR 0x07E5U
+#define GAME_PLAYER_SPRITE_OFFSET_X 1U
+#define GAME_PLAYER_SPRITE_OFFSET_Y 2U
+#define GAME_PLAYER_ANIMATION_STEP_UPDATES 4U
 #define GAME_PLAYER_START_X 15U
 #define GAME_PLAYER_START_Y 170U
 #define GAME_UPDATE_MS 20U
@@ -106,6 +119,21 @@ typedef struct
   GAME_SCALE_ROUNDED(GAME_APEX_GRAVITY_BASE, GAME_GRAVITY_MULTIPLIER)
 #define GAME_APEX_SPEED 48L
 #define GAME_MAX_FALL_SPEED (1000L)
+#define GAME_WALL_SLIDE_SPEED_MULTIPLIER 0.55f
+#define GAME_WALL_SLIDE_MAX_FALL_SPEED \
+  GAME_SCALE_ROUNDED(GAME_MAX_FALL_SPEED, \
+                     GAME_WALL_SLIDE_SPEED_MULTIPLIER)
+#define GAME_WALL_SLIDE_DECEL 200L
+#define GAME_WALL_JUMP_HEIGHT_MULTIPLIER 2.5f
+#define GAME_WALL_JUMP_HEIGHT \
+  ((uint16_t)GAME_SCALE_ROUNDED(GAME_PLAYER_HEIGHT, \
+                                GAME_WALL_JUMP_HEIGHT_MULTIPLIER))
+#define GAME_WALL_JUMP_SIDE_SPEED_MULTIPLIER 2.5f
+#define GAME_WALL_JUMP_SIDE_SPEED \
+  GAME_SCALE_ROUNDED(GAME_FIXED_POINT_ONE, \
+                     GAME_WALL_JUMP_SIDE_SPEED_MULTIPLIER)
+#define GAME_JUMP_BUFFER_FRAMES 4U
+#define GAME_WALL_JUMP_LOCK_FRAMES 5U
 #define GAME_LEVEL_1 1U
 #define GAME_LEVEL_2 2U
 /* Colores RGB565 equivalentes a #FA0300 y #FFEF00. */
@@ -115,9 +143,7 @@ typedef struct
 #define GAME_LEVEL_EXIT_REACH 2U
 #define GAME_LEVEL_2_BACKGROUND_COLOR 0x0000U
 #define GAME_LEVEL_2_FLOOR_COLOR 0xFFFFU
-#define GAME_LEVEL_2_FLOOR_Y (GAME_PLAYER_START_Y + GAME_PLAYER_HEIGHT)
-#define GAME_LEVEL_2_TITLE_X 92U
-#define GAME_LEVEL_2_TITLE_Y 40U
+#define GAME_LEVEL_2_EXIT_COLOR GAME_LEVEL_EXIT_COLOR
 
 /* USER CODE END PD */
 
@@ -135,6 +161,19 @@ UART_HandleTypeDef huart2;
 ILI9341_t lcd;
 Nieve_t nieve;
 static uint8_t game_current_level = GAME_LEVEL_1;
+/* Geometría blanca escalada del boceto de 457 x 570 a 240 x 320. */
+static const GameRect_t game_level_2_solids[] = {
+    {0U, 263U, 240U, 13U},
+    {27U, 130U, 59U, 12U},
+    {44U, 140U, 13U, 57U},
+    {59U, 68U, 12U, 40U},
+    {105U, 32U, 12U, 40U},
+    {144U, 65U, 96U, 12U},
+    {144U, 65U, 13U, 58U},
+    {193U, 99U, 20U, 164U},
+    {142U, 170U, 19U, 93U},
+};
+static const GameRect_t game_level_2_exit = {229U, 29U, 11U, 39U};
 volatile uint8_t uart_rx_byte;
 volatile uint8_t uart_rx_queue[UART_RX_QUEUE_SIZE];
 volatile uint8_t uart_rx_write = 0U;
@@ -286,29 +325,50 @@ static int32_t Game_Approach(int32_t value, int32_t target, int32_t amount)
   return value;
 }
 
-static uint16_t Game_PlayerColor(uint8_t animation_frame)
+static uint16_t Game_PlayerSpriteX(uint16_t player_x)
 {
-  switch (animation_frame & 0x03U)
-  {
-    case 0U:
-      return 0xF800U;
-    case 1U:
-      return 0xFD20U;
-    case 2U:
-      return 0xF81FU;
-    default:
-      return 0xFFE0U;
-  }
+  return (uint16_t)(player_x + GAME_PLAYER_SPRITE_OFFSET_X);
 }
 
-static void Game_DrawPlayer(uint16_t x, uint16_t y, uint8_t animation_frame)
+static uint16_t Game_PlayerSpriteY(uint16_t player_y)
 {
-  ILI9341_FillRect(&lcd,
-                   x,
-                   y,
-                   GAME_PLAYER_WIDTH,
-                   GAME_PLAYER_HEIGHT,
-                   Game_PlayerColor(animation_frame));
+  return (player_y >= GAME_PLAYER_SPRITE_OFFSET_Y)
+             ? (uint16_t)(player_y - GAME_PLAYER_SPRITE_OFFSET_Y)
+             : 0U;
+}
+
+/* Dibuja un cuadro de la hoja y refleja el personaje al mirar a la izquierda. */
+static void Game_DrawPlayer(uint16_t x,
+                            uint16_t y,
+                            uint8_t animation_frame,
+                            uint8_t facing_left,
+                            uint8_t airborne)
+{
+  if (airborne != 0U)
+  {
+    ILI9341_DrawPackedSpriteKeyed(
+        &lcd,
+        Game_PlayerSpriteX(x),
+        Game_PlayerSpriteY(y),
+        CELESTE_J1_JUMP_WIDTH,
+        CELESTE_J1_JUMP_HEIGHT,
+        CelesteJ1Jump,
+        GAME_PLAYER_SPRITE_TRANSPARENT_COLOR,
+        facing_left);
+    return;
+  }
+
+  ILI9341_DrawSpriteFrameKeyed(
+      &lcd,
+      Game_PlayerSpriteX(x),
+      Game_PlayerSpriteY(y),
+      CELESTE_J1_FRAME_WIDTH,
+      CELESTE_J1_FRAME_HEIGHT,
+      CelesteJ1,
+      CELESTE_J1_SHEET_WIDTH,
+      (uint16_t)(animation_frame % CELESTE_J1_FRAME_COUNT),
+      GAME_PLAYER_SPRITE_TRANSPARENT_COLOR,
+      facing_left);
 }
 
 static uint16_t Game_LevelTexturePixel(uint16_t x, uint16_t y)
@@ -318,6 +378,35 @@ static uint16_t Game_LevelTexturePixel(uint16_t x, uint16_t y)
 
   return ((pixel_index & 1U) == 0U) ? (uint16_t)(packed_color >> 16U)
                                      : (uint16_t)packed_color;
+}
+
+static uint8_t Game_PointInRect(int32_t x,
+                                int32_t y,
+                                const GameRect_t *rect)
+{
+  return (x >= (int32_t)rect->x &&
+          x < (int32_t)(rect->x + rect->width) &&
+          y >= (int32_t)rect->y &&
+          y < (int32_t)(rect->y + rect->height))
+             ? 1U
+             : 0U;
+}
+
+static uint8_t Game_Level2WhiteSolidPixel(int32_t x, int32_t y)
+{
+  uint32_t index;
+
+  for (index = 0U;
+       index < (sizeof(game_level_2_solids) / sizeof(game_level_2_solids[0]));
+       index++)
+  {
+    if (Game_PointInRect(x, y, &game_level_2_solids[index]) != 0U)
+    {
+      return 1U;
+    }
+  }
+
+  return 0U;
 }
 
 static uint8_t Game_IsSolidPixel(int32_t x, int32_t y)
@@ -330,7 +419,10 @@ static uint8_t Game_IsSolidPixel(int32_t x, int32_t y)
 
   if (game_current_level == GAME_LEVEL_2)
   {
-    return (y >= (int32_t)GAME_LEVEL_2_FLOOR_Y) ? 1U : 0U;
+    return (Game_Level2WhiteSolidPixel(x, y) != 0U ||
+            Game_PointInRect(x, y, &game_level_2_exit) != 0U)
+               ? 1U
+               : 0U;
   }
 
   return (Game_LevelTexturePixel((uint16_t)x, (uint16_t)y) !=
@@ -411,6 +503,80 @@ static uint8_t Game_CollidesAt(int32_t x, int32_t y)
 static uint8_t Game_IsOnGround(uint16_t player_x, uint16_t player_y)
 {
   return Game_CollidesAt((int32_t)player_x, (int32_t)player_y + 1L);
+}
+
+/* Los peligros y la salida no cuentan como paredes para saltar. */
+static uint8_t Game_IsWallSurfacePixel(int32_t x, int32_t y)
+{
+  uint16_t color;
+
+  if (x < 0L || x >= (int32_t)LEVEL_1_TEXTURE_WIDTH || y < 0L ||
+      y >= (int32_t)LEVEL_1_TEXTURE_HEIGHT)
+  {
+    return 0U;
+  }
+
+  if (game_current_level == GAME_LEVEL_2)
+  {
+    if (Game_PointInRect(x, y, &game_level_2_exit) != 0U)
+    {
+      return 0U;
+    }
+
+    return Game_Level2WhiteSolidPixel(x, y);
+  }
+
+  color = Game_LevelTexturePixel((uint16_t)x, (uint16_t)y);
+  return (color != LEVEL_1_TEXTURE_TRANSPARENT_COLOR &&
+          color != GAME_LEVEL_HAZARD_COLOR &&
+          color != GAME_LEVEL_EXIT_COLOR)
+             ? 1U
+             : 0U;
+}
+
+/* Devuelve -1 para pared izquierda y 1 para pared derecha. */
+static int8_t Game_GetWallSide(uint16_t player_x, uint16_t player_y)
+{
+  uint16_t row;
+  uint8_t touches_left = 0U;
+  uint8_t touches_right = 0U;
+  int32_t left_x = (int32_t)player_x - 1L;
+  int32_t right_x = (int32_t)player_x + GAME_PLAYER_WIDTH;
+
+  for (row = 1U; row < (GAME_PLAYER_HEIGHT - 1U); row++)
+  {
+    int32_t y = (int32_t)player_y + row;
+
+    touches_left |= Game_IsWallSurfacePixel(left_x, y);
+    touches_right |= Game_IsWallSurfacePixel(right_x, y);
+  }
+
+  if (touches_left != 0U && touches_right == 0U)
+  {
+    return -1;
+  }
+  if (touches_right != 0U && touches_left == 0U)
+  {
+    return 1;
+  }
+
+  return 0;
+}
+
+/* Acerca la caída al 55% de la velocidad terminal normal. */
+static void Game_ApplyWallSlide(uint8_t on_ground,
+                                int8_t wall_side,
+                                int32_t *player_velocity_y)
+{
+  if (on_ground != 0U || wall_side == 0 || *player_velocity_y <= 0L ||
+      *player_velocity_y <= GAME_WALL_SLIDE_MAX_FALL_SPEED)
+  {
+    return;
+  }
+
+  *player_velocity_y = Game_Approach(*player_velocity_y,
+                                     GAME_WALL_SLIDE_MAX_FALL_SPEED,
+                                     GAME_WALL_SLIDE_DECEL);
 }
 
 /* Cambia la velocidad poco a poco para evitar movimientos bruscos. */
@@ -502,6 +668,24 @@ static void Game_StartSecondJump(uint16_t player_y,
   {
     *player_velocity_x = 0L;
   }
+}
+
+/* Salta en sentido opuesto a la pared sin recuperar el segundo salto. */
+static void Game_StartWallJump(uint16_t player_y,
+                               int8_t wall_side,
+                               int32_t *player_y_fixed,
+                               int32_t *player_velocity_x,
+                               int32_t *player_velocity_y,
+                               uint16_t *jump_apex_y,
+                               uint8_t *jump_limit_active)
+{
+  Game_StartJump(player_y,
+                 GAME_WALL_JUMP_HEIGHT,
+                 player_y_fixed,
+                 player_velocity_y,
+                 jump_apex_y,
+                 jump_limit_active);
+  *player_velocity_x = -(int32_t)wall_side * GAME_WALL_JUMP_SIDE_SPEED;
 }
 
 /* Cerca del punto más alto se usa menos gravedad para suavizar el giro. */
@@ -640,52 +824,136 @@ static void Game_ResetPlayerPosition(uint16_t *player_x,
   *jump_limit_active = 0U;
 }
 
-static void Game_ErasePlayer(uint16_t x, uint16_t y)
+static void Game_RestoreLevel2Rect(uint16_t x,
+                                   uint16_t y,
+                                   uint16_t width,
+                                   uint16_t height,
+                                   const GameRect_t *rect,
+                                   uint16_t color)
 {
-  if (game_current_level == GAME_LEVEL_2)
+  uint16_t left = (x > rect->x) ? x : rect->x;
+  uint16_t top = (y > rect->y) ? y : rect->y;
+  uint16_t right = ((uint32_t)x + width < (uint32_t)rect->x + rect->width)
+                       ? (uint16_t)(x + width)
+                       : (uint16_t)(rect->x + rect->width);
+  uint16_t bottom = ((uint32_t)y + height <
+                     (uint32_t)rect->y + rect->height)
+                        ? (uint16_t)(y + height)
+                        : (uint16_t)(rect->y + rect->height);
+
+  if (left < right && top < bottom)
   {
     ILI9341_FillRect(&lcd,
-                     x,
-                     y,
-                     GAME_PLAYER_WIDTH,
-                     GAME_PLAYER_HEIGHT,
-                     GAME_LEVEL_2_BACKGROUND_COLOR);
+                     left,
+                     top,
+                     (uint16_t)(right - left),
+                     (uint16_t)(bottom - top),
+                     color);
+  }
+}
+
+/* Reconstruye sólo el área ocupada por el sprite anterior. */
+static void Game_RestoreLevel2Region(uint16_t x,
+                                     uint16_t y,
+                                     uint16_t width,
+                                     uint16_t height)
+{
+  uint32_t index;
+
+  ILI9341_FillRect(&lcd,
+                   x,
+                   y,
+                   width,
+                   height,
+                   GAME_LEVEL_2_BACKGROUND_COLOR);
+
+  for (index = 0U;
+       index < (sizeof(game_level_2_solids) / sizeof(game_level_2_solids[0]));
+       index++)
+  {
+    Game_RestoreLevel2Rect(x,
+                           y,
+                           width,
+                           height,
+                           &game_level_2_solids[index],
+                           GAME_LEVEL_2_FLOOR_COLOR);
+  }
+
+  Game_RestoreLevel2Rect(x,
+                         y,
+                         width,
+                         height,
+                         &game_level_2_exit,
+                         GAME_LEVEL_2_EXIT_COLOR);
+}
+
+static void Game_ErasePlayer(uint16_t x, uint16_t y)
+{
+  uint16_t sprite_x = Game_PlayerSpriteX(x);
+  uint16_t sprite_y = Game_PlayerSpriteY(y);
+
+  if (game_current_level == GAME_LEVEL_2)
+  {
+    Game_RestoreLevel2Region(sprite_x,
+                             sprite_y,
+                             CELESTE_J1_FRAME_WIDTH,
+                             CELESTE_J1_FRAME_HEIGHT);
     return;
   }
 
   ILI9341_DrawPackedBitmapRGB565KeyedRegion(&lcd,
-                                             x,
-                                             y,
-                                             GAME_PLAYER_WIDTH,
-                                             GAME_PLAYER_HEIGHT,
+                                             sprite_x,
+                                             sprite_y,
+                                             CELESTE_J1_FRAME_WIDTH,
+                                             CELESTE_J1_FRAME_HEIGHT,
                                              level_background,
                                              level_1_texture,
                                              LEVEL_1_TEXTURE_WIDTH,
-                                             x,
-                                             y,
+                                             sprite_x,
+                                             sprite_y,
                                              LEVEL_1_TEXTURE_TRANSPARENT_COLOR);
+}
+
+static void Game_DrawLevel2(void)
+{
+  uint32_t index;
+
+  ILI9341_Clear(&lcd, GAME_LEVEL_2_BACKGROUND_COLOR);
+  for (index = 0U;
+       index < (sizeof(game_level_2_solids) / sizeof(game_level_2_solids[0]));
+       index++)
+  {
+    const GameRect_t *solid = &game_level_2_solids[index];
+
+    ILI9341_FillRect(&lcd,
+                     solid->x,
+                     solid->y,
+                     solid->width,
+                     solid->height,
+                     GAME_LEVEL_2_FLOOR_COLOR);
+  }
+
+  ILI9341_FillRect(&lcd,
+                   game_level_2_exit.x,
+                   game_level_2_exit.y,
+                   game_level_2_exit.width,
+                   game_level_2_exit.height,
+                   GAME_LEVEL_2_EXIT_COLOR);
 }
 
 static void Game_DrawScene(uint16_t player_x,
                            uint16_t player_y,
-                           uint8_t animation_frame)
+                           uint8_t animation_frame,
+                           uint8_t facing_left)
 {
   if (game_current_level == GAME_LEVEL_2)
   {
-    ILI9341_Clear(&lcd, GAME_LEVEL_2_BACKGROUND_COLOR);
-    ILI9341_DrawText(&lcd,
-                     "NIVEL 2",
-                     GAME_LEVEL_2_TITLE_X,
-                     GAME_LEVEL_2_TITLE_Y,
-                     0xFFFFU,
-                     GAME_LEVEL_2_BACKGROUND_COLOR);
-    ILI9341_FillRect(&lcd,
-                     0U,
-                     GAME_LEVEL_2_FLOOR_Y,
-                     ILI9341_WIDTH,
-                     ILI9341_HEIGHT - GAME_LEVEL_2_FLOOR_Y,
-                     GAME_LEVEL_2_FLOOR_COLOR);
-    Game_DrawPlayer(player_x, player_y, animation_frame);
+    Game_DrawLevel2();
+    Game_DrawPlayer(player_x,
+                    player_y,
+                    animation_frame,
+                    facing_left,
+                    (Game_IsOnGround(player_x, player_y) == 0U) ? 1U : 0U);
     return;
   }
 
@@ -697,7 +965,11 @@ static void Game_DrawScene(uint16_t player_x,
                                        level_background,
                                        level_1_texture,
                                        LEVEL_1_TEXTURE_TRANSPARENT_COLOR);
-  Game_DrawPlayer(player_x, player_y, animation_frame);
+  Game_DrawPlayer(player_x,
+                  player_y,
+                  animation_frame,
+                  facing_left,
+                  (Game_IsOnGround(player_x, player_y) == 0U) ? 1U : 0U);
 }
 
 /* USER CODE END 0 */
@@ -723,9 +995,14 @@ int main(void)
   GameButton_t button_jump;
   GameButton_t button_second_jump;
   uint8_t player_animation_frame = 0U;
+  uint8_t player_animation_updates = 0U;
+  uint8_t player_facing_left = 0U;
   uint8_t jump_count = GAME_JUMP_COUNT_NORMAL_READY;
+  uint8_t jump_buffer_frames = 0U;
+  uint8_t wall_jump_lock_frames = 0U;
   uint8_t was_on_ground = 0U;
   uint8_t jump_limit_active = 0U;
+  int8_t wall_jump_direction = 0;
   uint16_t player_x = GAME_PLAYER_START_X;
   uint16_t player_y = GAME_PLAYER_START_Y;
   uint16_t jump_apex_y = GAME_PLAYER_START_Y;
@@ -859,7 +1136,10 @@ int main(void)
       }
 
       if (game_started != 0U && game_screen_drawn == 0U) {
-        Game_DrawScene(player_x, player_y, player_animation_frame);
+        Game_DrawScene(player_x,
+                       player_y,
+                       player_animation_frame,
+                       player_facing_left);
         game_screen_drawn = 1U;
         (void)Game_ButtonTakePress(&button_jump);
         (void)Game_ButtonTakePress(&button_second_jump);
@@ -877,13 +1157,26 @@ int main(void)
         uint8_t second_jump_just_pressed =
             Game_ButtonTakePress(&button_second_jump);
         uint8_t on_ground;
+        uint8_t player_airborne;
         uint8_t touched_hazard;
         uint8_t touched_exit;
         int8_t horizontal_input;
+        int8_t wall_side;
 
         last_game_update_ms = HAL_GetTick();
 
-        if (Game_ButtonPressed(&button_right) != 0U) {
+        if (jump_just_pressed != 0U)
+        {
+          jump_buffer_frames = GAME_JUMP_BUFFER_FRAMES;
+        }
+
+        /* Mantiene el impulso lejos de la pared durante 100 ms. */
+        if (wall_jump_lock_frames != 0U)
+        {
+          horizontal_input = wall_jump_direction;
+          wall_jump_lock_frames--;
+        }
+        else if (Game_ButtonPressed(&button_right) != 0U) {
           horizontal_input = 1;
         } else if (Game_ButtonPressed(&button_left) != 0U) {
           horizontal_input = -1;
@@ -892,6 +1185,7 @@ int main(void)
         }
 
         on_ground = Game_IsOnGround(player_x, player_y);
+        wall_side = Game_GetWallSide(player_x, player_y);
         if (on_ground != 0U && was_on_ground == 0U)
         {
           jump_count = GAME_JUMP_COUNT_NORMAL_READY;
@@ -902,8 +1196,27 @@ int main(void)
                                       on_ground,
                                       &player_velocity_x);
 
+        /* PA12 da prioridad al salto de pared mientras está en el aire. */
+        if (jump_buffer_frames != 0U && on_ground == 0U && wall_side != 0)
+        {
+          Game_StartWallJump(player_y,
+                             wall_side,
+                             &player_y_fixed,
+                             &player_velocity_x,
+                             &player_velocity_y,
+                             &jump_apex_y,
+                             &jump_limit_active);
+          if (jump_count == GAME_JUMP_COUNT_NORMAL_READY)
+          {
+            jump_count = GAME_JUMP_COUNT_SECOND_READY;
+          }
+          wall_jump_direction = (int8_t)-wall_side;
+          wall_jump_lock_frames = GAME_WALL_JUMP_LOCK_FRAMES;
+          jump_buffer_frames = 0U;
+          on_ground = 0U;
+        }
         /* PA12 habilita el segundo salto sin consultar el suelo. */
-        if (jump_just_pressed != 0U &&
+        else if (jump_buffer_frames != 0U &&
             jump_count == GAME_JUMP_COUNT_NORMAL_READY)
         {
           Game_StartJump(player_y,
@@ -913,6 +1226,7 @@ int main(void)
                          &jump_apex_y,
                          &jump_limit_active);
           jump_count = GAME_JUMP_COUNT_SECOND_READY;
+          jump_buffer_frames = 0U;
           on_ground = 0U;
         }
         /* PA11 sólo funciona después de haber usado PA12. */
@@ -928,7 +1242,13 @@ int main(void)
                                &jump_apex_y,
                                &jump_limit_active);
           jump_count = GAME_JUMP_COUNT_EXHAUSTED;
+          jump_buffer_frames = 0U;
           on_ground = 0U;
+        }
+
+        if (jump_buffer_frames != 0U)
+        {
+          jump_buffer_frames--;
         }
 
         Game_ApplyGravity(on_ground, &player_velocity_y);
@@ -937,6 +1257,8 @@ int main(void)
                             player_y,
                             &player_x_fixed,
                             &player_velocity_x);
+        wall_side = Game_GetWallSide(player_x, player_y);
+        Game_ApplyWallSlide(on_ground, wall_side, &player_velocity_y);
         touched_hazard = Game_TouchesLevelColor(player_x,
                                                 player_y,
                                                 GAME_LEVEL_HAZARD_COLOR,
@@ -972,9 +1294,18 @@ int main(void)
                                    &jump_apex_y,
                                    &jump_limit_active);
           jump_count = GAME_JUMP_COUNT_NORMAL_READY;
+          jump_buffer_frames = 0U;
+          wall_jump_lock_frames = 0U;
+          wall_jump_direction = 0;
           was_on_ground = Game_IsOnGround(player_x, player_y);
           player_animation_frame = 0U;
-          Game_DrawPlayer(player_x, player_y, player_animation_frame);
+          player_animation_updates = 0U;
+          player_facing_left = 0U;
+          Game_DrawPlayer(player_x,
+                          player_y,
+                          player_animation_frame,
+                          player_facing_left,
+                          (was_on_ground == 0U) ? 1U : 0U);
           continue;
         }
 
@@ -990,20 +1321,68 @@ int main(void)
                                    &jump_apex_y,
                                    &jump_limit_active);
           jump_count = GAME_JUMP_COUNT_NORMAL_READY;
+          jump_buffer_frames = 0U;
+          wall_jump_lock_frames = 0U;
+          wall_jump_direction = 0;
           was_on_ground = Game_IsOnGround(player_x, player_y);
           player_animation_frame = 0U;
+          player_animation_updates = 0U;
+          player_facing_left = 0U;
           game_screen_drawn = 0U;
           continue;
         }
 
-        was_on_ground = on_ground;
+        player_airborne = (Game_IsOnGround(player_x, player_y) == 0U)
+                              ? 1U
+                              : 0U;
+
+        /* El movimiento vertical puede aterrizar dentro de esta actualización. */
+        if (player_airborne == 0U && on_ground == 0U)
+        {
+          jump_count = GAME_JUMP_COUNT_NORMAL_READY;
+          jump_limit_active = 0U;
+        }
+
+        was_on_ground = (player_airborne == 0U) ? 1U : 0U;
         player_moved = (player_x != previous_player_x ||
                         player_y != previous_player_y) ? 1U : 0U;
 
+        if (player_x < previous_player_x)
+        {
+          player_facing_left = 1U;
+        }
+        else if (player_x > previous_player_x)
+        {
+          player_facing_left = 0U;
+        }
+
         if (player_moved != 0U) {
-          player_animation_frame++;
+          if (player_airborne != 0U)
+          {
+            player_animation_frame = 0U;
+            player_animation_updates = 0U;
+          }
+          else if (player_x != previous_player_x)
+          {
+            player_animation_updates++;
+            if (player_animation_updates >= GAME_PLAYER_ANIMATION_STEP_UPDATES)
+            {
+              player_animation_updates = 0U;
+              player_animation_frame = (uint8_t)(
+                  (player_animation_frame + 1U) % CELESTE_J1_FRAME_COUNT);
+            }
+          }
+          else
+          {
+            player_animation_frame = 0U;
+            player_animation_updates = 0U;
+          }
           Game_ErasePlayer(previous_player_x, previous_player_y);
-          Game_DrawPlayer(player_x, player_y, player_animation_frame);
+          Game_DrawPlayer(player_x,
+                          player_y,
+                          player_animation_frame,
+                          player_facing_left,
+                          player_airborne);
         }
       }
 

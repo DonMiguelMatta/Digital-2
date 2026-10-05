@@ -445,6 +445,204 @@ void ILI9341_DrawBitmapRegion(ILI9341_t *lcd,
   ILI9341_SetPin(&lcd->config.chip_select, 1U);
 }
 
+void ILI9341_DrawSpriteFrameKeyed(ILI9341_t *lcd,
+                                  uint16_t x,
+                                  uint16_t y,
+                                  uint16_t frame_width,
+                                  uint16_t frame_height,
+                                  const uint16_t *sprite_sheet,
+                                  uint16_t sheet_width,
+                                  uint16_t frame_index,
+                                  uint16_t transparent_color,
+                                  uint8_t flip_horizontal)
+{
+  uint16_t frame_columns;
+  uint16_t source_x;
+  uint16_t draw_width = frame_width;
+  uint16_t draw_height = frame_height;
+  uint16_t row;
+
+  if (ILI9341_IsReady(lcd) == 0U || sprite_sheet == 0 ||
+      frame_width == 0U || frame_height == 0U ||
+      sheet_width < frame_width || x >= ILI9341_WIDTH ||
+      y >= ILI9341_HEIGHT)
+  {
+    return;
+  }
+
+  frame_columns = (uint16_t)(sheet_width / frame_width);
+  frame_index = (uint16_t)(frame_index % frame_columns);
+  source_x = (uint16_t)(frame_index * frame_width);
+
+  if ((uint32_t)x + draw_width > ILI9341_WIDTH)
+  {
+    draw_width = (uint16_t)(ILI9341_WIDTH - x);
+  }
+  if ((uint32_t)y + draw_height > ILI9341_HEIGHT)
+  {
+    draw_height = (uint16_t)(ILI9341_HEIGHT - y);
+  }
+
+  /* Envía sólo tramos opacos para conservar el fondo ya dibujado. */
+  for (row = 0U; row < draw_height; row++)
+  {
+    uint16_t column = 0U;
+
+    while (column < draw_width)
+    {
+      uint16_t source_column = (flip_horizontal != 0U)
+                                   ? (uint16_t)(frame_width - 1U - column)
+                                   : column;
+      uint16_t color = sprite_sheet[(uint32_t)row * sheet_width +
+                                    source_x + source_column];
+
+      if (color == transparent_color)
+      {
+        column++;
+        continue;
+      }
+
+      {
+        uint16_t run_start = column;
+        uint16_t run_end;
+        uint16_t output_column;
+
+        do
+        {
+          column++;
+          if (column >= draw_width)
+          {
+            break;
+          }
+          source_column = (flip_horizontal != 0U)
+                              ? (uint16_t)(frame_width - 1U - column)
+                              : column;
+          color = sprite_sheet[(uint32_t)row * sheet_width +
+                               source_x + source_column];
+        } while (color != transparent_color);
+
+        run_end = (uint16_t)(column - 1U);
+        ILI9341_BeginWindowWrite(lcd,
+                                 (uint16_t)(x + run_start),
+                                 (uint16_t)(y + row),
+                                 (uint16_t)(x + run_end),
+                                 (uint16_t)(y + row));
+        for (output_column = run_start;
+             output_column <= run_end;
+             output_column++)
+        {
+          source_column = (flip_horizontal != 0U)
+                              ? (uint16_t)(frame_width - 1U - output_column)
+                              : output_column;
+          color = sprite_sheet[(uint32_t)row * sheet_width +
+                               source_x + source_column];
+          ILI9341_WriteColorSelected(lcd, color);
+        }
+        ILI9341_SetPin(&lcd->config.chip_select, 1U);
+      }
+    }
+  }
+}
+
+void ILI9341_DrawPackedSpriteKeyed(ILI9341_t *lcd,
+                                   uint16_t x,
+                                   uint16_t y,
+                                   uint16_t width,
+                                   uint16_t height,
+                                   const uint32_t *sprite,
+                                   uint16_t transparent_color,
+                                   uint8_t flip_horizontal)
+{
+  uint16_t draw_width = width;
+  uint16_t draw_height = height;
+  uint16_t row;
+
+  if (ILI9341_IsReady(lcd) == 0U || sprite == 0 || width == 0U ||
+      height == 0U || x >= ILI9341_WIDTH || y >= ILI9341_HEIGHT)
+  {
+    return;
+  }
+
+  if ((uint32_t)x + draw_width > ILI9341_WIDTH)
+  {
+    draw_width = (uint16_t)(ILI9341_WIDTH - x);
+  }
+  if ((uint32_t)y + draw_height > ILI9341_HEIGHT)
+  {
+    draw_height = (uint16_t)(ILI9341_HEIGHT - y);
+  }
+
+  /* Lee dos píxeles RGB565 por palabra y omite el color transparente. */
+  for (row = 0U; row < draw_height; row++)
+  {
+    uint16_t column = 0U;
+
+    while (column < draw_width)
+    {
+      uint16_t source_column = (flip_horizontal != 0U)
+                                   ? (uint16_t)(width - 1U - column)
+                                   : column;
+      uint32_t pixel_index = (uint32_t)row * width + source_column;
+      uint32_t packed_color = sprite[pixel_index / 2U];
+      uint16_t color = ((pixel_index & 1U) == 0U)
+                           ? (uint16_t)(packed_color >> 16U)
+                           : (uint16_t)packed_color;
+
+      if (color == transparent_color)
+      {
+        column++;
+        continue;
+      }
+
+      {
+        uint16_t run_start = column;
+        uint16_t run_end;
+        uint16_t output_column;
+
+        do
+        {
+          column++;
+          if (column >= draw_width)
+          {
+            break;
+          }
+
+          source_column = (flip_horizontal != 0U)
+                              ? (uint16_t)(width - 1U - column)
+                              : column;
+          pixel_index = (uint32_t)row * width + source_column;
+          packed_color = sprite[pixel_index / 2U];
+          color = ((pixel_index & 1U) == 0U)
+                      ? (uint16_t)(packed_color >> 16U)
+                      : (uint16_t)packed_color;
+        } while (color != transparent_color);
+
+        run_end = (uint16_t)(column - 1U);
+        ILI9341_BeginWindowWrite(lcd,
+                                 (uint16_t)(x + run_start),
+                                 (uint16_t)(y + row),
+                                 (uint16_t)(x + run_end),
+                                 (uint16_t)(y + row));
+        for (output_column = run_start;
+             output_column <= run_end;
+             output_column++)
+        {
+          source_column = (flip_horizontal != 0U)
+                              ? (uint16_t)(width - 1U - output_column)
+                              : output_column;
+          pixel_index = (uint32_t)row * width + source_column;
+          packed_color = sprite[pixel_index / 2U];
+          color = ((pixel_index & 1U) == 0U)
+                      ? (uint16_t)(packed_color >> 16U)
+                      : (uint16_t)packed_color;
+          ILI9341_WriteColorSelected(lcd, color);
+        }
+        ILI9341_SetPin(&lcd->config.chip_select, 1U);
+      }
+    }
+  }
+}
+
 void ILI9341_DrawPackedBitmapRGB565(ILI9341_t *lcd,
                                     uint16_t x,
                                     uint16_t y,
