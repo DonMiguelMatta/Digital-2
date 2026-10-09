@@ -18,15 +18,16 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "fatfs.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <math.h>
+#include <string.h>
 
 #include "graficos.h"
 #include "ili9341.h"
 #include "level_1_texture.h"
-#include "level_background.h"
 #include "nieve.h"
 #include "start_background.h"
 /* USER CODE END Includes */
@@ -45,11 +46,10 @@ typedef struct
 
 typedef struct
 {
-  uint16_t x;
-  uint16_t y;
-  uint16_t width;
+  const char *short_name;
+  const char *original_name;
   uint16_t height;
-} GameRect_t;
+} GameLevelFile_t;
 
 /* USER CODE END PTD */
 
@@ -73,6 +73,8 @@ typedef struct
 #define GAME_PLAYER_ANIMATION_STEP_UPDATES 4U
 #define GAME_PLAYER_START_X 15U
 #define GAME_PLAYER_START_Y 170U
+#define GAME_LEVEL_2_PLAYER_START_X 15U
+#define GAME_LEVEL_2_PLAYER_START_Y 207U
 #define GAME_UPDATE_MS 20U
 #define GAME_FIXED_POINT_ONE 256L
 /* Usa multiplicadores con sufijo f y redondea al entero más cercano. */
@@ -141,9 +143,30 @@ typedef struct
 #define GAME_LEVEL_EXIT_COLOR 0xFF60U
 #define GAME_LEVEL_HAZARD_REACH 1U
 #define GAME_LEVEL_EXIT_REACH 2U
-#define GAME_LEVEL_2_BACKGROUND_COLOR 0x0000U
-#define GAME_LEVEL_2_FLOOR_COLOR 0xFFFFU
-#define GAME_LEVEL_2_EXIT_COLOR GAME_LEVEL_EXIT_COLOR
+#define GAME_SD_BACKGROUND_FILE "0:/FONDOGEN.TXT"
+#define GAME_SD_BACKGROUND_FILE_ORIGINAL "0:/Fondogeneral.txt"
+#define GAME_SD_LEVEL_1_FILE "0:/LEVEL1~1.TXT"
+#define GAME_SD_LEVEL_1_FILE_ORIGINAL "0:/level1_texture.txt"
+#define GAME_SD_LEVEL_2_FILE "0:/NIVEL2.TXT"
+#define GAME_SD_LEVEL_2_FILE_ORIGINAL "0:/Nivel2.txt"
+#define GAME_SD_LINE_BUFFER_SIZE 2048U
+#define GAME_PACKED_WORDS_PER_ROW (ILI9341_WIDTH / 2U)
+#define GAME_LEVEL_FLASH_FIRST_SECTOR FLASH_SECTOR_6
+#define GAME_LEVEL_FLASH_SECTOR_COUNT 2U
+#define GAME_LEVEL_FLASH_PIXEL_COUNT \
+  ((uint32_t)ILI9341_WIDTH * ILI9341_HEIGHT)
+#define GAME_LEVEL_FLASH_BYTE_COUNT \
+  (GAME_LEVEL_FLASH_PIXEL_COUNT * sizeof(uint16_t))
+#define GAME_LEVEL_HASH_INITIAL 2166136261UL
+#define GAME_LEVEL_HASH_PRIME 16777619UL
+#define GAME_COLLISION_BITS_PER_PIXEL 2U
+#define GAME_COLLISION_PIXELS_PER_BYTE 4U
+#define GAME_COLLISION_MAP_SIZE \
+  ((ILI9341_WIDTH * ILI9341_HEIGHT) / GAME_COLLISION_PIXELS_PER_BYTE)
+#define GAME_COLLISION_FREE 0U
+#define GAME_COLLISION_SOLID 1U
+#define GAME_COLLISION_HAZARD 2U
+#define GAME_COLLISION_EXIT 3U
 
 /* USER CODE END PD */
 
@@ -161,19 +184,28 @@ UART_HandleTypeDef huart2;
 ILI9341_t lcd;
 Nieve_t nieve;
 static uint8_t game_current_level = GAME_LEVEL_1;
-/* Geometría blanca escalada del boceto de 457 x 570 a 240 x 320. */
-static const GameRect_t game_level_2_solids[] = {
-    {0U, 263U, 240U, 13U},
-    {27U, 130U, 59U, 12U},
-    {44U, 140U, 13U, 57U},
-    {59U, 68U, 12U, 40U},
-    {105U, 32U, 12U, 40U},
-    {144U, 65U, 96U, 12U},
-    {144U, 65U, 13U, 58U},
-    {193U, 99U, 20U, 164U},
-    {142U, 170U, 19U, 93U},
+static const GameLevelFile_t game_level_files[] = {
+    {GAME_SD_LEVEL_1_FILE,
+     GAME_SD_LEVEL_1_FILE_ORIGINAL,
+     LEVEL_1_TEXTURE_HEIGHT},
+    {GAME_SD_LEVEL_2_FILE, GAME_SD_LEVEL_2_FILE_ORIGINAL, 235U},
 };
-static const GameRect_t game_level_2_exit = {229U, 29U, 11U, 39U};
+static FIL game_background_file;
+static FIL game_overlay_file;
+static uint8_t game_background_file_open = 0U;
+static uint8_t game_overlay_file_open = 0U;
+static uint8_t game_sd_mounted = 0U;
+static uint8_t game_level_ready = 0U;
+static char game_sd_line[GAME_SD_LINE_BUFFER_SIZE];
+static uint16_t game_background_row[ILI9341_WIDTH];
+static uint16_t game_overlay_row[ILI9341_WIDTH];
+static uint16_t game_composed_row[ILI9341_WIDTH];
+static uint8_t game_collision_map[GAME_COLLISION_MAP_SIZE];
+static uint16_t game_player_background[
+    CELESTE_J1_FRAME_WIDTH * CELESTE_J1_FRAME_HEIGHT];
+static uint16_t game_player_background_x = 0U;
+static uint16_t game_player_background_y = 0U;
+static uint8_t game_player_background_valid = 0U;
 volatile uint8_t uart_rx_byte;
 volatile uint8_t uart_rx_queue[UART_RX_QUEUE_SIZE];
 volatile uint8_t uart_rx_write = 0U;
@@ -187,6 +219,11 @@ static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
+extern uint8_t __level_cache_start__;
+extern uint8_t __level_cache_end__;
+
+static uint8_t Game_CapturePlayerBackground(uint16_t player_x,
+                                            uint16_t player_y);
 
 /* USER CODE END PFP */
 
@@ -344,15 +381,22 @@ static void Game_DrawPlayer(uint16_t x,
                             uint8_t facing_left,
                             uint8_t airborne)
 {
+  if (Game_CapturePlayerBackground(x, y) == 0U)
+  {
+    return;
+  }
+
   if (airborne != 0U)
   {
-    ILI9341_DrawPackedSpriteKeyed(
+    ILI9341_DrawSpriteFrameKeyed(
         &lcd,
         Game_PlayerSpriteX(x),
         Game_PlayerSpriteY(y),
         CELESTE_J1_JUMP_WIDTH,
         CELESTE_J1_JUMP_HEIGHT,
         CelesteJ1Jump,
+        CELESTE_J1_JUMP_WIDTH,
+        0U,
         GAME_PLAYER_SPRITE_TRANSPARENT_COLOR,
         facing_left);
     return;
@@ -371,62 +415,441 @@ static void Game_DrawPlayer(uint16_t x,
       facing_left);
 }
 
-static uint16_t Game_LevelTexturePixel(uint16_t x, uint16_t y)
+static int8_t Game_HexDigit(char character)
 {
-  uint32_t pixel_index = (uint32_t)y * LEVEL_1_TEXTURE_WIDTH + x;
-  uint32_t packed_color = level_1_texture[pixel_index / 2U];
-
-  return ((pixel_index & 1U) == 0U) ? (uint16_t)(packed_color >> 16U)
-                                     : (uint16_t)packed_color;
-}
-
-static uint8_t Game_PointInRect(int32_t x,
-                                int32_t y,
-                                const GameRect_t *rect)
-{
-  return (x >= (int32_t)rect->x &&
-          x < (int32_t)(rect->x + rect->width) &&
-          y >= (int32_t)rect->y &&
-          y < (int32_t)(rect->y + rect->height))
-             ? 1U
-             : 0U;
-}
-
-static uint8_t Game_Level2WhiteSolidPixel(int32_t x, int32_t y)
-{
-  uint32_t index;
-
-  for (index = 0U;
-       index < (sizeof(game_level_2_solids) / sizeof(game_level_2_solids[0]));
-       index++)
+  if (character >= '0' && character <= '9')
   {
-    if (Game_PointInRect(x, y, &game_level_2_solids[index]) != 0U)
-    {
-      return 1U;
-    }
+    return (int8_t)(character - '0');
+  }
+  if (character >= 'a' && character <= 'f')
+  {
+    return (int8_t)(character - 'a' + 10);
+  }
+  if (character >= 'A' && character <= 'F')
+  {
+    return (int8_t)(character - 'A' + 10);
   }
 
-  return 0U;
+  return -1;
 }
 
-static uint8_t Game_IsSolidPixel(int32_t x, int32_t y)
+/* Convierte una fila de 120 palabras en 240 píxeles RGB565. */
+static uint8_t Game_ParsePackedRow(char *line, uint16_t *pixels)
 {
-  if (x < 0L || x >= (int32_t)LEVEL_1_TEXTURE_WIDTH || y < 0L ||
-      y >= (int32_t)LEVEL_1_TEXTURE_HEIGHT)
+  char *cursor = line;
+  uint16_t word_index = 0U;
+
+  while (*cursor != '\0' && word_index < GAME_PACKED_WORDS_PER_ROW)
+  {
+    uint32_t value = 0U;
+    uint8_t digit_count = 0U;
+    int8_t digit;
+
+    while (*cursor != '\0' &&
+           !(cursor[0] == '0' &&
+             (cursor[1] == 'x' || cursor[1] == 'X')))
+    {
+      cursor++;
+    }
+    if (*cursor == '\0')
+    {
+      break;
+    }
+
+    cursor += 2;
+    while ((digit = Game_HexDigit(*cursor)) >= 0)
+    {
+      value = (value << 4U) | (uint32_t)digit;
+      digit_count++;
+      cursor++;
+    }
+    if (digit_count == 0U)
+    {
+      return 0U;
+    }
+
+    pixels[word_index * 2U] = (uint16_t)(value >> 16U);
+    pixels[word_index * 2U + 1U] = (uint16_t)value;
+    word_index++;
+  }
+
+  return (word_index == GAME_PACKED_WORDS_PER_ROW) ? 1U : 0U;
+}
+
+static uint8_t Game_ReadNextPackedRow(FIL *file, uint16_t *pixels)
+{
+  if (f_gets(game_sd_line, sizeof(game_sd_line), file) == 0)
+  {
+    return 0U;
+  }
+
+  return Game_ParsePackedRow(game_sd_line, pixels);
+}
+
+static uint8_t Game_OpenTextureFile(FIL *file,
+                                    const char *short_name,
+                                    const char *original_name)
+{
+  if (f_open(file, short_name, FA_READ | FA_OPEN_EXISTING) == FR_OK)
   {
     return 1U;
   }
 
-  if (game_current_level == GAME_LEVEL_2)
+  return (f_open(file, original_name, FA_READ | FA_OPEN_EXISTING) == FR_OK)
+             ? 1U
+             : 0U;
+}
+
+static void Game_CloseLevelFiles(void)
+{
+  if (game_background_file_open != 0U)
   {
-    return (Game_Level2WhiteSolidPixel(x, y) != 0U ||
-            Game_PointInRect(x, y, &game_level_2_exit) != 0U)
-               ? 1U
-               : 0U;
+    (void)f_close(&game_background_file);
+    game_background_file_open = 0U;
+  }
+  if (game_overlay_file_open != 0U)
+  {
+    (void)f_close(&game_overlay_file);
+    game_overlay_file_open = 0U;
+  }
+}
+
+/* Descarta el nivel activo antes de cargar el siguiente. */
+static void Game_UnloadLevel(void)
+{
+  Game_CloseLevelFiles();
+  game_level_ready = 0U;
+  game_player_background_valid = 0U;
+  memset(game_collision_map, 0, sizeof(game_collision_map));
+}
+
+static void Game_SetCollision(uint16_t x, uint16_t y, uint8_t type)
+{
+  uint32_t pixel_index = (uint32_t)y * ILI9341_WIDTH + x;
+  uint32_t byte_index = pixel_index / GAME_COLLISION_PIXELS_PER_BYTE;
+  uint8_t shift = (uint8_t)((pixel_index % GAME_COLLISION_PIXELS_PER_BYTE) *
+                            GAME_COLLISION_BITS_PER_PIXEL);
+  uint8_t mask = (uint8_t)(0x03U << shift);
+
+  game_collision_map[byte_index] =
+      (uint8_t)((game_collision_map[byte_index] & (uint8_t)~mask) |
+                ((type & 0x03U) << shift));
+}
+
+static uint8_t Game_GetCollision(uint16_t x, uint16_t y)
+{
+  uint32_t pixel_index = (uint32_t)y * ILI9341_WIDTH + x;
+  uint32_t byte_index = pixel_index / GAME_COLLISION_PIXELS_PER_BYTE;
+  uint8_t shift = (uint8_t)((pixel_index % GAME_COLLISION_PIXELS_PER_BYTE) *
+                            GAME_COLLISION_BITS_PER_PIXEL);
+
+  return (uint8_t)((game_collision_map[byte_index] >> shift) & 0x03U);
+}
+
+static uint8_t Game_CollisionTypeForColor(uint16_t color)
+{
+  if (color == LEVEL_1_TEXTURE_TRANSPARENT_COLOR)
+  {
+    return GAME_COLLISION_FREE;
+  }
+  if (color == GAME_LEVEL_HAZARD_COLOR)
+  {
+    return GAME_COLLISION_HAZARD;
+  }
+  if (color == GAME_LEVEL_EXIT_COLOR)
+  {
+    return GAME_COLLISION_EXIT;
   }
 
-  return (Game_LevelTexturePixel((uint16_t)x, (uint16_t)y) !=
-          LEVEL_1_TEXTURE_TRANSPARENT_COLOR)
+  return GAME_COLLISION_SOLID;
+}
+
+static void Game_ComposeRow(uint16_t y)
+{
+  uint16_t x;
+
+  for (x = 0U; x < ILI9341_WIDTH; x++)
+  {
+    uint16_t overlay_color = game_overlay_row[x];
+
+    game_composed_row[x] =
+        (overlay_color == LEVEL_1_TEXTURE_TRANSPARENT_COLOR)
+            ? game_background_row[x]
+            : overlay_color;
+    Game_SetCollision(x, y, Game_CollisionTypeForColor(overlay_color));
+  }
+}
+
+static const uint16_t *Game_LevelFlashPixels(void)
+{
+  return (const uint16_t *)(uintptr_t)&__level_cache_start__;
+}
+
+static uint8_t Game_LevelFlashHasCapacity(void)
+{
+  uintptr_t start = (uintptr_t)&__level_cache_start__;
+  uintptr_t end = (uintptr_t)&__level_cache_end__;
+
+  return (end >= start && (end - start) >= GAME_LEVEL_FLASH_BYTE_COUNT)
+             ? 1U
+             : 0U;
+}
+
+/* Borra únicamente los sectores reservados para la imagen del nivel. */
+static uint8_t Game_LevelFlashBeginWrite(void)
+{
+  FLASH_EraseInitTypeDef erase = {0};
+  uint32_t sector_error = 0xFFFFFFFFU;
+
+  if (Game_LevelFlashHasCapacity() == 0U || HAL_FLASH_Unlock() != HAL_OK)
+  {
+    return 0U;
+  }
+
+  erase.TypeErase = FLASH_TYPEERASE_SECTORS;
+  erase.Sector = GAME_LEVEL_FLASH_FIRST_SECTOR;
+  erase.NbSectors = GAME_LEVEL_FLASH_SECTOR_COUNT;
+  erase.VoltageRange = FLASH_VOLTAGE_RANGE_3;
+
+  if (HAL_FLASHEx_Erase(&erase, &sector_error) != HAL_OK ||
+      sector_error != 0xFFFFFFFFU)
+  {
+    (void)HAL_FLASH_Lock();
+    return 0U;
+  }
+
+  return 1U;
+}
+
+static void Game_LevelFlashEndWrite(void)
+{
+  (void)HAL_FLASH_Lock();
+
+  /* Descarta datos del nivel anterior que aún pudieran estar en caché. */
+  if ((FLASH->ACR & FLASH_ACR_DCEN) != 0U)
+  {
+    __HAL_FLASH_DATA_CACHE_DISABLE();
+    __HAL_FLASH_DATA_CACHE_RESET();
+    __HAL_FLASH_DATA_CACHE_ENABLE();
+  }
+}
+
+/* Guarda una fila usando el orden nativo de halfwords del Cortex-M. */
+static uint8_t Game_LevelFlashWriteRow(uint16_t y,
+                                       const uint16_t *pixels)
+{
+  uint32_t address;
+  uint16_t x;
+
+  if (pixels == 0 || y >= ILI9341_HEIGHT)
+  {
+    return 0U;
+  }
+
+  address = (uint32_t)(uintptr_t)&__level_cache_start__ +
+            (uint32_t)y * ILI9341_WIDTH * sizeof(uint16_t);
+
+  for (x = 0U; x < ILI9341_WIDTH; x += 2U)
+  {
+    uint32_t data = (uint32_t)pixels[x] |
+                    ((uint32_t)pixels[x + 1U] << 16U);
+
+    if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, address, data) != HAL_OK)
+    {
+      return 0U;
+    }
+    address += sizeof(uint32_t);
+  }
+
+  return 1U;
+}
+
+static uint32_t Game_UpdateLevelHash(uint32_t hash,
+                                     const uint16_t *pixels,
+                                     uint32_t pixel_count)
+{
+  uint32_t index;
+
+  for (index = 0U; index < pixel_count; index++)
+  {
+    hash ^= (uint8_t)pixels[index];
+    hash *= GAME_LEVEL_HASH_PRIME;
+    hash ^= (uint8_t)(pixels[index] >> 8U);
+    hash *= GAME_LEVEL_HASH_PRIME;
+  }
+
+  return hash;
+}
+
+/* Lee la SD una vez y deja la pantalla completa en la Flash interna. */
+static uint8_t Game_LoadLevel(uint8_t level)
+{
+  const GameLevelFile_t *level_file;
+  uint32_t expected_hash = GAME_LEVEL_HASH_INITIAL;
+  uint32_t stored_hash;
+  uint8_t flash_write_active = 0U;
+  uint16_t y;
+
+  if (level < GAME_LEVEL_1 || level > GAME_LEVEL_2)
+  {
+    return 0U;
+  }
+
+  Game_UnloadLevel();
+
+  if (game_sd_mounted == 0U)
+  {
+    if (f_mount(&USERFatFS, USERPath, 1U) != FR_OK)
+    {
+      return 0U;
+    }
+    game_sd_mounted = 1U;
+  }
+
+  level_file = &game_level_files[level - GAME_LEVEL_1];
+  if (Game_OpenTextureFile(&game_background_file,
+                           GAME_SD_BACKGROUND_FILE,
+                           GAME_SD_BACKGROUND_FILE_ORIGINAL) == 0U)
+  {
+    return 0U;
+  }
+  game_background_file_open = 1U;
+
+  if (Game_OpenTextureFile(&game_overlay_file,
+                           level_file->short_name,
+                           level_file->original_name) == 0U)
+  {
+    Game_CloseLevelFiles();
+    return 0U;
+  }
+  game_overlay_file_open = 1U;
+
+  if (Game_LevelFlashBeginWrite() == 0U)
+  {
+    goto load_failed;
+  }
+  flash_write_active = 1U;
+
+  for (y = 0U; y < ILI9341_HEIGHT; y++)
+  {
+    if (Game_ReadNextPackedRow(&game_background_file,
+                               game_background_row) == 0U)
+    {
+      goto load_failed;
+    }
+
+    if (y < level_file->height)
+    {
+      if (Game_ReadNextPackedRow(&game_overlay_file,
+                                 game_overlay_row) == 0U)
+      {
+        goto load_failed;
+      }
+    }
+    else
+    {
+      uint16_t x;
+
+      for (x = 0U; x < ILI9341_WIDTH; x++)
+      {
+        game_overlay_row[x] = LEVEL_1_TEXTURE_TRANSPARENT_COLOR;
+      }
+    }
+
+    Game_ComposeRow(y);
+    expected_hash = Game_UpdateLevelHash(expected_hash,
+                                         game_composed_row,
+                                         ILI9341_WIDTH);
+    if (Game_LevelFlashWriteRow(y, game_composed_row) == 0U)
+    {
+      goto load_failed;
+    }
+  }
+
+  Game_LevelFlashEndWrite();
+  flash_write_active = 0U;
+  Game_CloseLevelFiles();
+
+  stored_hash = Game_UpdateLevelHash(GAME_LEVEL_HASH_INITIAL,
+                                     Game_LevelFlashPixels(),
+                                     GAME_LEVEL_FLASH_PIXEL_COUNT);
+  if (stored_hash != expected_hash)
+  {
+    goto load_failed;
+  }
+
+  ILI9341_DrawBitmap(&lcd,
+                     0U,
+                     0U,
+                     ILI9341_WIDTH,
+                     ILI9341_HEIGHT,
+                     Game_LevelFlashPixels());
+  game_level_ready = 1U;
+  return 1U;
+
+load_failed:
+  if (flash_write_active != 0U)
+  {
+    Game_LevelFlashEndWrite();
+  }
+  Game_UnloadLevel();
+  return 0U;
+}
+
+static uint8_t Game_CapturePlayerBackground(uint16_t player_x,
+                                            uint16_t player_y)
+{
+  uint16_t sprite_x = Game_PlayerSpriteX(player_x);
+  uint16_t sprite_y = Game_PlayerSpriteY(player_y);
+  uint16_t row;
+
+  if (game_level_ready == 0U ||
+      (uint32_t)sprite_x + CELESTE_J1_FRAME_WIDTH > ILI9341_WIDTH ||
+      (uint32_t)sprite_y + CELESTE_J1_FRAME_HEIGHT > ILI9341_HEIGHT)
+  {
+    return 0U;
+  }
+
+  for (row = 0U; row < CELESTE_J1_FRAME_HEIGHT; row++)
+  {
+    memcpy(&game_player_background[(uint32_t)row * CELESTE_J1_FRAME_WIDTH],
+           &Game_LevelFlashPixels()[
+               (uint32_t)(sprite_y + row) * ILI9341_WIDTH + sprite_x],
+           CELESTE_J1_FRAME_WIDTH * sizeof(uint16_t));
+  }
+
+  game_player_background_x = sprite_x;
+  game_player_background_y = sprite_y;
+  game_player_background_valid = 1U;
+  return 1U;
+}
+
+static void Game_RestorePlayerBackground(void)
+{
+  if (game_player_background_valid == 0U)
+  {
+    return;
+  }
+
+  ILI9341_DrawBitmap(&lcd,
+                     game_player_background_x,
+                     game_player_background_y,
+                     CELESTE_J1_FRAME_WIDTH,
+                     CELESTE_J1_FRAME_HEIGHT,
+                     game_player_background);
+  game_player_background_valid = 0U;
+}
+
+static uint8_t Game_IsSolidPixel(int32_t x, int32_t y)
+{
+  if (x < 0L || x >= (int32_t)ILI9341_WIDTH || y < 0L ||
+      y >= (int32_t)ILI9341_HEIGHT)
+  {
+    return 1U;
+  }
+
+  return (Game_GetCollision((uint16_t)x, (uint16_t)y) !=
+          GAME_COLLISION_FREE)
              ? 1U
              : 0U;
 }
@@ -437,6 +860,9 @@ static uint8_t Game_TouchesLevelColor(uint16_t player_x,
                                       uint16_t color,
                                       uint8_t reach)
 {
+  uint8_t target_type = (color == GAME_LEVEL_HAZARD_COLOR)
+                            ? GAME_COLLISION_HAZARD
+                            : GAME_COLLISION_EXIT;
   int32_t left = (int32_t)player_x - (int32_t)reach;
   int32_t right = (int32_t)player_x + GAME_PLAYER_WIDTH - 1L + reach;
   int32_t top = (int32_t)player_y - (int32_t)reach;
@@ -444,21 +870,16 @@ static uint8_t Game_TouchesLevelColor(uint16_t player_x,
   int32_t x;
   int32_t y;
 
-  if (game_current_level != GAME_LEVEL_1)
-  {
-    return 0U;
-  }
-
   for (y = top; y <= bottom; y++)
   {
-    if (y < 0L || y >= (int32_t)LEVEL_1_TEXTURE_HEIGHT)
+    if (y < 0L || y >= (int32_t)ILI9341_HEIGHT)
     {
       continue;
     }
 
     for (x = left; x <= right; x++)
     {
-      if (x < 0L || x >= (int32_t)LEVEL_1_TEXTURE_WIDTH)
+      if (x < 0L || x >= (int32_t)ILI9341_WIDTH)
       {
         continue;
       }
@@ -471,7 +892,7 @@ static uint8_t Game_TouchesLevelColor(uint16_t player_x,
         continue;
       }
 
-      if (Game_LevelTexturePixel((uint16_t)x, (uint16_t)y) == color)
+      if (Game_GetCollision((uint16_t)x, (uint16_t)y) == target_type)
       {
         return 1U;
       }
@@ -508,28 +929,14 @@ static uint8_t Game_IsOnGround(uint16_t player_x, uint16_t player_y)
 /* Los peligros y la salida no cuentan como paredes para saltar. */
 static uint8_t Game_IsWallSurfacePixel(int32_t x, int32_t y)
 {
-  uint16_t color;
-
-  if (x < 0L || x >= (int32_t)LEVEL_1_TEXTURE_WIDTH || y < 0L ||
-      y >= (int32_t)LEVEL_1_TEXTURE_HEIGHT)
+  if (x < 0L || x >= (int32_t)ILI9341_WIDTH || y < 0L ||
+      y >= (int32_t)ILI9341_HEIGHT)
   {
     return 0U;
   }
 
-  if (game_current_level == GAME_LEVEL_2)
-  {
-    if (Game_PointInRect(x, y, &game_level_2_exit) != 0U)
-    {
-      return 0U;
-    }
-
-    return Game_Level2WhiteSolidPixel(x, y);
-  }
-
-  color = Game_LevelTexturePixel((uint16_t)x, (uint16_t)y);
-  return (color != LEVEL_1_TEXTURE_TRANSPARENT_COLOR &&
-          color != GAME_LEVEL_HAZARD_COLOR &&
-          color != GAME_LEVEL_EXIT_COLOR)
+  return (Game_GetCollision((uint16_t)x, (uint16_t)y) ==
+          GAME_COLLISION_SOLID)
              ? 1U
              : 0U;
 }
@@ -814,162 +1221,48 @@ static void Game_ResetPlayerPosition(uint16_t *player_x,
                                      uint16_t *jump_apex_y,
                                      uint8_t *jump_limit_active)
 {
-  *player_x = GAME_PLAYER_START_X;
-  *player_y = GAME_PLAYER_START_Y;
-  *player_x_fixed = GAME_PLAYER_START_X_FIXED;
-  *player_y_fixed = GAME_PLAYER_START_Y_FIXED;
+  uint16_t start_x = (game_current_level == GAME_LEVEL_2)
+                         ? GAME_LEVEL_2_PLAYER_START_X
+                         : GAME_PLAYER_START_X;
+  uint16_t start_y = (game_current_level == GAME_LEVEL_2)
+                         ? GAME_LEVEL_2_PLAYER_START_Y
+                         : GAME_PLAYER_START_Y;
+
+  *player_x = start_x;
+  *player_y = start_y;
+  *player_x_fixed = (int32_t)start_x * GAME_FIXED_POINT_ONE;
+  *player_y_fixed = (int32_t)start_y * GAME_FIXED_POINT_ONE;
   *player_velocity_x = 0L;
   *player_velocity_y = 0L;
-  *jump_apex_y = GAME_PLAYER_START_Y;
+  *jump_apex_y = start_y;
   *jump_limit_active = 0U;
-}
-
-static void Game_RestoreLevel2Rect(uint16_t x,
-                                   uint16_t y,
-                                   uint16_t width,
-                                   uint16_t height,
-                                   const GameRect_t *rect,
-                                   uint16_t color)
-{
-  uint16_t left = (x > rect->x) ? x : rect->x;
-  uint16_t top = (y > rect->y) ? y : rect->y;
-  uint16_t right = ((uint32_t)x + width < (uint32_t)rect->x + rect->width)
-                       ? (uint16_t)(x + width)
-                       : (uint16_t)(rect->x + rect->width);
-  uint16_t bottom = ((uint32_t)y + height <
-                     (uint32_t)rect->y + rect->height)
-                        ? (uint16_t)(y + height)
-                        : (uint16_t)(rect->y + rect->height);
-
-  if (left < right && top < bottom)
-  {
-    ILI9341_FillRect(&lcd,
-                     left,
-                     top,
-                     (uint16_t)(right - left),
-                     (uint16_t)(bottom - top),
-                     color);
-  }
-}
-
-/* Reconstruye sólo el área ocupada por el sprite anterior. */
-static void Game_RestoreLevel2Region(uint16_t x,
-                                     uint16_t y,
-                                     uint16_t width,
-                                     uint16_t height)
-{
-  uint32_t index;
-
-  ILI9341_FillRect(&lcd,
-                   x,
-                   y,
-                   width,
-                   height,
-                   GAME_LEVEL_2_BACKGROUND_COLOR);
-
-  for (index = 0U;
-       index < (sizeof(game_level_2_solids) / sizeof(game_level_2_solids[0]));
-       index++)
-  {
-    Game_RestoreLevel2Rect(x,
-                           y,
-                           width,
-                           height,
-                           &game_level_2_solids[index],
-                           GAME_LEVEL_2_FLOOR_COLOR);
-  }
-
-  Game_RestoreLevel2Rect(x,
-                         y,
-                         width,
-                         height,
-                         &game_level_2_exit,
-                         GAME_LEVEL_2_EXIT_COLOR);
 }
 
 static void Game_ErasePlayer(uint16_t x, uint16_t y)
 {
-  uint16_t sprite_x = Game_PlayerSpriteX(x);
-  uint16_t sprite_y = Game_PlayerSpriteY(y);
-
-  if (game_current_level == GAME_LEVEL_2)
-  {
-    Game_RestoreLevel2Region(sprite_x,
-                             sprite_y,
-                             CELESTE_J1_FRAME_WIDTH,
-                             CELESTE_J1_FRAME_HEIGHT);
-    return;
-  }
-
-  ILI9341_DrawPackedBitmapRGB565KeyedRegion(&lcd,
-                                             sprite_x,
-                                             sprite_y,
-                                             CELESTE_J1_FRAME_WIDTH,
-                                             CELESTE_J1_FRAME_HEIGHT,
-                                             level_background,
-                                             level_1_texture,
-                                             LEVEL_1_TEXTURE_WIDTH,
-                                             sprite_x,
-                                             sprite_y,
-                                             LEVEL_1_TEXTURE_TRANSPARENT_COLOR);
+  (void)x;
+  (void)y;
+  Game_RestorePlayerBackground();
 }
 
-static void Game_DrawLevel2(void)
+static uint8_t Game_DrawScene(uint16_t player_x,
+                              uint16_t player_y,
+                              uint8_t animation_frame,
+                              uint8_t facing_left)
 {
-  uint32_t index;
-
-  ILI9341_Clear(&lcd, GAME_LEVEL_2_BACKGROUND_COLOR);
-  for (index = 0U;
-       index < (sizeof(game_level_2_solids) / sizeof(game_level_2_solids[0]));
-       index++)
+  if (Game_LoadLevel(game_current_level) == 0U)
   {
-    const GameRect_t *solid = &game_level_2_solids[index];
-
-    ILI9341_FillRect(&lcd,
-                     solid->x,
-                     solid->y,
-                     solid->width,
-                     solid->height,
-                     GAME_LEVEL_2_FLOOR_COLOR);
+    ILI9341_Clear(&lcd, 0x0000U);
+    ILI9341_DrawText(&lcd, "ERROR AL LEER SD", 40U, 150U, 0xF800U, 0x0000U);
+    return 0U;
   }
 
-  ILI9341_FillRect(&lcd,
-                   game_level_2_exit.x,
-                   game_level_2_exit.y,
-                   game_level_2_exit.width,
-                   game_level_2_exit.height,
-                   GAME_LEVEL_2_EXIT_COLOR);
-}
-
-static void Game_DrawScene(uint16_t player_x,
-                           uint16_t player_y,
-                           uint8_t animation_frame,
-                           uint8_t facing_left)
-{
-  if (game_current_level == GAME_LEVEL_2)
-  {
-    Game_DrawLevel2();
-    Game_DrawPlayer(player_x,
-                    player_y,
-                    animation_frame,
-                    facing_left,
-                    (Game_IsOnGround(player_x, player_y) == 0U) ? 1U : 0U);
-    return;
-  }
-
-  ILI9341_DrawPackedBitmapRGB565Keyed(&lcd,
-                                       0U,
-                                       0U,
-                                       LEVEL_1_TEXTURE_WIDTH,
-                                       LEVEL_1_TEXTURE_HEIGHT,
-                                       level_background,
-                                       level_1_texture,
-                                       LEVEL_1_TEXTURE_TRANSPARENT_COLOR);
   Game_DrawPlayer(player_x,
                   player_y,
                   animation_frame,
                   facing_left,
                   (Game_IsOnGround(player_x, player_y) == 0U) ? 1U : 0U);
+  return 1U;
 }
 
 /* USER CODE END 0 */
@@ -1035,6 +1328,7 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
   MX_USART2_UART_Init();
+  MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
   lcd_config.reset.port = LCD_RST_GPIO_Port;
   lcd_config.reset.pin = LCD_RST_Pin;
@@ -1131,24 +1425,27 @@ int main(void)
                     START_BACKGROUND_WIDTH,
                     START_BACKGROUND_HEIGHT);
         game_current_level = GAME_LEVEL_1;
+        game_level_ready = 0U;
         game_started = 1U;
         continue;
       }
 
       if (game_started != 0U && game_screen_drawn == 0U) {
-        Game_DrawScene(player_x,
-                       player_y,
-                       player_animation_frame,
-                       player_facing_left);
+        game_level_ready = Game_DrawScene(player_x,
+                                          player_y,
+                                          player_animation_frame,
+                                          player_facing_left);
         game_screen_drawn = 1U;
         (void)Game_ButtonTakePress(&button_jump);
         (void)Game_ButtonTakePress(&button_second_jump);
-        was_on_ground = Game_IsOnGround(player_x, player_y);
+        was_on_ground = (game_level_ready != 0U)
+                            ? Game_IsOnGround(player_x, player_y)
+                            : 0U;
         last_game_update_ms = HAL_GetTick();
         continue;
       }
 
-      if (game_started != 0U &&
+      if (game_started != 0U && game_level_ready != 0U &&
           (HAL_GetTick() - last_game_update_ms) >= GAME_UPDATE_MS) {
         uint16_t previous_player_x = player_x;
         uint16_t previous_player_y = player_y;
@@ -1309,7 +1606,7 @@ int main(void)
           continue;
         }
 
-        if (touched_exit != 0U)
+        if (touched_exit != 0U && game_current_level == GAME_LEVEL_1)
         {
           game_current_level = GAME_LEVEL_2;
           Game_ResetPlayerPosition(&player_x,
@@ -1324,10 +1621,11 @@ int main(void)
           jump_buffer_frames = 0U;
           wall_jump_lock_frames = 0U;
           wall_jump_direction = 0;
-          was_on_ground = Game_IsOnGround(player_x, player_y);
+          was_on_ground = 0U;
           player_animation_frame = 0U;
           player_animation_updates = 0U;
           player_facing_left = 0U;
+          Game_UnloadLevel();
           game_screen_drawn = 0U;
           continue;
         }
@@ -1485,7 +1783,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -1559,7 +1857,10 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LCD_CS_Pin|LCD_D6_Pin|LCD_D3_Pin|LCD_D5_Pin
-                          |LCD_D4_Pin|SD_SS_Pin, GPIO_PIN_RESET);
+                          |LCD_D4_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(SD_SS_GPIO_Port, SD_SS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : LCD_RST_Pin LCD_D1_Pin */
   GPIO_InitStruct.Pin = LCD_RST_Pin|LCD_D1_Pin;

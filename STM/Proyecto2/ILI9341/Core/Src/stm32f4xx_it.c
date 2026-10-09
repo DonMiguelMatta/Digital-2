@@ -22,6 +22,7 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "fatfs_sd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -187,7 +188,15 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+  /* Timeouts usados por las operaciones de la tarjeta SD. */
+  if (Timer1 > 0U)
+  {
+    Timer1--;
+  }
+  if (Timer2 > 0U)
+  {
+    Timer2--;
+  }
   /* USER CODE END SysTick_IRQn 1 */
 }
 
