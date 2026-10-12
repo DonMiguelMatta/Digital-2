@@ -2,6 +2,7 @@
 
 #include <string.h>
 
+/* Formato y valores válidos de una trama del control. */
 #define CONTROLES_SYNC 0xA5U
 #define CONTROLES_FRAME_SIZE 5U
 #define CONTROLES_QUEUE_DEPTH 8U
@@ -16,6 +17,7 @@
 extern UART_HandleTypeDef huart5;
 extern UART_HandleTypeDef huart3;
 
+/* Estado independiente de cada control y su cola de recepción. */
 typedef struct
 {
   UART_HandleTypeDef *uart;
@@ -46,6 +48,7 @@ typedef struct
 static ControlesCanal_t controls[2];
 static UART_HandleTypeDef *debug_uart;
 
+/* Busca el canal usando el número de jugador. */
 static ControlesCanal_t *Controles_GetChannel(uint8_t player)
 {
   if (player == CONTROLES_JUGADOR_1)
@@ -60,6 +63,7 @@ static ControlesCanal_t *Controles_GetChannel(uint8_t player)
   return 0;
 }
 
+/* Busca qué jugador pertenece a la UART que generó el evento. */
 static ControlesCanal_t *Controles_GetUartChannel(UART_HandleTypeDef *uart)
 {
   uint8_t index;
@@ -95,6 +99,7 @@ static uint8_t Controles_Crc8(const uint8_t *data, uint8_t length)
   return crc;
 }
 
+/* Convierte un nibble para mostrarlo en la terminal. */
 static char Controles_HexDigit(uint8_t value)
 {
   value &= 0x0FU;
@@ -102,6 +107,7 @@ static char Controles_HexDigit(uint8_t value)
                        : (char)('A' + value - 10U);
 }
 
+/* Envía un mensaje corto con el número de jugador. */
 static void Controles_DebugText(ControlesCanal_t *channel,
                                 const char *prefix,
                                 const char *result)
@@ -131,6 +137,7 @@ static void Controles_DebugText(ControlesCanal_t *channel,
   (void)HAL_UART_Transmit(debug_uart, (uint8_t *)message, length, 20U);
 }
 
+/* Guarda bytes crudos sin frenar la interrupción. */
 static void Controles_QueueRawByte(ControlesCanal_t *channel, uint8_t byte)
 {
   uint8_t next_head = (uint8_t)((channel->raw_debug_head + 1U) %
@@ -146,6 +153,7 @@ static void Controles_QueueRawByte(ControlesCanal_t *channel, uint8_t byte)
   channel->raw_debug_head = next_head;
 }
 
+/* Saca un byte de depuración de forma segura. */
 static uint8_t Controles_TakeRawByte(ControlesCanal_t *channel, uint8_t *byte)
 {
   uint32_t primask = __get_PRIMASK();
@@ -256,6 +264,7 @@ static void Controles_DebugFrame(ControlesCanal_t *channel,
   }
 }
 
+/* Guarda una trama completa para procesarla fuera de la interrupción. */
 static void Controles_QueueFrame(ControlesCanal_t *channel)
 {
   uint8_t next_head =
@@ -305,6 +314,7 @@ static void Controles_PushByte(ControlesCanal_t *channel, uint8_t byte)
   }
 }
 
+/* Extrae la trama más antigua de la cola. */
 static uint8_t Controles_TakeFrame(ControlesCanal_t *channel,
                                    uint8_t *frame,
                                    uint32_t *received_ms)
@@ -331,6 +341,7 @@ static uint8_t Controles_TakeFrame(ControlesCanal_t *channel,
   return has_frame;
 }
 
+/* Valida la trama y actualiza botones, conexión y eventos. */
 static void Controles_ApplyFrame(ControlesCanal_t *channel,
                                  const uint8_t *frame,
                                  uint32_t received_ms)
@@ -373,12 +384,14 @@ static void Controles_ApplyFrame(ControlesCanal_t *channel,
   }
 
   new_buttons = (uint8_t)(frame[2] & CONTROLES_BUTTON_MASK);
+  /* Sólo genera eventos para botones que acaban de presionarse. */
   channel->pressed_events |=
       (uint8_t)(new_buttons & (uint8_t)~channel->buttons);
   channel->buttons = new_buttons;
   channel->connected = 1U;
 }
 
+/* Procesa tramas pendientes y libera botones por tiempo agotado. */
 static void Controles_UpdateChannel(ControlesCanal_t *channel,
                                     uint32_t now_ms)
 {
@@ -402,6 +415,7 @@ static void Controles_UpdateChannel(ControlesCanal_t *channel,
   }
 }
 
+/* Deja armada la recepción del siguiente byte. */
 static HAL_StatusTypeDef Controles_StartReception(ControlesCanal_t *channel)
 {
   HAL_StatusTypeDef status =
@@ -415,6 +429,7 @@ static HAL_StatusTypeDef Controles_StartReception(ControlesCanal_t *channel)
   return status;
 }
 
+/* Asigna una UART a cada jugador e inicia ambas recepciones. */
 void Controles_Init(void)
 {
   HAL_StatusTypeDef player_1_status;
@@ -436,6 +451,7 @@ void Controles_Init(void)
                       player_2_status == HAL_OK ? "ARM OK" : "ARM ERROR");
 }
 
+/* Selecciona la UART usada únicamente para diagnóstico. */
 void Controles_SetDebugUart(UART_HandleTypeDef *uart)
 {
   static const uint8_t ready_message[] = "celeste\r\n";
@@ -450,12 +466,14 @@ void Controles_SetDebugUart(UART_HandleTypeDef *uart)
   }
 }
 
+/* Actualiza los dos controles desde el ciclo principal. */
 void Controles_Update(uint32_t now_ms)
 {
   Controles_UpdateChannel(&controls[0], now_ms);
   Controles_UpdateChannel(&controls[1], now_ms);
 }
 
+/* Recibe un byte, lo guarda y vuelve a armar la interrupción. */
 void Controles_UART_RxCpltCallback(UART_HandleTypeDef *uart)
 {
   ControlesCanal_t *channel = Controles_GetUartChannel(uart);
@@ -471,6 +489,7 @@ void Controles_UART_RxCpltCallback(UART_HandleTypeDef *uart)
   (void)Controles_StartReception(channel);
 }
 
+/* Reinicia la recepción después de un error de UART. */
 void Controles_UART_ErrorCallback(UART_HandleTypeDef *uart)
 {
   ControlesCanal_t *channel = Controles_GetUartChannel(uart);
@@ -485,6 +504,7 @@ void Controles_UART_ErrorCallback(UART_HandleTypeDef *uart)
   (void)Controles_StartReception(channel);
 }
 
+/* Indica si un botón continúa mantenido. */
 uint8_t Controles_Held(uint8_t player, uint8_t mask)
 {
   ControlesCanal_t *channel = Controles_GetChannel(player);
@@ -492,6 +512,7 @@ uint8_t Controles_Held(uint8_t player, uint8_t mask)
   return (channel != 0 && (channel->buttons & mask) != 0U) ? 1U : 0U;
 }
 
+/* Entrega una pulsación una sola vez y luego la borra. */
 uint8_t Controles_TakePressed(uint8_t player, uint8_t mask)
 {
   ControlesCanal_t *channel = Controles_GetChannel(player);
@@ -507,6 +528,7 @@ uint8_t Controles_TakePressed(uint8_t player, uint8_t mask)
   return (pressed != 0U) ? 1U : 0U;
 }
 
+/* Devuelve el último estado de conexión válido. */
 uint8_t Controles_IsConnected(uint8_t player)
 {
   ControlesCanal_t *channel = Controles_GetChannel(player);
@@ -514,6 +536,7 @@ uint8_t Controles_IsConnected(uint8_t player)
   return (channel != 0) ? channel->connected : 0U;
 }
 
+/* Expone contadores útiles para revisar la comunicación. */
 const ControlesDiagnostico_t *Controles_GetDiagnostics(uint8_t player)
 {
   ControlesCanal_t *channel = Controles_GetChannel(player);

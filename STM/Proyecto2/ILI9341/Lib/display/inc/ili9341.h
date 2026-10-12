@@ -75,6 +75,11 @@ void ILI9341_FillRect(ILI9341_t *lcd,
                       uint16_t width,
                       uint16_t height,
                       uint16_t color);
+void ILI9341_FillCircle(ILI9341_t *lcd,
+                        uint16_t center_x,
+                        uint16_t center_y,
+                        uint16_t radius,
+                        uint16_t color);
 void ILI9341_Clear(ILI9341_t *lcd, uint16_t color);
 void ILI9341_DrawBitmap(ILI9341_t *lcd,
                         uint16_t x,

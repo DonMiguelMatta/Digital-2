@@ -35,20 +35,49 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+/* Formatos usados por los archivos de textura. */
 typedef enum
 {
   GAME_TEXTURE_PACKED_PAIRS = 0,
   GAME_TEXTURE_RGB565_VALUES
 } GameTextureEncoding_t;
 
+/* Etapa en la que puede fallar la carga de un nivel. */
+typedef enum
+{
+  GAME_LOAD_ERROR_NONE = 0,
+  GAME_LOAD_ERROR_LEVEL,
+  GAME_LOAD_ERROR_MOUNT,
+  GAME_LOAD_ERROR_BACKGROUND_OPEN,
+  GAME_LOAD_ERROR_OVERLAY_OPEN,
+  GAME_LOAD_ERROR_FLASH_ERASE,
+  GAME_LOAD_ERROR_BACKGROUND_READ,
+  GAME_LOAD_ERROR_OVERLAY_READ,
+  GAME_LOAD_ERROR_FLASH_WRITE,
+  GAME_LOAD_ERROR_FLASH_VERIFY
+} GameLoadError_t;
+
+/* Lector pequeño para no guardar el archivo completo en RAM. */
+typedef struct
+{
+  FIL *file;
+  uint8_t buffer[512U];
+  UINT position;
+  UINT length;
+  FRESULT result;
+} GameTextReader_t;
+
+/* Datos necesarios para registrar un nivel. */
 typedef struct
 {
   const char *short_name;
   const char *original_name;
-  uint16_t height;
+  uint16_t playfield_height;
+  uint16_t player_start_y;
   GameTextureEncoding_t encoding;
 } GameLevelFile_t;
 
+/* Estado de movimiento, saltos y animación de un jugador. */
 typedef struct
 {
   uint8_t controller_id;
@@ -78,6 +107,7 @@ typedef struct
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+/* Posición y parpadeo del aviso de inicio. */
 #define START_PROMPT_BOX_X 16U
 #define START_PROMPT_BOX_Y 268U
 #define START_PROMPT_BOX_WIDTH 208U
@@ -86,6 +116,8 @@ typedef struct
 #define START_PROMPT_TEXT_Y 274U
 #define START_PROMPT_BLINK_MS 250U
 #define START_PROMPT_TEXT "PRESIONA START"
+
+/* Tamaño de colisión y ajuste del sprite sobre el jugador. */
 #define GAME_PLAYER_WIDTH 18U
 #define GAME_PLAYER_HEIGHT 14U
 #define GAME_PLAYER_SPRITE_TRANSPARENT_COLOR 0x07E5U
@@ -95,11 +127,9 @@ typedef struct
 #define GAME_PLAYER_START_X 15U
 #define GAME_PLAYER_START_Y 170U
 #define GAME_PLAYER_2_START_X 75U
-#define GAME_LEVEL_2_PLAYER_START_X 15U
-#define GAME_LEVEL_2_PLAYER_START_Y 207U
-#define GAME_LEVEL_3_PLAYER_START_X 15U
-#define GAME_LEVEL_3_PLAYER_START_Y 192U
 #define GAME_PLAYER_COUNT 2U
+
+/* La física usa 256 unidades internas por cada píxel. */
 #define GAME_UPDATE_MS 20U
 #define GAME_FIXED_POINT_ONE 256L
 /* Usa multiplicadores con sufijo f y redondea al entero más cercano. */
@@ -111,6 +141,8 @@ typedef struct
   ((int32_t)GAME_PLAYER_START_X * GAME_FIXED_POINT_ONE)
 #define GAME_PLAYER_START_Y_FIXED \
   ((int32_t)GAME_PLAYER_START_Y * GAME_FIXED_POINT_ONE)
+
+/* Ajustes del movimiento horizontal. */
 #define GAME_HORIZONTAL_MAX_SPEED_MULTIPLIER 2.0f
 #define GAME_HORIZONTAL_MAX_SPEED \
   GAME_SCALE_ROUNDED(GAME_FIXED_POINT_ONE, \
@@ -118,6 +150,8 @@ typedef struct
 #define GAME_HORIZONTAL_GROUND_ACCEL 180L
 #define GAME_HORIZONTAL_AIR_ACCEL 180L
 #define GAME_HORIZONTAL_DECEL 40L
+
+/* Estados y alturas disponibles para los saltos. */
 #define GAME_JUMP_COUNT_NORMAL_READY 0U
 #define GAME_JUMP_COUNT_SECOND_READY 1U
 #define GAME_JUMP_COUNT_EXHAUSTED 2U
@@ -137,6 +171,8 @@ typedef struct
 #define GAME_SECOND_JUMP_DIAGONAL_SPEED \
   GAME_SCALE_ROUNDED(GAME_FIXED_POINT_ONE, \
                      GAME_SECOND_JUMP_DIAGONAL_SPEED_MULTIPLIER)
+
+/* Ajustes de caída, resbalamiento y salto de pared. */
 #define GAME_GRAVITY_BASE 32L
 #define GAME_APEX_GRAVITY_BASE 16L
 #define GAME_GRAVITY_MULTIPLIER 2.0f
@@ -161,9 +197,29 @@ typedef struct
                      GAME_WALL_JUMP_SIDE_SPEED_MULTIPLIER)
 #define GAME_JUMP_BUFFER_FRAMES 4U
 #define GAME_WALL_JUMP_LOCK_FRAMES 5U
+
+/* Colores y posiciones del marcador. */
 #define GAME_LEVEL_1 1U
-#define GAME_LEVEL_2 2U
-#define GAME_LEVEL_3 3U
+#define GAME_HUD_COLOR 0x5E7BU
+#define GAME_PLAYER_1_COLOR 0xF809U
+#define GAME_PLAYER_2_COLOR 0x6052U
+#define GAME_HUD_TEXT_COLOR 0x0000U
+#define GAME_HUD_PLAYER_1_X 60U
+#define GAME_HUD_PLAYER_2_X 180U
+#define GAME_HUD_CIRCLE_RADIUS 18U
+#define GAME_HUD_LABEL_Y_OFFSET 4U
+#define GAME_HUD_CIRCLE_Y_OFFSET 36U
+#define GAME_HUD_SCORE_Y_OFFSET 65U
+#define GAME_RESULT_PANEL_X 24U
+#define GAME_RESULT_PANEL_Y 100U
+#define GAME_RESULT_PANEL_WIDTH 192U
+#define GAME_RESULT_PANEL_HEIGHT 132U
+#define GAME_RESULT_CIRCLE_Y 169U
+#define GAME_RESULT_CIRCLE_RADIUS 24U
+#define GAME_RESULT_TIE_CIRCLE_RADIUS 20U
+#define GAME_RESULT_TEXT_COLOR 0xFFFFU
+#define GAME_RESULT_BACKGROUND_COLOR 0x0000U
+
 /* Colores RGB565 equivalentes a #FA0300 y #FFEF00. */
 #define GAME_LEVEL_HAZARD_COLOR 0xF800U
 #define GAME_LEVEL_EXIT_COLOR 0xFF60U
@@ -177,7 +233,6 @@ typedef struct
 #define GAME_SD_LEVEL_2_FILE_ORIGINAL "0:/Nivel2.txt"
 #define GAME_SD_LEVEL_3_FILE "0:/NIVEL3.TXT"
 #define GAME_SD_LEVEL_3_FILE_ORIGINAL "0:/Nivel3.txt"
-#define GAME_SD_LINE_BUFFER_SIZE 2048U
 #define GAME_PACKED_WORDS_PER_ROW (ILI9341_WIDTH / 2U)
 #define GAME_LEVEL_FLASH_FIRST_SECTOR FLASH_SECTOR_6
 #define GAME_LEVEL_FLASH_SECTOR_COUNT 2U
@@ -187,6 +242,8 @@ typedef struct
   (GAME_LEVEL_FLASH_PIXEL_COUNT * sizeof(uint16_t))
 #define GAME_LEVEL_HASH_INITIAL 2166136261UL
 #define GAME_LEVEL_HASH_PRIME 16777619UL
+
+/* Cada píxel ocupa dos bits dentro del mapa de colisiones. */
 #define GAME_COLLISION_BITS_PER_PIXEL 2U
 #define GAME_COLLISION_PIXELS_PER_BYTE 4U
 #define GAME_COLLISION_MAP_SIZE \
@@ -195,6 +252,8 @@ typedef struct
 #define GAME_COLLISION_SOLID 1U
 #define GAME_COLLISION_HAZARD 2U
 #define GAME_COLLISION_EXIT 3U
+
+/* Eventos que puede devolver la actualización de un jugador. */
 #define GAME_PLAYER_EVENT_NONE 0U
 #define GAME_PLAYER_EVENT_RESPAWN (1U << 0)
 #define GAME_PLAYER_EVENT_EXIT (1U << 1)
@@ -216,32 +275,43 @@ UART_HandleTypeDef huart3;
 /* USER CODE BEGIN PV */
 ILI9341_t lcd;
 Nieve_t nieve;
+
+/* Tabla usada para añadir niveles sin cambiar la lógica principal. */
 static uint8_t game_current_level = GAME_LEVEL_1;
 static const GameLevelFile_t game_level_files[] = {
     {GAME_SD_LEVEL_1_FILE,
      GAME_SD_LEVEL_1_FILE_ORIGINAL,
-     LEVEL_1_TEXTURE_HEIGHT,
+     236U,
+     GAME_PLAYER_START_Y,
      GAME_TEXTURE_PACKED_PAIRS},
     {GAME_SD_LEVEL_2_FILE,
      GAME_SD_LEVEL_2_FILE_ORIGINAL,
      235U,
+     207U,
      GAME_TEXTURE_PACKED_PAIRS},
     {GAME_SD_LEVEL_3_FILE,
      GAME_SD_LEVEL_3_FILE_ORIGINAL,
      235U,
+     192U,
      GAME_TEXTURE_RGB565_VALUES},
 };
+#define GAME_LEVEL_COUNT \
+  ((uint8_t)(sizeof(game_level_files) / sizeof(game_level_files[0])))
 static FIL game_background_file;
 static FIL game_overlay_file;
 static uint8_t game_background_file_open = 0U;
 static uint8_t game_overlay_file_open = 0U;
 static uint8_t game_sd_mounted = 0U;
 static uint8_t game_level_ready = 0U;
-static char game_sd_line[GAME_SD_LINE_BUFFER_SIZE];
+static GameLoadError_t game_load_error = GAME_LOAD_ERROR_NONE;
+static uint16_t game_load_error_row = 0U;
+static GameTextReader_t game_background_reader;
+static GameTextReader_t game_overlay_reader;
 static uint16_t game_background_row[ILI9341_WIDTH];
 static uint16_t game_overlay_row[ILI9341_WIDTH];
 static uint16_t game_composed_row[ILI9341_WIDTH];
 static uint8_t game_collision_map[GAME_COLLISION_MAP_SIZE];
+static uint16_t game_scores[GAME_PLAYER_COUNT];
 
 /* USER CODE END PV */
 
@@ -260,6 +330,7 @@ extern uint8_t __level_cache_end__;
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* Dibuja el aviso que parpadea en la pantalla inicial. */
 static void StartScreen_DrawPrompt(void)
 {
   ILI9341_FillRect(&lcd,
@@ -276,6 +347,7 @@ static void StartScreen_DrawPrompt(void)
                    0x0000U);
 }
 
+/* Recupera sólo el área ocupada por el aviso. */
 static void StartScreen_RestorePromptBackground(void)
 {
   const uint16_t *background_region =
@@ -291,6 +363,239 @@ static void StartScreen_RestorePromptBackground(void)
                             START_BACKGROUND_WIDTH);
 }
 
+/* Obtiene los datos del nivel usando números desde 1. */
+static const GameLevelFile_t *Game_GetLevelFile(uint8_t level)
+{
+  if (level < GAME_LEVEL_1 || level > GAME_LEVEL_COUNT)
+  {
+    return 0;
+  }
+
+  return &game_level_files[level - GAME_LEVEL_1];
+}
+
+/* Convierte un puntaje sin usar printf. */
+static uint8_t Game_Uint16ToText(uint16_t value, char *text)
+{
+  char reverse[5];
+  uint8_t length = 0U;
+  uint8_t index;
+
+  do
+  {
+    reverse[length++] = (char)('0' + (value % 10U)); /* Sale al revés. */
+    value /= 10U;
+  } while (value != 0U && length < sizeof(reverse));
+
+  for (index = 0U; index < length; index++)
+  {
+    text[index] = reverse[length - index - 1U];
+  }
+  text[length] = '\0';
+  return length;
+}
+
+/* Une el valor numérico con el texto del resultado. */
+static void Game_BuildPointsText(uint16_t score, char *text)
+{
+  static const char suffix[] = " PUNTOS";
+  uint8_t length = Game_Uint16ToText(score, text);
+  uint8_t index;
+
+  for (index = 0U; index < sizeof(suffix); index++)
+  {
+    text[length + index] = suffix[index];
+  }
+}
+
+/* Centra texto de la fuente básica de 8 píxeles. */
+static void Game_DrawCenteredText(const char *text,
+                                  uint16_t y,
+                                  uint16_t color,
+                                  uint16_t background)
+{
+  uint16_t width = (uint16_t)strlen(text) * 8U; /* 8 px por carácter. */
+  uint16_t x = (width < ILI9341_WIDTH)
+                   ? (uint16_t)((ILI9341_WIDTH - width) / 2U)
+                   : 0U;
+
+  ILI9341_DrawText(&lcd, text, x, y, color, background);
+}
+
+/* Traduce el código de error a un mensaje corto. */
+static const char *Game_LoadErrorText(GameLoadError_t error)
+{
+  switch (error)
+  {
+    case GAME_LOAD_ERROR_LEVEL:
+      return "NIVEL INVALIDO";
+    case GAME_LOAD_ERROR_MOUNT:
+      return "MONTAR SD";
+    case GAME_LOAD_ERROR_BACKGROUND_OPEN:
+      return "ABRIR FONDO";
+    case GAME_LOAD_ERROR_OVERLAY_OPEN:
+      return "ABRIR NIVEL";
+    case GAME_LOAD_ERROR_FLASH_ERASE:
+      return "BORRAR FLASH";
+    case GAME_LOAD_ERROR_BACKGROUND_READ:
+      return "LEER FONDO";
+    case GAME_LOAD_ERROR_OVERLAY_READ:
+      return "LEER NIVEL";
+    case GAME_LOAD_ERROR_FLASH_WRITE:
+      return "ESCRIBIR FLASH";
+    case GAME_LOAD_ERROR_FLASH_VERIFY:
+      return "VERIFICAR FLASH";
+    default:
+      return "ERROR DESCONOCIDO";
+  }
+}
+
+/* Muestra la etapa exacta para localizar fallos de SD o Flash. */
+static void Game_DrawLoadError(void)
+{
+  char row_text[10] = "FILA ";
+  uint8_t show_row = 0U;
+
+  ILI9341_Clear(&lcd, 0x0000U);
+  Game_DrawCenteredText("ERROR AL CARGAR",
+                        126U,
+                        0xF800U,
+                        0x0000U);
+  Game_DrawCenteredText(Game_LoadErrorText(game_load_error),
+                        150U,
+                        0xFFFFU,
+                        0x0000U);
+
+  if (game_load_error == GAME_LOAD_ERROR_BACKGROUND_READ ||
+      game_load_error == GAME_LOAD_ERROR_OVERLAY_READ ||
+      game_load_error == GAME_LOAD_ERROR_FLASH_WRITE)
+  {
+    show_row = 1U;
+  }
+
+  if (show_row != 0U)
+  {
+    Game_Uint16ToText((uint16_t)(game_load_error_row + 1U),
+                      &row_text[5]);
+    Game_DrawCenteredText(row_text, 174U, 0xFFFFU, 0x0000U);
+  }
+}
+
+/* Dibuja los dos marcadores debajo del area jugable. */
+static void Game_DrawScoreboard(uint8_t level)
+{
+  const GameLevelFile_t *level_file = Game_GetLevelFile(level);
+  char score_text[6];
+  uint8_t length;
+  uint16_t label_y;
+  uint16_t circle_y;
+  uint16_t score_y;
+
+  if (level_file == 0)
+  {
+    return;
+  }
+
+  label_y = (uint16_t)(level_file->playfield_height +
+                       GAME_HUD_LABEL_Y_OFFSET);
+  circle_y = (uint16_t)(level_file->playfield_height +
+                        GAME_HUD_CIRCLE_Y_OFFSET);
+  score_y = (uint16_t)(level_file->playfield_height +
+                       GAME_HUD_SCORE_Y_OFFSET);
+
+  ILI9341_DrawText(&lcd,
+                   "J1",
+                   GAME_HUD_PLAYER_1_X - 8U,
+                   label_y,
+                   GAME_HUD_TEXT_COLOR,
+                   GAME_HUD_COLOR);
+  ILI9341_DrawText(&lcd,
+                   "J2",
+                   GAME_HUD_PLAYER_2_X - 8U,
+                   label_y,
+                   GAME_HUD_TEXT_COLOR,
+                   GAME_HUD_COLOR);
+  ILI9341_FillCircle(&lcd,
+                     GAME_HUD_PLAYER_1_X,
+                     circle_y,
+                     GAME_HUD_CIRCLE_RADIUS,
+                     GAME_PLAYER_1_COLOR);
+  ILI9341_FillCircle(&lcd,
+                     GAME_HUD_PLAYER_2_X,
+                     circle_y,
+                     GAME_HUD_CIRCLE_RADIUS,
+                     GAME_PLAYER_2_COLOR);
+
+  length = Game_Uint16ToText(game_scores[0], score_text);
+  ILI9341_DrawText(&lcd,
+                   score_text,
+                   (uint16_t)(GAME_HUD_PLAYER_1_X - length * 4U),
+                   score_y,
+                   GAME_HUD_TEXT_COLOR,
+                   GAME_HUD_COLOR);
+  length = Game_Uint16ToText(game_scores[1], score_text);
+  ILI9341_DrawText(&lcd,
+                   score_text,
+                   (uint16_t)(GAME_HUD_PLAYER_2_X - length * 4U),
+                   score_y,
+                   GAME_HUD_TEXT_COLOR,
+                   GAME_HUD_COLOR);
+}
+
+/* Esta capa se redibuja despues de la nieve para conservar el resultado. */
+static void Game_DrawResultScreen(void)
+{
+  char points_text[13];
+
+  ILI9341_FillRect(&lcd,
+                   GAME_RESULT_PANEL_X,
+                   GAME_RESULT_PANEL_Y,
+                   GAME_RESULT_PANEL_WIDTH,
+                   GAME_RESULT_PANEL_HEIGHT,
+                   GAME_RESULT_BACKGROUND_COLOR);
+
+  if (game_scores[0] == game_scores[1])
+  {
+    Game_DrawCenteredText("EMPATE",
+                          GAME_RESULT_PANEL_Y + 12U,
+                          GAME_RESULT_TEXT_COLOR,
+                          GAME_RESULT_BACKGROUND_COLOR);
+    ILI9341_FillCircle(&lcd,
+                       84U,
+                       GAME_RESULT_CIRCLE_Y,
+                       GAME_RESULT_TIE_CIRCLE_RADIUS,
+                       GAME_PLAYER_1_COLOR);
+    ILI9341_FillCircle(&lcd,
+                       156U,
+                       GAME_RESULT_CIRCLE_Y,
+                       GAME_RESULT_TIE_CIRCLE_RADIUS,
+                       GAME_PLAYER_2_COLOR);
+    Game_BuildPointsText(game_scores[0], points_text);
+  }
+  else
+  {
+    uint8_t winner = (game_scores[0] > game_scores[1]) ? 0U : 1U;
+
+    Game_DrawCenteredText("GANA EL JUGADOR",
+                          GAME_RESULT_PANEL_Y + 12U,
+                          GAME_RESULT_TEXT_COLOR,
+                          GAME_RESULT_BACKGROUND_COLOR);
+    ILI9341_FillCircle(&lcd,
+                       ILI9341_WIDTH / 2U,
+                       GAME_RESULT_CIRCLE_Y,
+                       GAME_RESULT_CIRCLE_RADIUS,
+                       (winner == 0U) ? GAME_PLAYER_1_COLOR
+                                      : GAME_PLAYER_2_COLOR);
+    Game_BuildPointsText(game_scores[winner], points_text);
+  }
+
+  Game_DrawCenteredText(points_text,
+                        GAME_RESULT_PANEL_Y + 106U,
+                        GAME_RESULT_TEXT_COLOR,
+                        GAME_RESULT_BACKGROUND_COLOR);
+}
+
+/* Acerca un valor al objetivo sin pasarse. */
 static int32_t Game_Approach(int32_t value, int32_t target, int32_t amount)
 {
   if (value < target)
@@ -307,6 +612,7 @@ static int32_t Game_Approach(int32_t value, int32_t target, int32_t amount)
   return value;
 }
 
+/* Ajusta la posición del dibujo respecto al rectángulo de colisión. */
 static uint16_t Game_PlayerSpriteX(uint16_t player_x)
 {
   return (uint16_t)(player_x + GAME_PLAYER_SPRITE_OFFSET_X);
@@ -359,6 +665,7 @@ static void Game_DrawPlayer(const GamePlayer_t *player, uint8_t airborne)
       player->facing_left);
 }
 
+/* Convierte un carácter hexadecimal a su valor numérico. */
 static int8_t Game_HexDigit(char character)
 {
   if (character >= '0' && character <= '9')
@@ -377,102 +684,114 @@ static int8_t Game_HexDigit(char character)
   return -1;
 }
 
-/* Convierte una fila de 120 palabras en 240 píxeles RGB565. */
-static uint8_t Game_ParsePackedRow(char *line, uint16_t *pixels)
+/* Guarda bloques pequeños para leer archivos largos sin usar mucha RAM. */
+static void Game_TextReaderInit(GameTextReader_t *reader, FIL *file)
 {
-  char *cursor = line;
-  uint16_t word_index = 0U;
+  reader->file = file;
+  reader->position = 0U;
+  reader->length = 0U;
+  reader->result = FR_OK;
+}
 
-  while (*cursor != '\0' && word_index < GAME_PACKED_WORDS_PER_ROW)
+static uint8_t Game_TextReaderGetChar(GameTextReader_t *reader,
+                                      char *character)
+{
+  if (reader->position >= reader->length)
   {
-    uint32_t value = 0U;
-    uint8_t digit_count = 0U;
-    int8_t digit;
+    UINT bytes_read = 0U;
 
-    while (*cursor != '\0' &&
-           !(cursor[0] == '0' &&
-             (cursor[1] == 'x' || cursor[1] == 'X')))
-    {
-      cursor++;
-    }
-    if (*cursor == '\0')
-    {
-      break;
-    }
-
-    cursor += 2;
-    while ((digit = Game_HexDigit(*cursor)) >= 0)
-    {
-      value = (value << 4U) | (uint32_t)digit;
-      digit_count++;
-      cursor++;
-    }
-    if (digit_count == 0U)
+    reader->result = f_read(reader->file,
+                            reader->buffer,
+                            sizeof(reader->buffer),
+                            &bytes_read);
+    if (reader->result != FR_OK || bytes_read == 0U)
     {
       return 0U;
     }
 
-    pixels[word_index * 2U] = (uint16_t)(value >> 16U);
-    pixels[word_index * 2U + 1U] = (uint16_t)value;
-    word_index++;
+    reader->position = 0U;
+    reader->length = bytes_read;
   }
 
-  return (word_index == GAME_PACKED_WORDS_PER_ROW) ? 1U : 0U;
+  *character = (char)reader->buffer[reader->position++];
+  return 1U;
 }
 
-/* Nivel 3 guarda cada pixel como un valor RGB565 independiente. */
-static uint8_t Game_ParseRgb565Row(char *line, uint16_t *pixels)
+/* Lee el siguiente valor 0x... sin depender del largo de cada linea. */
+static uint8_t Game_TextReaderNextHex(GameTextReader_t *reader,
+                                      uint32_t *value,
+                                      uint8_t max_digits)
 {
-  char *cursor = line;
-  uint16_t pixel_index = 0U;
+  char character;
+  uint8_t found_zero = 0U;
+  uint8_t digit_count = 0U;
+  int8_t digit;
 
-  while (*cursor != '\0' && pixel_index < ILI9341_WIDTH)
+  while (Game_TextReaderGetChar(reader, &character) != 0U)
   {
-    uint32_t value = 0U;
-    uint8_t digit_count = 0U;
-    int8_t digit;
-
-    while (*cursor != '\0' &&
-           !(cursor[0] == '0' &&
-             (cursor[1] == 'x' || cursor[1] == 'X')))
-    {
-      cursor++;
-    }
-    if (*cursor == '\0')
+    if (found_zero != 0U && (character == 'x' || character == 'X'))
     {
       break;
     }
-
-    cursor += 2;
-    while ((digit = Game_HexDigit(*cursor)) >= 0)
-    {
-      value = (value << 4U) | (uint32_t)digit;
-      digit_count++;
-      cursor++;
-    }
-    if (digit_count == 0U || digit_count > 4U)
-    {
-      return 0U;
-    }
-
-    pixels[pixel_index++] = (uint16_t)value;
+    found_zero = (character == '0') ? 1U : 0U;
   }
 
-  return (pixel_index == ILI9341_WIDTH) ? 1U : 0U;
-}
-
-static uint8_t Game_ReadNextRow(FIL *file,
-                                uint16_t *pixels,
-                                GameTextureEncoding_t encoding)
-{
-  if (f_gets(game_sd_line, sizeof(game_sd_line), file) == 0)
+  if (found_zero == 0U || (character != 'x' && character != 'X'))
   {
     return 0U;
   }
 
-  return (encoding == GAME_TEXTURE_RGB565_VALUES)
-             ? Game_ParseRgb565Row(game_sd_line, pixels)
-             : Game_ParsePackedRow(game_sd_line, pixels);
+  *value = 0U;
+  while (Game_TextReaderGetChar(reader, &character) != 0U)
+  {
+    digit = Game_HexDigit(character);
+    if (digit < 0)
+    {
+      break;
+    }
+    if (digit_count >= max_digits)
+    {
+      return 0U;
+    }
+
+    *value = (*value << 4U) | (uint32_t)digit;
+    digit_count++;
+  }
+
+  return (digit_count != 0U) ? 1U : 0U;
+}
+
+static uint8_t Game_ReadNextRow(GameTextReader_t *reader,
+                                uint16_t *pixels,
+                                GameTextureEncoding_t encoding)
+{
+  uint16_t item_count = (encoding == GAME_TEXTURE_RGB565_VALUES)
+                            ? ILI9341_WIDTH
+                            : GAME_PACKED_WORDS_PER_ROW;
+  uint8_t max_digits = (encoding == GAME_TEXTURE_RGB565_VALUES) ? 4U : 8U;
+  uint16_t item_index;
+
+  for (item_index = 0U; item_index < item_count; item_index++)
+  {
+    uint32_t value = 0U;
+
+    if (Game_TextReaderNextHex(reader, &value, max_digits) == 0U)
+    {
+      return 0U;
+    }
+
+    if (encoding == GAME_TEXTURE_RGB565_VALUES)
+    {
+      pixels[item_index] = (uint16_t)value;
+    }
+    else
+    {
+      pixels[item_index * 2U] = (uint16_t)(value >> 16U);
+      pixels[item_index * 2U + 1U] = (uint16_t)value;
+    }
+  }
+
+  return 1U;
 }
 
 static uint8_t Game_OpenTextureFile(FIL *file,
@@ -511,9 +830,10 @@ static void Game_UnloadLevel(void)
   memset(game_collision_map, 0, sizeof(game_collision_map));
 }
 
+/* Guarda un tipo de colisión dentro de sus dos bits. */
 static void Game_SetCollision(uint16_t x, uint16_t y, uint8_t type)
 {
-  uint32_t pixel_index = (uint32_t)y * ILI9341_WIDTH + x;
+  uint32_t pixel_index = (uint32_t)y * ILI9341_WIDTH + x; /* Índice lineal. */
   uint32_t byte_index = pixel_index / GAME_COLLISION_PIXELS_PER_BYTE;
   uint8_t shift = (uint8_t)((pixel_index % GAME_COLLISION_PIXELS_PER_BYTE) *
                             GAME_COLLISION_BITS_PER_PIXEL);
@@ -524,6 +844,7 @@ static void Game_SetCollision(uint16_t x, uint16_t y, uint8_t type)
                 ((type & 0x03U) << shift));
 }
 
+/* Recupera los dos bits asignados a un píxel. */
 static uint8_t Game_GetCollision(uint16_t x, uint16_t y)
 {
   uint32_t pixel_index = (uint32_t)y * ILI9341_WIDTH + x;
@@ -534,6 +855,7 @@ static uint8_t Game_GetCollision(uint16_t x, uint16_t y)
   return (uint8_t)((game_collision_map[byte_index] >> shift) & 0x03U);
 }
 
+/* Convierte el color de la textura a un tipo de colisión. */
 static uint8_t Game_CollisionTypeForColor(uint16_t color)
 {
   if (color == LEVEL_1_TEXTURE_TRANSPARENT_COLOR)
@@ -552,9 +874,20 @@ static uint8_t Game_CollisionTypeForColor(uint16_t color)
   return GAME_COLLISION_SOLID;
 }
 
-static void Game_ComposeRow(uint16_t y)
+/* Combina fondo, nivel y marcador una fila a la vez. */
+static void Game_ComposeRow(uint16_t y, uint16_t playfield_height)
 {
   uint16_t x;
+
+  if (y >= playfield_height)
+  {
+    for (x = 0U; x < ILI9341_WIDTH; x++)
+    {
+      game_composed_row[x] = GAME_HUD_COLOR;
+      Game_SetCollision(x, y, GAME_COLLISION_SOLID);
+    }
+    return;
+  }
 
   for (x = 0U; x < ILI9341_WIDTH; x++)
   {
@@ -568,11 +901,13 @@ static void Game_ComposeRow(uint16_t y)
   }
 }
 
+/* Dirección inicial de la imagen guardada en Flash. */
 static const uint16_t *Game_LevelFlashPixels(void)
 {
   return (const uint16_t *)(uintptr_t)&__level_cache_start__;
 }
 
+/* Comprueba que la zona reservada alcance para 240 x 320. */
 static uint8_t Game_LevelFlashHasCapacity(void)
 {
   uintptr_t start = (uintptr_t)&__level_cache_start__;
@@ -609,6 +944,7 @@ static uint8_t Game_LevelFlashBeginWrite(void)
   return 1U;
 }
 
+/* Bloquea la Flash y actualiza su caché de datos. */
 static void Game_LevelFlashEndWrite(void)
 {
   (void)HAL_FLASH_Lock();
@@ -652,6 +988,7 @@ static uint8_t Game_LevelFlashWriteRow(uint16_t y,
   return 1U;
 }
 
+/* Actualiza la verificación usando los dos bytes de cada píxel. */
 static uint32_t Game_UpdateLevelHash(uint32_t hash,
                                      const uint16_t *pixels,
                                      uint32_t pixel_count)
@@ -678,8 +1015,12 @@ static uint8_t Game_LoadLevel(uint8_t level)
   uint8_t flash_write_active = 0U;
   uint16_t y;
 
-  if (level < GAME_LEVEL_1 || level > GAME_LEVEL_3)
+  game_load_error = GAME_LOAD_ERROR_NONE;
+  game_load_error_row = 0U;
+
+  if (level < GAME_LEVEL_1 || level > GAME_LEVEL_COUNT)
   {
+    game_load_error = GAME_LOAD_ERROR_LEVEL;
     return 0U;
   }
 
@@ -689,16 +1030,18 @@ static uint8_t Game_LoadLevel(uint8_t level)
   {
     if (f_mount(&USERFatFS, USERPath, 1U) != FR_OK)
     {
+      game_load_error = GAME_LOAD_ERROR_MOUNT;
       return 0U;
     }
     game_sd_mounted = 1U;
   }
 
-  level_file = &game_level_files[level - GAME_LEVEL_1];
+  level_file = Game_GetLevelFile(level);
   if (Game_OpenTextureFile(&game_background_file,
                            GAME_SD_BACKGROUND_FILE,
                            GAME_SD_BACKGROUND_FILE_ORIGINAL) == 0U)
   {
+    game_load_error = GAME_LOAD_ERROR_BACKGROUND_OPEN;
     return 0U;
   }
   game_background_file_open = 1U;
@@ -707,51 +1050,49 @@ static uint8_t Game_LoadLevel(uint8_t level)
                            level_file->short_name,
                            level_file->original_name) == 0U)
   {
+    game_load_error = GAME_LOAD_ERROR_OVERLAY_OPEN;
     Game_CloseLevelFiles();
     return 0U;
   }
   game_overlay_file_open = 1U;
+  Game_TextReaderInit(&game_background_reader, &game_background_file);
+  Game_TextReaderInit(&game_overlay_reader, &game_overlay_file);
 
   if (Game_LevelFlashBeginWrite() == 0U)
   {
+    game_load_error = GAME_LOAD_ERROR_FLASH_ERASE;
     goto load_failed;
   }
   flash_write_active = 1U;
 
   for (y = 0U; y < ILI9341_HEIGHT; y++)
   {
-    if (Game_ReadNextRow(&game_background_file,
+    game_load_error_row = y;
+    if (Game_ReadNextRow(&game_background_reader,
                          game_background_row,
                          GAME_TEXTURE_PACKED_PAIRS) == 0U)
     {
+      game_load_error = GAME_LOAD_ERROR_BACKGROUND_READ;
       goto load_failed;
     }
 
-    if (y < level_file->height)
+    if (y < level_file->playfield_height)
     {
-      if (Game_ReadNextRow(&game_overlay_file,
+      if (Game_ReadNextRow(&game_overlay_reader,
                            game_overlay_row,
                            level_file->encoding) == 0U)
       {
+        game_load_error = GAME_LOAD_ERROR_OVERLAY_READ;
         goto load_failed;
       }
     }
-    else
-    {
-      uint16_t x;
-
-      for (x = 0U; x < ILI9341_WIDTH; x++)
-      {
-        game_overlay_row[x] = LEVEL_1_TEXTURE_TRANSPARENT_COLOR;
-      }
-    }
-
-    Game_ComposeRow(y);
+    Game_ComposeRow(y, level_file->playfield_height);
     expected_hash = Game_UpdateLevelHash(expected_hash,
                                          game_composed_row,
                                          ILI9341_WIDTH);
     if (Game_LevelFlashWriteRow(y, game_composed_row) == 0U)
     {
+      game_load_error = GAME_LOAD_ERROR_FLASH_WRITE;
       goto load_failed;
     }
   }
@@ -765,6 +1106,7 @@ static uint8_t Game_LoadLevel(uint8_t level)
                                      GAME_LEVEL_FLASH_PIXEL_COUNT);
   if (stored_hash != expected_hash)
   {
+    game_load_error = GAME_LOAD_ERROR_FLASH_VERIFY;
     goto load_failed;
   }
 
@@ -808,6 +1150,7 @@ static void Game_RestorePlayerArea(uint16_t player_x, uint16_t player_y)
       ILI9341_WIDTH);
 }
 
+/* Los límites de pantalla también se tratan como sólidos. */
 static uint8_t Game_IsSolidPixel(int32_t x, int32_t y)
 {
   if (x < 0L || x >= (int32_t)ILI9341_WIDTH || y < 0L ||
@@ -870,6 +1213,7 @@ static uint8_t Game_TouchesLevelColor(uint16_t player_x,
   return 0U;
 }
 
+/* Revisa el rectángulo completo del jugador en una posición. */
 static uint8_t Game_CollidesAt(int32_t x, int32_t y)
 {
   uint16_t row;
@@ -889,6 +1233,7 @@ static uint8_t Game_CollidesAt(int32_t x, int32_t y)
   return 0U;
 }
 
+/* Prueba la misma caja un píxel más abajo. */
 static uint8_t Game_IsOnGround(uint16_t player_x, uint16_t player_y)
 {
   return Game_CollidesAt((int32_t)player_x, (int32_t)player_y + 1L);
@@ -1082,6 +1427,7 @@ static void Game_ApplyGravity(uint8_t on_ground, int32_t *player_velocity_y)
                                      gravity);
 }
 
+/* Mueve un píxel a la vez para no atravesar paredes. */
 static void Game_MoveHorizontal(uint16_t *player_x,
                                 uint16_t player_y,
                                 int32_t *player_x_fixed,
@@ -1102,7 +1448,7 @@ static void Game_MoveHorizontal(uint16_t *player_x,
     *player_velocity_x = 0L;
   }
 
-  target_x = desired_fixed / GAME_FIXED_POINT_ONE;
+  target_x = desired_fixed / GAME_FIXED_POINT_ONE; /* Vuelve a píxeles. */
   while (current_x != target_x)
   {
     int32_t next_x = current_x + ((target_x > current_x) ? 1L : -1L);
@@ -1121,6 +1467,7 @@ static void Game_MoveHorizontal(uint16_t *player_x,
   *player_x_fixed = desired_fixed;
 }
 
+/* Aplica altura máxima y colisiones con suelo o techo. */
 static void Game_MoveVertical(uint16_t player_x,
                               uint16_t *player_y,
                               int32_t *player_y_fixed,
@@ -1151,7 +1498,7 @@ static void Game_MoveVertical(uint16_t player_x,
     *player_velocity_y = 0L;
   }
 
-  target_y = desired_fixed / GAME_FIXED_POINT_ONE;
+  target_y = desired_fixed / GAME_FIXED_POINT_ONE; /* Vuelve a píxeles. */
   while (current_y != target_y)
   {
     int32_t next_y = current_y + ((target_y > current_y) ? 1L : -1L);
@@ -1182,19 +1529,13 @@ static void Game_MoveVertical(uint16_t player_x,
 /* Restaura posicion, saltos y animacion de un jugador. */
 static void Game_ResetPlayer(GamePlayer_t *player)
 {
+  const GameLevelFile_t *level_file = Game_GetLevelFile(game_current_level);
   uint16_t start_x = (player->controller_id == CONTROLES_JUGADOR_2)
                          ? GAME_PLAYER_2_START_X
                          : GAME_PLAYER_START_X;
-  uint16_t start_y = GAME_PLAYER_START_Y;
-
-  if (game_current_level == GAME_LEVEL_2)
-  {
-    start_y = GAME_LEVEL_2_PLAYER_START_Y;
-  }
-  else if (game_current_level == GAME_LEVEL_3)
-  {
-    start_y = GAME_LEVEL_3_PLAYER_START_Y;
-  }
+  uint16_t start_y = (level_file != 0)
+                         ? level_file->player_start_y
+                         : GAME_PLAYER_START_Y;
 
   player->x = start_x;
   player->y = start_y;
@@ -1214,6 +1555,7 @@ static void Game_ResetPlayer(GamePlayer_t *player)
   player->wall_jump_direction = 0;
 }
 
+/* Asigna control y sprites antes de iniciar la partida. */
 static void Game_ConfigurePlayer(GamePlayer_t *player,
                                  uint8_t controller_id,
                                  const uint16_t *sprite_sheet,
@@ -1253,6 +1595,7 @@ static uint8_t Game_UpdatePlayer(GamePlayer_t *player)
 
   if (jump_just_pressed != 0U)
   {
+    /* Conserva la pulsación durante unos cuadros. */
     player->jump_buffer_frames = GAME_JUMP_BUFFER_FRAMES;
   }
 
@@ -1274,6 +1617,7 @@ static uint8_t Game_UpdatePlayer(GamePlayer_t *player)
   wall_side = Game_GetWallSide(player->x, player->y);
   if (on_ground != 0U && player->was_on_ground == 0U)
   {
+    /* Aterrizar recupera ambos saltos. */
     player->jump_count = GAME_JUMP_COUNT_NORMAL_READY;
     player->jump_limit_active = 0U;
   }
@@ -1352,6 +1696,7 @@ static uint8_t Game_UpdatePlayer(GamePlayer_t *player)
                                         player->y,
                                         GAME_LEVEL_EXIT_COLOR,
                                         GAME_LEVEL_EXIT_REACH);
+  /* Se vuelve a comprobar después de mover para no saltar un contacto. */
   Game_MoveVertical(player->x,
                     &player->y,
                     &player->y_fixed,
@@ -1402,6 +1747,7 @@ static uint8_t Game_UpdatePlayer(GamePlayer_t *player)
     if (player->animation_updates >= GAME_PLAYER_ANIMATION_STEP_UPDATES)
     {
       player->animation_updates = 0U;
+      /* Avanza una imagen del ciclo de caminata. */
       player->animation_frame = (uint8_t)(
           (player->animation_frame + 1U) % player->sprite_frame_count);
     }
@@ -1416,6 +1762,7 @@ static uint8_t Game_UpdatePlayer(GamePlayer_t *player)
                               : GAME_PLAYER_EVENT_NONE;
 }
 
+/* Dibuja ambos jugadores con su estado actual. */
 static void Game_DrawPlayers(GamePlayer_t *players)
 {
   uint8_t index;
@@ -1430,15 +1777,16 @@ static void Game_DrawPlayers(GamePlayer_t *players)
   }
 }
 
+/* Carga el nivel y coloca marcador y jugadores. */
 static uint8_t Game_DrawScene(GamePlayer_t *players)
 {
   if (Game_LoadLevel(game_current_level) == 0U)
   {
-    ILI9341_Clear(&lcd, 0x0000U);
-    ILI9341_DrawText(&lcd, "ERROR AL LEER SD", 40U, 150U, 0xF800U, 0x0000U);
+    Game_DrawLoadError();
     return 0U;
   }
 
+  Game_DrawScoreboard(game_current_level);
   Game_DrawPlayers(players);
   return 1U;
 }
@@ -1459,6 +1807,7 @@ int main(void)
   uint8_t game_started = 0U;
   uint8_t game_screen_drawn = 0U;
   uint8_t start_requested = 0U;
+  uint8_t results_screen = 0U;
   GamePlayer_t players[GAME_PLAYER_COUNT];
   uint32_t last_prompt_blink_ms = 0U;
   uint32_t last_game_update_ms = 0U;
@@ -1556,6 +1905,10 @@ int main(void)
                             START_BACKGROUND_HEIGHT,
                             start_background);
         Nieve_Init(&nieve, HAL_GetTick(), HAL_GetTick());
+        if (results_screen != 0U)
+        {
+          Game_DrawResultScreen();
+        }
         StartScreen_DrawPrompt();
         prompt_visible = 1U;
         start_screen_drawn = 1U;
@@ -1573,8 +1926,14 @@ int main(void)
                     start_background,
                     START_BACKGROUND_WIDTH,
                     START_BACKGROUND_HEIGHT);
+        memset(game_scores, 0, sizeof(game_scores));
         game_current_level = GAME_LEVEL_1;
-        game_level_ready = 0U;
+        Game_UnloadLevel();
+        Game_ResetPlayer(&players[0]);
+        Game_ResetPlayer(&players[1]);
+        game_screen_drawn = 0U;
+        results_screen = 0U;
+        start_requested = 0U;
         game_started = 1U;
         continue;
       }
@@ -1609,7 +1968,7 @@ int main(void)
         uint8_t previous_on_ground[GAME_PLAYER_COUNT];
         uint8_t events[GAME_PLAYER_COUNT];
         uint8_t redraw_players = 0U;
-        uint8_t change_level = 0U;
+        uint8_t level_winner = GAME_PLAYER_COUNT;
         uint8_t player_index;
 
         last_game_update_ms = HAL_GetTick();
@@ -1633,24 +1992,43 @@ int main(void)
           {
             redraw_players = 1U;
           }
-          if ((events[player_index] & GAME_PLAYER_EVENT_EXIT) != 0U)
+          if ((events[player_index] & GAME_PLAYER_EVENT_EXIT) != 0U &&
+              level_winner == GAME_PLAYER_COUNT)
           {
-            change_level = 1U;
+            level_winner = player_index;
           }
         }
 
-        /* Si cualquiera llega a la salida, ambos pasan al siguiente nivel. */
-        if (change_level != 0U && game_current_level < GAME_LEVEL_3)
+        /* El primer jugador detectado recibe el punto del nivel. */
+        if (level_winner < GAME_PLAYER_COUNT)
         {
-          game_current_level++;
-          for (player_index = 0U;
-               player_index < GAME_PLAYER_COUNT;
-               player_index++)
+          if (game_scores[level_winner] < UINT16_MAX)
           {
-            Game_ResetPlayer(&players[player_index]);
+            game_scores[level_winner]++;
           }
+
+          if (game_current_level < GAME_LEVEL_COUNT)
+          {
+            game_current_level++;
+            for (player_index = 0U;
+                 player_index < GAME_PLAYER_COUNT;
+                 player_index++)
+            {
+              Game_ResetPlayer(&players[player_index]);
+            }
+            Game_UnloadLevel();
+            game_screen_drawn = 0U;
+            continue;
+          }
+
+          /* El ultimo nivel vuelve al fondo inicial y muestra el resultado. */
           Game_UnloadLevel();
+          game_started = 0U;
+          results_screen = 1U;
+          start_screen_drawn = 0U;
           game_screen_drawn = 0U;
+          start_requested = 0U;
+          prompt_visible = 0U;
           continue;
         }
 
@@ -1674,9 +2052,15 @@ int main(void)
                        start_background,
                        START_BACKGROUND_WIDTH,
                        START_BACKGROUND_HEIGHT,
-                       HAL_GetTick()) != 0U &&
-          prompt_visible != 0U) {
-        StartScreen_DrawPrompt();
+                       HAL_GetTick()) != 0U) {
+        if (results_screen != 0U)
+        {
+          Game_DrawResultScreen();
+        }
+        if (prompt_visible != 0U)
+        {
+          StartScreen_DrawPrompt();
+        }
       }
 
       if (game_started == 0U &&

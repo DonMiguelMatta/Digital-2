@@ -390,6 +390,62 @@ void ILI9341_FillRect(ILI9341_t *lcd,
   ILI9341_SetPin(&lcd->config.chip_select, 1U);
 }
 
+void ILI9341_FillCircle(ILI9341_t *lcd,
+                        uint16_t center_x,
+                        uint16_t center_y,
+                        uint16_t radius,
+                        uint16_t color)
+{
+  int32_t row;
+  int32_t radius_squared = (int32_t)radius * radius;
+
+  if (ILI9341_IsReady(lcd) == 0U || radius == 0U)
+  {
+    return;
+  }
+
+  /* Cada fila del circulo se envia como una linea horizontal. */
+  for (row = -(int32_t)radius; row <= (int32_t)radius; row++)
+  {
+    int32_t half_width = radius;
+    int32_t screen_y = (int32_t)center_y + row;
+    int32_t left;
+    int32_t right;
+
+    while (half_width > 0L &&
+           half_width * half_width + row * row > radius_squared)
+    {
+      half_width--;
+    }
+
+    if (screen_y < 0L || screen_y >= (int32_t)ILI9341_HEIGHT)
+    {
+      continue;
+    }
+
+    left = (int32_t)center_x - half_width;
+    right = (int32_t)center_x + half_width;
+    if (left < 0L)
+    {
+      left = 0L;
+    }
+    if (right >= (int32_t)ILI9341_WIDTH)
+    {
+      right = (int32_t)ILI9341_WIDTH - 1L;
+    }
+
+    if (left <= right)
+    {
+      ILI9341_FillRect(lcd,
+                       (uint16_t)left,
+                       (uint16_t)screen_y,
+                       (uint16_t)(right - left + 1L),
+                       1U,
+                       color);
+    }
+  }
+}
+
 void ILI9341_Clear(ILI9341_t *lcd, uint16_t color)
 {
   ILI9341_FillRect(lcd, 0U, 0U, ILI9341_WIDTH, ILI9341_HEIGHT, color);

@@ -4,9 +4,11 @@
 #include <stdint.h>
 #include "stm32f4xx_hal.h"
 
+/* Identificadores usados para separar los dos controles. */
 #define CONTROLES_JUGADOR_1 1U
 #define CONTROLES_JUGADOR_2 2U
 
+/* Cada bit representa un botón y permite combinaciones. */
 #define CONTROLES_IZQUIERDA (1U << 0)
 #define CONTROLES_DERECHA   (1U << 1)
 #define CONTROLES_ARRIBA    (1U << 2)
@@ -15,6 +17,7 @@
 #define CONTROLES_SALTO_2   (1U << 5)
 #define CONTROLES_INICIO    (1U << 6)
 
+/* Contadores para encontrar pérdidas o tramas inválidas. */
 typedef struct
 {
   uint32_t rx_bytes;

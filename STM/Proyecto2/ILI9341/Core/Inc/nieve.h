@@ -5,8 +5,10 @@
 
 #include "ili9341.h"
 
+/* Cantidad fija para mantener estable el trabajo por cuadro. */
 #define NIEVE_PARTICLE_COUNT 30U
 
+/* Datos mínimos de una partícula cuadrada. */
 typedef struct
 {
   uint16_t x;
@@ -14,6 +16,7 @@ typedef struct
   uint8_t size;
 } NieveParticle_t;
 
+/* Estado completo de la animación de nieve. */
 typedef struct
 {
   NieveParticle_t particles[NIEVE_PARTICLE_COUNT];

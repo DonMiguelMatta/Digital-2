@@ -1,14 +1,17 @@
 #include "nieve.h"
 
+/* Ritmo y color de las partículas. */
 #define NIEVE_UPDATE_MS 50U
 #define NIEVE_COLOR 0xFFFFU
 
+/* Generador simple para variar posición y tamaño. */
 static uint32_t Nieve_NextRandom(Nieve_t *nieve)
 {
   nieve->random_state = nieve->random_state * 1664525U + 1013904223U;
   return nieve->random_state;
 }
 
+/* Coloca una partícula al azar o desde la parte superior. */
 static void Nieve_PlaceParticle(Nieve_t *nieve,
                                 NieveParticle_t *particle,
                                 uint16_t background_width,
@@ -22,6 +25,7 @@ static void Nieve_PlaceParticle(Nieve_t *nieve,
   particle->size = (uint8_t)(1U + (Nieve_NextRandom(nieve) % 4U));
 }
 
+/* Recupera el fondo que estaba debajo de una partícula. */
 static void Nieve_RestoreParticle(ILI9341_t *lcd,
                                   const NieveParticle_t *particle,
                                   const uint16_t *background,
@@ -39,6 +43,7 @@ static void Nieve_RestoreParticle(ILI9341_t *lcd,
                             background_width);
 }
 
+/* Crea la distribución inicial de nieve. */
 void Nieve_Init(Nieve_t *nieve, uint32_t seed, uint32_t now_ms)
 {
   uint8_t index;
@@ -62,6 +67,7 @@ void Nieve_Init(Nieve_t *nieve, uint32_t seed, uint32_t now_ms)
   }
 }
 
+/* Borra, mueve y vuelve a dibujar todas las partículas. */
 uint8_t Nieve_Update(Nieve_t *nieve,
                      ILI9341_t *lcd,
                      const uint16_t *background,
@@ -92,8 +98,8 @@ uint8_t Nieve_Update(Nieve_t *nieve,
   {
     NieveParticle_t *particle = &nieve->particles[index];
 
-    particle->x++;
-    particle->y = (uint16_t)(particle->y + 4U);
+    particle->x++;                         /* Movimiento lateral lento. */
+    particle->y = (uint16_t)(particle->y + 4U); /* Caída principal. */
     if (particle->x >= background_width || particle->y >= background_height)
     {
       Nieve_PlaceParticle(nieve,
@@ -114,6 +120,7 @@ uint8_t Nieve_Update(Nieve_t *nieve,
   return 1U;
 }
 
+/* Quita la nieve antes de cambiar de pantalla. */
 void Nieve_Clear(Nieve_t *nieve,
                  ILI9341_t *lcd,
                  const uint16_t *background,
