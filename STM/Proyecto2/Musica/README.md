@@ -1,5 +1,34 @@
 # Musica DAC para Celeste
 
+## Proyecto completo para descargar
+
+Descargar [Lab07_CELESTE_TEST_completo.zip](Lab07_CELESTE_TEST_completo.zip).
+Incluye el proyecto completo importable en STM32CubeIDE y el firmware ELF
+compilado para la Nucleo-F446RE dedicada a audio.
+
+
+Descomprimir `Lab07_CELESTE_TEST_completo.zip`. El ZIP incluye fuentes, drivers
+HAL/CMSIS, startup, linker, .ioc, metadatos de CubeIDE y firmware compilado.
+
+1. En STM32CubeIDE: File > Import > General > Existing Projects into Workspace.
+2. Seleccionar la carpeta descomprimida que contiene Lab07_CELESTE_TEST.
+3. Marcar el proyecto Lab07_CELESTE_TEST y finalizar la importacion.
+4. Compilar con Project > Build Project.
+5. Conectar la Nucleo-F446RE por el USB del ST-LINK y usar Run o Debug para
+   programarla. Si se usa Debug, pulsar Resume para que empiece el programa.
+
+Alternativa sin compilar: el archivo Firmware/Lab07_CELESTE_TEST.elf ya esta
+compilado para STM32F446RE. Se puede programar con STM32CubeProgrammer por
+ST-LINK usando ese ELF. No es firmware para la Nucleo que ejecuta el juego:
+se carga en la Nucleo dedicada a audio.
+
+El arranque queda en silencio. USART2 recibe ASCII `1` para main_theme en loop,
+`2` para main_menu en loop y `0` para detener, a 115200, 8N1. TX de la Nucleo
+del juego a PA3 de la Nucleo de audio y GND comun. Salida DAC en PA4.
+No se requieren las herramientas de Python usadas para preparar esta entrega.
+Verificacion de compilacion y enlace completa; prueba fisica pendiente.
+
+
 Archivos de referencia para integrar el reproductor al proyecto del juego. Los .c corresponden a Core/Src y los .h a Core/Inc. No reemplazar el main.c del juego completo: trasladar las secciones USER CODE indicadas abajo.
 Placa STM32 Nucleo-F446RE, HAL. No se ha probado fisicamente esta version.
 
@@ -63,9 +92,9 @@ El antiguo pwm_theme.h se reemplaza por main_menu.h.
 
 ## Integrar al juego del companero
 
-Esta carpeta contiene solo los archivos necesarios de referencia, no un proyecto
-completo importable. Trasladar las secciones anteriores y ambos encabezados
-al proyecto del juego. No sustituir su main.c entero.
+Los archivos sueltos sirven como referencia de integracion. El ZIP contiene
+el proyecto completo para la Nucleo de audio. Si se integra en otro proyecto,
+trasladar las secciones anteriores y ambos encabezados sin sustituir el main.c del juego.
 Conservar DAC canal 1 con trigger TIM6 TRGO, TIM6 con TRGO UPDATE y DMA1
 Stream5/canal7 circular con alineacion word y su IRQ HAL. Tabla de 128 muestras.
 El reloj TIM6 se calcula desde APB1 y el prescaler configurado.
