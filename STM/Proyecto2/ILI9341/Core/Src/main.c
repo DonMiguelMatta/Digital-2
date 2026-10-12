@@ -25,6 +25,7 @@
 #include <math.h>
 #include <string.h>
 
+#include "controles_jugadores.h"
 #include "graficos.h"
 #include "ili9341.h"
 #include "level_1_texture.h"
@@ -34,28 +35,49 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-typedef struct
+typedef enum
 {
-  GPIO_TypeDef *port;
-  uint16_t pin;
-  uint8_t raw_pressed;
-  uint8_t stable_pressed;
-  uint8_t pressed_event;
-  uint32_t last_raw_change_ms;
-} GameButton_t;
+  GAME_TEXTURE_PACKED_PAIRS = 0,
+  GAME_TEXTURE_RGB565_VALUES
+} GameTextureEncoding_t;
 
 typedef struct
 {
   const char *short_name;
   const char *original_name;
   uint16_t height;
+  GameTextureEncoding_t encoding;
 } GameLevelFile_t;
+
+typedef struct
+{
+  uint8_t controller_id;
+  const uint16_t *sprite_sheet;
+  const uint16_t *jump_sprite;
+  uint16_t sprite_sheet_width;
+  uint8_t sprite_frame_count;
+  uint8_t animation_frame;
+  uint8_t animation_updates;
+  uint8_t facing_left;
+  uint8_t jump_count;
+  uint8_t jump_buffer_frames;
+  uint8_t wall_jump_lock_frames;
+  uint8_t was_on_ground;
+  uint8_t jump_limit_active;
+  int8_t wall_jump_direction;
+  uint16_t x;
+  uint16_t y;
+  uint16_t jump_apex_y;
+  int32_t x_fixed;
+  int32_t y_fixed;
+  int32_t velocity_x;
+  int32_t velocity_y;
+} GamePlayer_t;
 
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define UART_RX_QUEUE_SIZE 16U
 #define START_PROMPT_BOX_X 16U
 #define START_PROMPT_BOX_Y 268U
 #define START_PROMPT_BOX_WIDTH 208U
@@ -63,8 +85,7 @@ typedef struct
 #define START_PROMPT_TEXT_X 28U
 #define START_PROMPT_TEXT_Y 274U
 #define START_PROMPT_BLINK_MS 250U
-#define START_PROMPT_TEXT "PRESIONA A PARA INICIAR"
-#define BUTTON_DEBOUNCE_MS 25U
+#define START_PROMPT_TEXT "PRESIONA START"
 #define GAME_PLAYER_WIDTH 18U
 #define GAME_PLAYER_HEIGHT 14U
 #define GAME_PLAYER_SPRITE_TRANSPARENT_COLOR 0x07E5U
@@ -73,8 +94,12 @@ typedef struct
 #define GAME_PLAYER_ANIMATION_STEP_UPDATES 4U
 #define GAME_PLAYER_START_X 15U
 #define GAME_PLAYER_START_Y 170U
+#define GAME_PLAYER_2_START_X 75U
 #define GAME_LEVEL_2_PLAYER_START_X 15U
 #define GAME_LEVEL_2_PLAYER_START_Y 207U
+#define GAME_LEVEL_3_PLAYER_START_X 15U
+#define GAME_LEVEL_3_PLAYER_START_Y 192U
+#define GAME_PLAYER_COUNT 2U
 #define GAME_UPDATE_MS 20U
 #define GAME_FIXED_POINT_ONE 256L
 /* Usa multiplicadores con sufijo f y redondea al entero más cercano. */
@@ -138,6 +163,7 @@ typedef struct
 #define GAME_WALL_JUMP_LOCK_FRAMES 5U
 #define GAME_LEVEL_1 1U
 #define GAME_LEVEL_2 2U
+#define GAME_LEVEL_3 3U
 /* Colores RGB565 equivalentes a #FA0300 y #FFEF00. */
 #define GAME_LEVEL_HAZARD_COLOR 0xF800U
 #define GAME_LEVEL_EXIT_COLOR 0xFF60U
@@ -149,6 +175,8 @@ typedef struct
 #define GAME_SD_LEVEL_1_FILE_ORIGINAL "0:/level1_texture.txt"
 #define GAME_SD_LEVEL_2_FILE "0:/NIVEL2.TXT"
 #define GAME_SD_LEVEL_2_FILE_ORIGINAL "0:/Nivel2.txt"
+#define GAME_SD_LEVEL_3_FILE "0:/NIVEL3.TXT"
+#define GAME_SD_LEVEL_3_FILE_ORIGINAL "0:/Nivel3.txt"
 #define GAME_SD_LINE_BUFFER_SIZE 2048U
 #define GAME_PACKED_WORDS_PER_ROW (ILI9341_WIDTH / 2U)
 #define GAME_LEVEL_FLASH_FIRST_SECTOR FLASH_SECTOR_6
@@ -167,6 +195,9 @@ typedef struct
 #define GAME_COLLISION_SOLID 1U
 #define GAME_COLLISION_HAZARD 2U
 #define GAME_COLLISION_EXIT 3U
+#define GAME_PLAYER_EVENT_NONE 0U
+#define GAME_PLAYER_EVENT_RESPAWN (1U << 0)
+#define GAME_PLAYER_EVENT_EXIT (1U << 1)
 
 /* USER CODE END PD */
 
@@ -178,7 +209,9 @@ typedef struct
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
 
+UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 ILI9341_t lcd;
@@ -187,8 +220,16 @@ static uint8_t game_current_level = GAME_LEVEL_1;
 static const GameLevelFile_t game_level_files[] = {
     {GAME_SD_LEVEL_1_FILE,
      GAME_SD_LEVEL_1_FILE_ORIGINAL,
-     LEVEL_1_TEXTURE_HEIGHT},
-    {GAME_SD_LEVEL_2_FILE, GAME_SD_LEVEL_2_FILE_ORIGINAL, 235U},
+     LEVEL_1_TEXTURE_HEIGHT,
+     GAME_TEXTURE_PACKED_PAIRS},
+    {GAME_SD_LEVEL_2_FILE,
+     GAME_SD_LEVEL_2_FILE_ORIGINAL,
+     235U,
+     GAME_TEXTURE_PACKED_PAIRS},
+    {GAME_SD_LEVEL_3_FILE,
+     GAME_SD_LEVEL_3_FILE_ORIGINAL,
+     235U,
+     GAME_TEXTURE_RGB565_VALUES},
 };
 static FIL game_background_file;
 static FIL game_overlay_file;
@@ -201,15 +242,6 @@ static uint16_t game_background_row[ILI9341_WIDTH];
 static uint16_t game_overlay_row[ILI9341_WIDTH];
 static uint16_t game_composed_row[ILI9341_WIDTH];
 static uint8_t game_collision_map[GAME_COLLISION_MAP_SIZE];
-static uint16_t game_player_background[
-    CELESTE_J1_FRAME_WIDTH * CELESTE_J1_FRAME_HEIGHT];
-static uint16_t game_player_background_x = 0U;
-static uint16_t game_player_background_y = 0U;
-static uint8_t game_player_background_valid = 0U;
-volatile uint8_t uart_rx_byte;
-volatile uint8_t uart_rx_queue[UART_RX_QUEUE_SIZE];
-volatile uint8_t uart_rx_write = 0U;
-volatile uint8_t uart_rx_read = 0U;
 
 /* USER CODE END PV */
 
@@ -218,50 +250,16 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_USART3_UART_Init(void);
+static void MX_UART5_Init(void);
 /* USER CODE BEGIN PFP */
 extern uint8_t __level_cache_start__;
 extern uint8_t __level_cache_end__;
-
-static uint8_t Game_CapturePlayerBackground(uint16_t player_x,
-                                            uint16_t player_y);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-static void UART_QueuePush(uint8_t byte)
-{
-  uint8_t next = (uint8_t)(uart_rx_write + 1U);
-
-  if (next >= UART_RX_QUEUE_SIZE)
-  {
-    next = 0U;
-  }
-
-  if (next != uart_rx_read)
-  {
-    uart_rx_queue[uart_rx_write] = byte;
-    uart_rx_write = next;
-  }
-}
-
-static uint8_t UART_QueuePop(uint8_t *byte)
-{
-  if (uart_rx_read == uart_rx_write)
-  {
-    return 0U;
-  }
-
-  *byte = uart_rx_queue[uart_rx_read];
-  uart_rx_read++;
-  if (uart_rx_read >= UART_RX_QUEUE_SIZE)
-  {
-    uart_rx_read = 0U;
-  }
-
-  return 1U;
-}
-
 static void StartScreen_DrawPrompt(void)
 {
   ILI9341_FillRect(&lcd,
@@ -293,59 +291,6 @@ static void StartScreen_RestorePromptBackground(void)
                             START_BACKGROUND_WIDTH);
 }
 
-static uint8_t Game_ReadRawButton(GPIO_TypeDef *port, uint16_t pin)
-{
-  return (HAL_GPIO_ReadPin(port, pin) == GPIO_PIN_RESET) ? 1U : 0U;
-}
-
-static void Game_ButtonInit(GameButton_t *button,
-                            GPIO_TypeDef *port,
-                            uint16_t pin,
-                            uint32_t now_ms)
-{
-  button->port = port;
-  button->pin = pin;
-  button->raw_pressed = Game_ReadRawButton(port, pin);
-  button->stable_pressed = button->raw_pressed;
-  button->pressed_event = 0U;
-  button->last_raw_change_ms = now_ms;
-}
-
-static void Game_ButtonUpdate(GameButton_t *button, uint32_t now_ms)
-{
-  uint8_t raw_pressed = Game_ReadRawButton(button->port, button->pin);
-
-  if (raw_pressed != button->raw_pressed)
-  {
-    button->raw_pressed = raw_pressed;
-    button->last_raw_change_ms = now_ms;
-  }
-
-  if (button->stable_pressed != button->raw_pressed &&
-      (now_ms - button->last_raw_change_ms) >= BUTTON_DEBOUNCE_MS)
-  {
-    button->stable_pressed = button->raw_pressed;
-    if (button->stable_pressed != 0U)
-    {
-      button->pressed_event = 1U;
-    }
-  }
-}
-
-static uint8_t Game_ButtonPressed(const GameButton_t *button)
-{
-  return button->stable_pressed;
-}
-
-/* Conserva la pulsación hasta que la física esté lista para procesarla. */
-static uint8_t Game_ButtonTakePress(GameButton_t *button)
-{
-  uint8_t pressed_event = button->pressed_event;
-
-  button->pressed_event = 0U;
-  return pressed_event;
-}
-
 static int32_t Game_Approach(int32_t value, int32_t target, int32_t amount)
 {
   if (value < target)
@@ -374,45 +319,44 @@ static uint16_t Game_PlayerSpriteY(uint16_t player_y)
              : 0U;
 }
 
-/* Dibuja un cuadro de la hoja y refleja el personaje al mirar a la izquierda. */
-static void Game_DrawPlayer(uint16_t x,
-                            uint16_t y,
-                            uint8_t animation_frame,
-                            uint8_t facing_left,
-                            uint8_t airborne)
+/* Dibuja el sprite configurado para cada jugador. */
+static void Game_DrawPlayer(const GamePlayer_t *player, uint8_t airborne)
 {
-  if (Game_CapturePlayerBackground(x, y) == 0U)
+  if (player == 0 || player->sprite_sheet == 0)
   {
     return;
   }
 
-  if (airborne != 0U)
+  if (airborne != 0U && player->jump_sprite != 0)
   {
     ILI9341_DrawSpriteFrameKeyed(
         &lcd,
-        Game_PlayerSpriteX(x),
-        Game_PlayerSpriteY(y),
+        Game_PlayerSpriteX(player->x),
+        Game_PlayerSpriteY(player->y),
         CELESTE_J1_JUMP_WIDTH,
         CELESTE_J1_JUMP_HEIGHT,
-        CelesteJ1Jump,
+        player->jump_sprite,
         CELESTE_J1_JUMP_WIDTH,
         0U,
         GAME_PLAYER_SPRITE_TRANSPARENT_COLOR,
-        facing_left);
+        player->facing_left);
     return;
   }
 
   ILI9341_DrawSpriteFrameKeyed(
       &lcd,
-      Game_PlayerSpriteX(x),
-      Game_PlayerSpriteY(y),
-      CELESTE_J1_FRAME_WIDTH,
-      CELESTE_J1_FRAME_HEIGHT,
-      CelesteJ1,
-      CELESTE_J1_SHEET_WIDTH,
-      (uint16_t)(animation_frame % CELESTE_J1_FRAME_COUNT),
+      Game_PlayerSpriteX(player->x),
+      Game_PlayerSpriteY(player->y),
+      CELESTE_J2_FRAME_WIDTH,
+      CELESTE_J2_FRAME_HEIGHT,
+      player->sprite_sheet,
+      player->sprite_sheet_width,
+      (airborne != 0U)
+          ? 0U
+          : (uint16_t)(player->animation_frame %
+                       player->sprite_frame_count),
       GAME_PLAYER_SPRITE_TRANSPARENT_COLOR,
-      facing_left);
+      player->facing_left);
 }
 
 static int8_t Game_HexDigit(char character)
@@ -476,14 +420,59 @@ static uint8_t Game_ParsePackedRow(char *line, uint16_t *pixels)
   return (word_index == GAME_PACKED_WORDS_PER_ROW) ? 1U : 0U;
 }
 
-static uint8_t Game_ReadNextPackedRow(FIL *file, uint16_t *pixels)
+/* Nivel 3 guarda cada pixel como un valor RGB565 independiente. */
+static uint8_t Game_ParseRgb565Row(char *line, uint16_t *pixels)
+{
+  char *cursor = line;
+  uint16_t pixel_index = 0U;
+
+  while (*cursor != '\0' && pixel_index < ILI9341_WIDTH)
+  {
+    uint32_t value = 0U;
+    uint8_t digit_count = 0U;
+    int8_t digit;
+
+    while (*cursor != '\0' &&
+           !(cursor[0] == '0' &&
+             (cursor[1] == 'x' || cursor[1] == 'X')))
+    {
+      cursor++;
+    }
+    if (*cursor == '\0')
+    {
+      break;
+    }
+
+    cursor += 2;
+    while ((digit = Game_HexDigit(*cursor)) >= 0)
+    {
+      value = (value << 4U) | (uint32_t)digit;
+      digit_count++;
+      cursor++;
+    }
+    if (digit_count == 0U || digit_count > 4U)
+    {
+      return 0U;
+    }
+
+    pixels[pixel_index++] = (uint16_t)value;
+  }
+
+  return (pixel_index == ILI9341_WIDTH) ? 1U : 0U;
+}
+
+static uint8_t Game_ReadNextRow(FIL *file,
+                                uint16_t *pixels,
+                                GameTextureEncoding_t encoding)
 {
   if (f_gets(game_sd_line, sizeof(game_sd_line), file) == 0)
   {
     return 0U;
   }
 
-  return Game_ParsePackedRow(game_sd_line, pixels);
+  return (encoding == GAME_TEXTURE_RGB565_VALUES)
+             ? Game_ParseRgb565Row(game_sd_line, pixels)
+             : Game_ParsePackedRow(game_sd_line, pixels);
 }
 
 static uint8_t Game_OpenTextureFile(FIL *file,
@@ -519,7 +508,6 @@ static void Game_UnloadLevel(void)
 {
   Game_CloseLevelFiles();
   game_level_ready = 0U;
-  game_player_background_valid = 0U;
   memset(game_collision_map, 0, sizeof(game_collision_map));
 }
 
@@ -690,7 +678,7 @@ static uint8_t Game_LoadLevel(uint8_t level)
   uint8_t flash_write_active = 0U;
   uint16_t y;
 
-  if (level < GAME_LEVEL_1 || level > GAME_LEVEL_2)
+  if (level < GAME_LEVEL_1 || level > GAME_LEVEL_3)
   {
     return 0U;
   }
@@ -732,16 +720,18 @@ static uint8_t Game_LoadLevel(uint8_t level)
 
   for (y = 0U; y < ILI9341_HEIGHT; y++)
   {
-    if (Game_ReadNextPackedRow(&game_background_file,
-                               game_background_row) == 0U)
+    if (Game_ReadNextRow(&game_background_file,
+                         game_background_row,
+                         GAME_TEXTURE_PACKED_PAIRS) == 0U)
     {
       goto load_failed;
     }
 
     if (y < level_file->height)
     {
-      if (Game_ReadNextPackedRow(&game_overlay_file,
-                                 game_overlay_row) == 0U)
+      if (Game_ReadNextRow(&game_overlay_file,
+                           game_overlay_row,
+                           level_file->encoding) == 0U)
       {
         goto load_failed;
       }
@@ -796,48 +786,26 @@ load_failed:
   return 0U;
 }
 
-static uint8_t Game_CapturePlayerBackground(uint16_t player_x,
-                                            uint16_t player_y)
+/* Recupera directamente de Flash el fondo que ocupaba un sprite. */
+static void Game_RestorePlayerArea(uint16_t player_x, uint16_t player_y)
 {
   uint16_t sprite_x = Game_PlayerSpriteX(player_x);
   uint16_t sprite_y = Game_PlayerSpriteY(player_y);
-  uint16_t row;
 
-  if (game_level_ready == 0U ||
-      (uint32_t)sprite_x + CELESTE_J1_FRAME_WIDTH > ILI9341_WIDTH ||
-      (uint32_t)sprite_y + CELESTE_J1_FRAME_HEIGHT > ILI9341_HEIGHT)
-  {
-    return 0U;
-  }
-
-  for (row = 0U; row < CELESTE_J1_FRAME_HEIGHT; row++)
-  {
-    memcpy(&game_player_background[(uint32_t)row * CELESTE_J1_FRAME_WIDTH],
-           &Game_LevelFlashPixels()[
-               (uint32_t)(sprite_y + row) * ILI9341_WIDTH + sprite_x],
-           CELESTE_J1_FRAME_WIDTH * sizeof(uint16_t));
-  }
-
-  game_player_background_x = sprite_x;
-  game_player_background_y = sprite_y;
-  game_player_background_valid = 1U;
-  return 1U;
-}
-
-static void Game_RestorePlayerBackground(void)
-{
-  if (game_player_background_valid == 0U)
+  if (game_level_ready == 0U || sprite_x >= ILI9341_WIDTH ||
+      sprite_y >= ILI9341_HEIGHT)
   {
     return;
   }
 
-  ILI9341_DrawBitmap(&lcd,
-                     game_player_background_x,
-                     game_player_background_y,
-                     CELESTE_J1_FRAME_WIDTH,
-                     CELESTE_J1_FRAME_HEIGHT,
-                     game_player_background);
-  game_player_background_valid = 0U;
+  ILI9341_DrawBitmapRegion(
+      &lcd,
+      sprite_x,
+      sprite_y,
+      CELESTE_J1_FRAME_WIDTH,
+      CELESTE_J1_FRAME_HEIGHT,
+      &Game_LevelFlashPixels()[(uint32_t)sprite_y * ILI9341_WIDTH + sprite_x],
+      ILI9341_WIDTH);
 }
 
 static uint8_t Game_IsSolidPixel(int32_t x, int32_t y)
@@ -1211,44 +1179,258 @@ static void Game_MoveVertical(uint16_t player_x,
   }
 }
 
-/* Restaura posición y física usando el inicio configurado. */
-static void Game_ResetPlayerPosition(uint16_t *player_x,
-                                     uint16_t *player_y,
-                                     int32_t *player_x_fixed,
-                                     int32_t *player_y_fixed,
-                                     int32_t *player_velocity_x,
-                                     int32_t *player_velocity_y,
-                                     uint16_t *jump_apex_y,
-                                     uint8_t *jump_limit_active)
+/* Restaura posicion, saltos y animacion de un jugador. */
+static void Game_ResetPlayer(GamePlayer_t *player)
 {
-  uint16_t start_x = (game_current_level == GAME_LEVEL_2)
-                         ? GAME_LEVEL_2_PLAYER_START_X
+  uint16_t start_x = (player->controller_id == CONTROLES_JUGADOR_2)
+                         ? GAME_PLAYER_2_START_X
                          : GAME_PLAYER_START_X;
-  uint16_t start_y = (game_current_level == GAME_LEVEL_2)
-                         ? GAME_LEVEL_2_PLAYER_START_Y
-                         : GAME_PLAYER_START_Y;
+  uint16_t start_y = GAME_PLAYER_START_Y;
 
-  *player_x = start_x;
-  *player_y = start_y;
-  *player_x_fixed = (int32_t)start_x * GAME_FIXED_POINT_ONE;
-  *player_y_fixed = (int32_t)start_y * GAME_FIXED_POINT_ONE;
-  *player_velocity_x = 0L;
-  *player_velocity_y = 0L;
-  *jump_apex_y = start_y;
-  *jump_limit_active = 0U;
+  if (game_current_level == GAME_LEVEL_2)
+  {
+    start_y = GAME_LEVEL_2_PLAYER_START_Y;
+  }
+  else if (game_current_level == GAME_LEVEL_3)
+  {
+    start_y = GAME_LEVEL_3_PLAYER_START_Y;
+  }
+
+  player->x = start_x;
+  player->y = start_y;
+  player->x_fixed = (int32_t)start_x * GAME_FIXED_POINT_ONE;
+  player->y_fixed = (int32_t)start_y * GAME_FIXED_POINT_ONE;
+  player->velocity_x = 0L;
+  player->velocity_y = 0L;
+  player->jump_apex_y = start_y;
+  player->animation_frame = 0U;
+  player->animation_updates = 0U;
+  player->facing_left = 0U;
+  player->jump_count = GAME_JUMP_COUNT_NORMAL_READY;
+  player->jump_buffer_frames = 0U;
+  player->wall_jump_lock_frames = 0U;
+  player->was_on_ground = 0U;
+  player->jump_limit_active = 0U;
+  player->wall_jump_direction = 0;
 }
 
-static void Game_ErasePlayer(uint16_t x, uint16_t y)
+static void Game_ConfigurePlayer(GamePlayer_t *player,
+                                 uint8_t controller_id,
+                                 const uint16_t *sprite_sheet,
+                                 uint16_t sprite_sheet_width,
+                                 uint8_t sprite_frame_count,
+                                 const uint16_t *jump_sprite)
 {
-  (void)x;
-  (void)y;
-  Game_RestorePlayerBackground();
+  memset(player, 0, sizeof(*player));
+  player->controller_id = controller_id;
+  player->sprite_sheet = sprite_sheet;
+  player->sprite_sheet_width = sprite_sheet_width;
+  player->sprite_frame_count = sprite_frame_count;
+  player->jump_sprite = jump_sprite;
+  Game_ResetPlayer(player);
 }
 
-static uint8_t Game_DrawScene(uint16_t player_x,
-                              uint16_t player_y,
-                              uint8_t animation_frame,
-                              uint8_t facing_left)
+/* Actualiza un jugador usando exclusivamente el control que tiene asignado. */
+static uint8_t Game_UpdatePlayer(GamePlayer_t *player)
+{
+  uint16_t previous_x = player->x;
+  uint8_t jump_just_pressed = Controles_TakePressed(
+      player->controller_id, CONTROLES_SALTO);
+  uint8_t second_jump_just_pressed = Controles_TakePressed(
+      player->controller_id, CONTROLES_SALTO_2);
+  uint8_t held_left = Controles_Held(player->controller_id,
+                                     CONTROLES_IZQUIERDA);
+  uint8_t held_right = Controles_Held(player->controller_id,
+                                      CONTROLES_DERECHA);
+  uint8_t held_up = Controles_Held(player->controller_id,
+                                   CONTROLES_ARRIBA);
+  uint8_t on_ground;
+  uint8_t airborne;
+  uint8_t touched_hazard;
+  uint8_t touched_exit;
+  int8_t horizontal_input;
+  int8_t wall_side;
+
+  if (jump_just_pressed != 0U)
+  {
+    player->jump_buffer_frames = GAME_JUMP_BUFFER_FRAMES;
+  }
+
+  if (player->wall_jump_lock_frames != 0U)
+  {
+    horizontal_input = player->wall_jump_direction;
+    player->wall_jump_lock_frames--;
+  }
+  else if (held_right != held_left)
+  {
+    horizontal_input = (held_right != 0U) ? 1 : -1;
+  }
+  else
+  {
+    horizontal_input = 0;
+  }
+
+  on_ground = Game_IsOnGround(player->x, player->y);
+  wall_side = Game_GetWallSide(player->x, player->y);
+  if (on_ground != 0U && player->was_on_ground == 0U)
+  {
+    player->jump_count = GAME_JUMP_COUNT_NORMAL_READY;
+    player->jump_limit_active = 0U;
+  }
+
+  Game_UpdateHorizontalVelocity(horizontal_input,
+                                on_ground,
+                                &player->velocity_x);
+
+  /* Cruz da prioridad al salto de pared mientras esta en el aire. */
+  if (player->jump_buffer_frames != 0U && on_ground == 0U &&
+      wall_side != 0)
+  {
+    Game_StartWallJump(player->y,
+                       wall_side,
+                       &player->y_fixed,
+                       &player->velocity_x,
+                       &player->velocity_y,
+                       &player->jump_apex_y,
+                       &player->jump_limit_active);
+    if (player->jump_count == GAME_JUMP_COUNT_NORMAL_READY)
+    {
+      player->jump_count = GAME_JUMP_COUNT_SECOND_READY;
+    }
+    player->wall_jump_direction = (int8_t)-wall_side;
+    player->wall_jump_lock_frames = GAME_WALL_JUMP_LOCK_FRAMES;
+    player->jump_buffer_frames = 0U;
+    on_ground = 0U;
+  }
+  else if (player->jump_buffer_frames != 0U &&
+           player->jump_count == GAME_JUMP_COUNT_NORMAL_READY)
+  {
+    Game_StartJump(player->y,
+                   GAME_JUMP_HEIGHT,
+                   &player->y_fixed,
+                   &player->velocity_y,
+                   &player->jump_apex_y,
+                   &player->jump_limit_active);
+    player->jump_count = GAME_JUMP_COUNT_SECOND_READY;
+    player->jump_buffer_frames = 0U;
+    on_ground = 0U;
+  }
+  else if (second_jump_just_pressed != 0U &&
+           player->jump_count == GAME_JUMP_COUNT_SECOND_READY)
+  {
+    Game_StartSecondJump(player->y,
+                         horizontal_input,
+                         held_up,
+                         &player->y_fixed,
+                         &player->velocity_x,
+                         &player->velocity_y,
+                         &player->jump_apex_y,
+                         &player->jump_limit_active);
+    player->jump_count = GAME_JUMP_COUNT_EXHAUSTED;
+    player->jump_buffer_frames = 0U;
+    on_ground = 0U;
+  }
+
+  if (player->jump_buffer_frames != 0U)
+  {
+    player->jump_buffer_frames--;
+  }
+
+  Game_ApplyGravity(on_ground, &player->velocity_y);
+  Game_MoveHorizontal(&player->x,
+                      player->y,
+                      &player->x_fixed,
+                      &player->velocity_x);
+  wall_side = Game_GetWallSide(player->x, player->y);
+  Game_ApplyWallSlide(on_ground, wall_side, &player->velocity_y);
+
+  touched_hazard = Game_TouchesLevelColor(player->x,
+                                          player->y,
+                                          GAME_LEVEL_HAZARD_COLOR,
+                                          GAME_LEVEL_HAZARD_REACH);
+  touched_exit = Game_TouchesLevelColor(player->x,
+                                        player->y,
+                                        GAME_LEVEL_EXIT_COLOR,
+                                        GAME_LEVEL_EXIT_REACH);
+  Game_MoveVertical(player->x,
+                    &player->y,
+                    &player->y_fixed,
+                    &player->velocity_y,
+                    player->jump_apex_y,
+                    &player->jump_limit_active);
+  touched_hazard |= Game_TouchesLevelColor(player->x,
+                                           player->y,
+                                           GAME_LEVEL_HAZARD_COLOR,
+                                           GAME_LEVEL_HAZARD_REACH);
+  touched_exit |= Game_TouchesLevelColor(player->x,
+                                         player->y,
+                                         GAME_LEVEL_EXIT_COLOR,
+                                         GAME_LEVEL_EXIT_REACH);
+
+  if (touched_hazard != 0U)
+  {
+    Game_ResetPlayer(player);
+    player->was_on_ground = Game_IsOnGround(player->x, player->y);
+    return GAME_PLAYER_EVENT_RESPAWN;
+  }
+
+  airborne = (Game_IsOnGround(player->x, player->y) == 0U) ? 1U : 0U;
+  if (airborne == 0U && on_ground == 0U)
+  {
+    player->jump_count = GAME_JUMP_COUNT_NORMAL_READY;
+    player->jump_limit_active = 0U;
+  }
+  player->was_on_ground = (airborne == 0U) ? 1U : 0U;
+
+  if (player->x < previous_x)
+  {
+    player->facing_left = 1U;
+  }
+  else if (player->x > previous_x)
+  {
+    player->facing_left = 0U;
+  }
+
+  if (airborne != 0U)
+  {
+    player->animation_frame = 0U;
+    player->animation_updates = 0U;
+  }
+  else if (player->x != previous_x)
+  {
+    player->animation_updates++;
+    if (player->animation_updates >= GAME_PLAYER_ANIMATION_STEP_UPDATES)
+    {
+      player->animation_updates = 0U;
+      player->animation_frame = (uint8_t)(
+          (player->animation_frame + 1U) % player->sprite_frame_count);
+    }
+  }
+  else
+  {
+    player->animation_frame = 0U;
+    player->animation_updates = 0U;
+  }
+
+  return (touched_exit != 0U) ? GAME_PLAYER_EVENT_EXIT
+                              : GAME_PLAYER_EVENT_NONE;
+}
+
+static void Game_DrawPlayers(GamePlayer_t *players)
+{
+  uint8_t index;
+
+  for (index = 0U; index < GAME_PLAYER_COUNT; index++)
+  {
+    uint8_t airborne = (Game_IsOnGround(players[index].x,
+                                        players[index].y) == 0U)
+                           ? 1U
+                           : 0U;
+    Game_DrawPlayer(&players[index], airborne);
+  }
+}
+
+static uint8_t Game_DrawScene(GamePlayer_t *players)
 {
   if (Game_LoadLevel(game_current_level) == 0U)
   {
@@ -1257,11 +1439,7 @@ static uint8_t Game_DrawScene(uint16_t player_x,
     return 0U;
   }
 
-  Game_DrawPlayer(player_x,
-                  player_y,
-                  animation_frame,
-                  facing_left,
-                  (Game_IsOnGround(player_x, player_y) == 0U) ? 1U : 0U);
+  Game_DrawPlayers(players);
   return 1U;
 }
 
@@ -1281,28 +1459,7 @@ int main(void)
   uint8_t game_started = 0U;
   uint8_t game_screen_drawn = 0U;
   uint8_t start_requested = 0U;
-  uint8_t uart_command;
-  GameButton_t button_left;
-  GameButton_t button_right;
-  GameButton_t button_up;
-  GameButton_t button_jump;
-  GameButton_t button_second_jump;
-  uint8_t player_animation_frame = 0U;
-  uint8_t player_animation_updates = 0U;
-  uint8_t player_facing_left = 0U;
-  uint8_t jump_count = GAME_JUMP_COUNT_NORMAL_READY;
-  uint8_t jump_buffer_frames = 0U;
-  uint8_t wall_jump_lock_frames = 0U;
-  uint8_t was_on_ground = 0U;
-  uint8_t jump_limit_active = 0U;
-  int8_t wall_jump_direction = 0;
-  uint16_t player_x = GAME_PLAYER_START_X;
-  uint16_t player_y = GAME_PLAYER_START_Y;
-  uint16_t jump_apex_y = GAME_PLAYER_START_Y;
-  int32_t player_x_fixed = GAME_PLAYER_START_X_FIXED;
-  int32_t player_y_fixed = GAME_PLAYER_START_Y_FIXED;
-  int32_t player_velocity_x = 0L;
-  int32_t player_velocity_y = 0L;
+  GamePlayer_t players[GAME_PLAYER_COUNT];
   uint32_t last_prompt_blink_ms = 0U;
   uint32_t last_game_update_ms = 0U;
 
@@ -1327,8 +1484,10 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
-  MX_USART2_UART_Init();
   MX_FATFS_Init();
+  MX_USART2_UART_Init();
+  MX_USART3_UART_Init();
+  MX_UART5_Init();
   /* USER CODE BEGIN 2 */
   lcd_config.reset.port = LCD_RST_GPIO_Port;
   lcd_config.reset.pin = LCD_RST_Pin;
@@ -1351,48 +1510,38 @@ int main(void)
   lcd_config.memory_access_control = 0x48U;
 
   ILI9341_BeginInit(&lcd, &lcd_config, HAL_GetTick());
-
-  if (HAL_UART_Receive_IT(&huart2, &uart_rx_byte, 1U) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  Game_ButtonInit(&button_left,
-                  btn_izquierda_GPIO_Port,
-                  btn_izquierda_Pin,
-                  HAL_GetTick());
-  Game_ButtonInit(&button_right,
-                  btn_derecha_GPIO_Port,
-                  btn_derecha_Pin,
-                  HAL_GetTick());
-  Game_ButtonInit(&button_up,
-                  btn_arriba_GPIO_Port,
-                  btn_arriba_Pin,
-                  HAL_GetTick());
-  Game_ButtonInit(&button_jump,
-                  btn_salto_GPIO_Port,
-                  btn_salto_Pin,
-                  HAL_GetTick());
-  Game_ButtonInit(&button_second_jump,
-                  btn_salto2_GPIO_Port,
-                  btn_salto2_Pin,
-                  HAL_GetTick());
+  Controles_SetDebugUart(&huart2);
+  Controles_Init();
+  Game_ConfigurePlayer(&players[0],
+                       CONTROLES_JUGADOR_1,
+                       CelesteJ1,
+                       CELESTE_J1_SHEET_WIDTH,
+                       CELESTE_J1_FRAME_COUNT,
+                       CelesteJ1Jump);
+  Game_ConfigurePlayer(&players[1],
+                       CONTROLES_JUGADOR_2,
+                       CelesteJ2,
+                       CELESTE_J2_SHEET_WIDTH,
+                       CELESTE_J2_FRAME_COUNT,
+                       0);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-      Game_ButtonUpdate(&button_left, HAL_GetTick());
-      Game_ButtonUpdate(&button_right, HAL_GetTick());
-      Game_ButtonUpdate(&button_up, HAL_GetTick());
-      Game_ButtonUpdate(&button_jump, HAL_GetTick());
-      Game_ButtonUpdate(&button_second_jump, HAL_GetTick());
+      uint32_t now_ms = HAL_GetTick();
+      uint8_t start_j1;
+      uint8_t start_j2;
 
-      while (UART_QueuePop(&uart_command) != 0U) {
-        if (uart_command == (uint8_t)'A' || uart_command == (uint8_t)'a') {
-          start_requested = 1U;
-        }
+      Controles_Update(now_ms);
+      start_j1 = Controles_TakePressed(CONTROLES_JUGADOR_1,
+                                       CONTROLES_INICIO);
+      start_j2 = Controles_TakePressed(CONTROLES_JUGADOR_2,
+                                       CONTROLES_INICIO);
+      if (start_j1 != 0U || start_j2 != 0U)
+      {
+        start_requested = 1U;
       }
 
       if (ILI9341_UpdateInit(&lcd, HAL_GetTick()) == 0U) {
@@ -1431,256 +1580,91 @@ int main(void)
       }
 
       if (game_started != 0U && game_screen_drawn == 0U) {
-        game_level_ready = Game_DrawScene(player_x,
-                                          player_y,
-                                          player_animation_frame,
-                                          player_facing_left);
+        uint8_t player_index;
+
+        game_level_ready = Game_DrawScene(players);
         game_screen_drawn = 1U;
-        (void)Game_ButtonTakePress(&button_jump);
-        (void)Game_ButtonTakePress(&button_second_jump);
-        was_on_ground = (game_level_ready != 0U)
-                            ? Game_IsOnGround(player_x, player_y)
-                            : 0U;
+        for (player_index = 0U;
+             player_index < GAME_PLAYER_COUNT;
+             player_index++)
+        {
+          (void)Controles_TakePressed(players[player_index].controller_id,
+                                      CONTROLES_SALTO);
+          (void)Controles_TakePressed(players[player_index].controller_id,
+                                      CONTROLES_SALTO_2);
+          players[player_index].was_on_ground =
+              (game_level_ready != 0U)
+                  ? Game_IsOnGround(players[player_index].x,
+                                    players[player_index].y)
+                  : 0U;
+        }
         last_game_update_ms = HAL_GetTick();
         continue;
       }
 
       if (game_started != 0U && game_level_ready != 0U &&
           (HAL_GetTick() - last_game_update_ms) >= GAME_UPDATE_MS) {
-        uint16_t previous_player_x = player_x;
-        uint16_t previous_player_y = player_y;
-        uint8_t player_moved;
-        uint8_t jump_just_pressed = Game_ButtonTakePress(&button_jump);
-        uint8_t second_jump_just_pressed =
-            Game_ButtonTakePress(&button_second_jump);
-        uint8_t on_ground;
-        uint8_t player_airborne;
-        uint8_t touched_hazard;
-        uint8_t touched_exit;
-        int8_t horizontal_input;
-        int8_t wall_side;
+        uint16_t previous_x[GAME_PLAYER_COUNT];
+        uint16_t previous_y[GAME_PLAYER_COUNT];
+        uint8_t previous_on_ground[GAME_PLAYER_COUNT];
+        uint8_t events[GAME_PLAYER_COUNT];
+        uint8_t redraw_players = 0U;
+        uint8_t change_level = 0U;
+        uint8_t player_index;
 
         last_game_update_ms = HAL_GetTick();
 
-        if (jump_just_pressed != 0U)
+        /* Primero se actualiza la fisica de ambos jugadores. */
+        for (player_index = 0U;
+             player_index < GAME_PLAYER_COUNT;
+             player_index++)
         {
-          jump_buffer_frames = GAME_JUMP_BUFFER_FRAMES;
-        }
+          previous_x[player_index] = players[player_index].x;
+          previous_y[player_index] = players[player_index].y;
+          previous_on_ground[player_index] =
+              players[player_index].was_on_ground;
+          events[player_index] = Game_UpdatePlayer(&players[player_index]);
 
-        /* Mantiene el impulso lejos de la pared durante 100 ms. */
-        if (wall_jump_lock_frames != 0U)
-        {
-          horizontal_input = wall_jump_direction;
-          wall_jump_lock_frames--;
-        }
-        else if (Game_ButtonPressed(&button_right) != 0U) {
-          horizontal_input = 1;
-        } else if (Game_ButtonPressed(&button_left) != 0U) {
-          horizontal_input = -1;
-        } else {
-          horizontal_input = 0;
-        }
-
-        on_ground = Game_IsOnGround(player_x, player_y);
-        wall_side = Game_GetWallSide(player_x, player_y);
-        if (on_ground != 0U && was_on_ground == 0U)
-        {
-          jump_count = GAME_JUMP_COUNT_NORMAL_READY;
-          jump_limit_active = 0U;
-        }
-
-        Game_UpdateHorizontalVelocity(horizontal_input,
-                                      on_ground,
-                                      &player_velocity_x);
-
-        /* PA12 da prioridad al salto de pared mientras está en el aire. */
-        if (jump_buffer_frames != 0U && on_ground == 0U && wall_side != 0)
-        {
-          Game_StartWallJump(player_y,
-                             wall_side,
-                             &player_y_fixed,
-                             &player_velocity_x,
-                             &player_velocity_y,
-                             &jump_apex_y,
-                             &jump_limit_active);
-          if (jump_count == GAME_JUMP_COUNT_NORMAL_READY)
+          if (players[player_index].x != previous_x[player_index] ||
+              players[player_index].y != previous_y[player_index] ||
+              players[player_index].was_on_ground !=
+                  previous_on_ground[player_index] ||
+              (events[player_index] & GAME_PLAYER_EVENT_RESPAWN) != 0U)
           {
-            jump_count = GAME_JUMP_COUNT_SECOND_READY;
+            redraw_players = 1U;
           }
-          wall_jump_direction = (int8_t)-wall_side;
-          wall_jump_lock_frames = GAME_WALL_JUMP_LOCK_FRAMES;
-          jump_buffer_frames = 0U;
-          on_ground = 0U;
-        }
-        /* PA12 habilita el segundo salto sin consultar el suelo. */
-        else if (jump_buffer_frames != 0U &&
-            jump_count == GAME_JUMP_COUNT_NORMAL_READY)
-        {
-          Game_StartJump(player_y,
-                         GAME_JUMP_HEIGHT,
-                         &player_y_fixed,
-                         &player_velocity_y,
-                         &jump_apex_y,
-                         &jump_limit_active);
-          jump_count = GAME_JUMP_COUNT_SECOND_READY;
-          jump_buffer_frames = 0U;
-          on_ground = 0U;
-        }
-        /* PA11 sólo funciona después de haber usado PA12. */
-        else if (second_jump_just_pressed != 0U &&
-                 jump_count == GAME_JUMP_COUNT_SECOND_READY)
-        {
-          Game_StartSecondJump(player_y,
-                               horizontal_input,
-                               Game_ButtonPressed(&button_up),
-                               &player_y_fixed,
-                               &player_velocity_x,
-                               &player_velocity_y,
-                               &jump_apex_y,
-                               &jump_limit_active);
-          jump_count = GAME_JUMP_COUNT_EXHAUSTED;
-          jump_buffer_frames = 0U;
-          on_ground = 0U;
+          if ((events[player_index] & GAME_PLAYER_EVENT_EXIT) != 0U)
+          {
+            change_level = 1U;
+          }
         }
 
-        if (jump_buffer_frames != 0U)
+        /* Si cualquiera llega a la salida, ambos pasan al siguiente nivel. */
+        if (change_level != 0U && game_current_level < GAME_LEVEL_3)
         {
-          jump_buffer_frames--;
-        }
-
-        Game_ApplyGravity(on_ground, &player_velocity_y);
-
-        Game_MoveHorizontal(&player_x,
-                            player_y,
-                            &player_x_fixed,
-                            &player_velocity_x);
-        wall_side = Game_GetWallSide(player_x, player_y);
-        Game_ApplyWallSlide(on_ground, wall_side, &player_velocity_y);
-        touched_hazard = Game_TouchesLevelColor(player_x,
-                                                player_y,
-                                                GAME_LEVEL_HAZARD_COLOR,
-                                                GAME_LEVEL_HAZARD_REACH);
-        touched_exit = Game_TouchesLevelColor(player_x,
-                                              player_y,
-                                              GAME_LEVEL_EXIT_COLOR,
-                                              GAME_LEVEL_EXIT_REACH);
-        Game_MoveVertical(player_x,
-                          &player_y,
-                          &player_y_fixed,
-                          &player_velocity_y,
-                          jump_apex_y,
-                          &jump_limit_active);
-        touched_hazard |= Game_TouchesLevelColor(player_x,
-                                                 player_y,
-                                                 GAME_LEVEL_HAZARD_COLOR,
-                                                 GAME_LEVEL_HAZARD_REACH);
-        touched_exit |= Game_TouchesLevelColor(player_x,
-                                               player_y,
-                                               GAME_LEVEL_EXIT_COLOR,
-                                               GAME_LEVEL_EXIT_REACH);
-
-        if (touched_hazard != 0U)
-        {
-          Game_ErasePlayer(previous_player_x, previous_player_y);
-          Game_ResetPlayerPosition(&player_x,
-                                   &player_y,
-                                   &player_x_fixed,
-                                   &player_y_fixed,
-                                   &player_velocity_x,
-                                   &player_velocity_y,
-                                   &jump_apex_y,
-                                   &jump_limit_active);
-          jump_count = GAME_JUMP_COUNT_NORMAL_READY;
-          jump_buffer_frames = 0U;
-          wall_jump_lock_frames = 0U;
-          wall_jump_direction = 0;
-          was_on_ground = Game_IsOnGround(player_x, player_y);
-          player_animation_frame = 0U;
-          player_animation_updates = 0U;
-          player_facing_left = 0U;
-          Game_DrawPlayer(player_x,
-                          player_y,
-                          player_animation_frame,
-                          player_facing_left,
-                          (was_on_ground == 0U) ? 1U : 0U);
-          continue;
-        }
-
-        if (touched_exit != 0U && game_current_level == GAME_LEVEL_1)
-        {
-          game_current_level = GAME_LEVEL_2;
-          Game_ResetPlayerPosition(&player_x,
-                                   &player_y,
-                                   &player_x_fixed,
-                                   &player_y_fixed,
-                                   &player_velocity_x,
-                                   &player_velocity_y,
-                                   &jump_apex_y,
-                                   &jump_limit_active);
-          jump_count = GAME_JUMP_COUNT_NORMAL_READY;
-          jump_buffer_frames = 0U;
-          wall_jump_lock_frames = 0U;
-          wall_jump_direction = 0;
-          was_on_ground = 0U;
-          player_animation_frame = 0U;
-          player_animation_updates = 0U;
-          player_facing_left = 0U;
+          game_current_level++;
+          for (player_index = 0U;
+               player_index < GAME_PLAYER_COUNT;
+               player_index++)
+          {
+            Game_ResetPlayer(&players[player_index]);
+          }
           Game_UnloadLevel();
           game_screen_drawn = 0U;
           continue;
         }
 
-        player_airborne = (Game_IsOnGround(player_x, player_y) == 0U)
-                              ? 1U
-                              : 0U;
-
-        /* El movimiento vertical puede aterrizar dentro de esta actualización. */
-        if (player_airborne == 0U && on_ground == 0U)
+        if (redraw_players != 0U)
         {
-          jump_count = GAME_JUMP_COUNT_NORMAL_READY;
-          jump_limit_active = 0U;
-        }
-
-        was_on_ground = (player_airborne == 0U) ? 1U : 0U;
-        player_moved = (player_x != previous_player_x ||
-                        player_y != previous_player_y) ? 1U : 0U;
-
-        if (player_x < previous_player_x)
-        {
-          player_facing_left = 1U;
-        }
-        else if (player_x > previous_player_x)
-        {
-          player_facing_left = 0U;
-        }
-
-        if (player_moved != 0U) {
-          if (player_airborne != 0U)
+          /* Se borran los dos antes de dibujar para manejar cruces. */
+          for (player_index = 0U;
+               player_index < GAME_PLAYER_COUNT;
+               player_index++)
           {
-            player_animation_frame = 0U;
-            player_animation_updates = 0U;
+            Game_RestorePlayerArea(previous_x[player_index],
+                                   previous_y[player_index]);
           }
-          else if (player_x != previous_player_x)
-          {
-            player_animation_updates++;
-            if (player_animation_updates >= GAME_PLAYER_ANIMATION_STEP_UPDATES)
-            {
-              player_animation_updates = 0U;
-              player_animation_frame = (uint8_t)(
-                  (player_animation_frame + 1U) % CELESTE_J1_FRAME_COUNT);
-            }
-          }
-          else
-          {
-            player_animation_frame = 0U;
-            player_animation_updates = 0U;
-          }
-          Game_ErasePlayer(previous_player_x, previous_player_y);
-          Game_DrawPlayer(player_x,
-                          player_y,
-                          player_animation_frame,
-                          player_facing_left,
-                          player_airborne);
+          Game_DrawPlayers(players);
         }
       }
 
@@ -1832,6 +1816,72 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
+  * @brief UART5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART5_Init(void)
+{
+
+  /* USER CODE BEGIN UART5_Init 0 */
+
+  /* USER CODE END UART5_Init 0 */
+
+  /* USER CODE BEGIN UART5_Init 1 */
+
+  /* USER CODE END UART5_Init 1 */
+  huart5.Instance = UART5;
+  huart5.Init.BaudRate = 115200;
+  huart5.Init.WordLength = UART_WORDLENGTH_8B;
+  huart5.Init.StopBits = UART_STOPBITS_1;
+  huart5.Init.Parity = UART_PARITY_NONE;
+  huart5.Init.Mode = UART_MODE_TX_RX;
+  huart5.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart5.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART5_Init 2 */
+
+  /* USER CODE END UART5_Init 2 */
+
+}
+
+/**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -1847,6 +1897,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, LCD_RST_Pin|LCD_D1_Pin, GPIO_PIN_RESET);
@@ -1860,7 +1911,7 @@ static void MX_GPIO_Init(void)
                           |LCD_D4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SD_SS_GPIO_Port, SD_SS_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, ESP1_CS_Pin|SD_SS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : LCD_RST_Pin LCD_D1_Pin */
   GPIO_InitStruct.Pin = LCD_RST_Pin|LCD_D1_Pin;
@@ -1884,14 +1935,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LCD_CS_Pin LCD_D6_Pin LCD_D3_Pin LCD_D5_Pin
-                           LCD_D4_Pin SD_SS_Pin */
-  GPIO_InitStruct.Pin = LCD_CS_Pin|LCD_D6_Pin|LCD_D3_Pin|LCD_D5_Pin
-                          |LCD_D4_Pin|SD_SS_Pin;
+  /*Configure GPIO pins : LCD_CS_Pin LCD_D6_Pin ESP1_CS_Pin LCD_D3_Pin
+                           LCD_D5_Pin LCD_D4_Pin SD_SS_Pin */
+  GPIO_InitStruct.Pin = LCD_CS_Pin|LCD_D6_Pin|ESP1_CS_Pin|LCD_D3_Pin
+                          |LCD_D5_Pin|LCD_D4_Pin|SD_SS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : ESP1_READY_Pin */
+  GPIO_InitStruct.Pin = ESP1_READY_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(ESP1_READY_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : btn_salto2_Pin btn_salto_Pin */
   GPIO_InitStruct.Pin = btn_salto2_Pin|btn_salto_Pin;
@@ -1900,26 +1957,19 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
-  /* Los cinco botones ya son configurados por CubeMX. */
   /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  if (huart->Instance == USART2)
-  {
-    UART_QueuePush(uart_rx_byte);
-    (void)HAL_UART_Receive_IT(&huart2, &uart_rx_byte, 1U);
-  }
+  Controles_UART_RxCpltCallback(huart);
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
-  if (huart->Instance == USART2)
-  {
-    (void)HAL_UART_Receive_IT(&huart2, &uart_rx_byte, 1U);
-  }
+  Controles_UART_ErrorCallback(huart);
 }
 
 /* USER CODE END 4 */

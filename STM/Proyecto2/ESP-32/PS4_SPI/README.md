@@ -1,63 +1,69 @@
-# ESP32: controles PS4 para Proyecto 2
+# ESP32: controles PS4 por UART
 
-Firmware para dos ESP32-WROOM-32, un DualShock 4 por ESP32. Bluetooth con Bluepad32 y comunicacion SPI hacia la STM32 maestra.
+Firmware para dos ESP32-WROOM-32, un DualShock 4 por ESP32. Bluepad32 recibe
+el control por Bluetooth y cada ESP32 envia su estado a un UART independiente
+de la STM32.
 
 ## Cargar en Arduino IDE
 
-Instalar el paquete **ESP32 + Bluepad32 4.1.0** siguiendo https://bluepad32.readthedocs.io/en/latest/plat_arduino/ y seleccionar ESP32 Dev Module de ese paquete. Abrir `PS4_SPI.ino` conservando `config.h` y `gamepad_protocol.h` en esta carpeta. El codigo se verifico por compilacion con PLAYER_ID 1 y 2; la compilacion no reemplaza una prueba fisica.
+Instalar **ESP32 + Bluepad32 4.1.0** y seleccionar `ESP32 Dev Module` dentro de
+ese paquete. Abrir `PS4_SPI.ino` conservando `config.h` y
+`gamepad_protocol.h` en la misma carpeta.
 
-Editar `config.h` para cada placa, manteniendo FILTER_CONTROLLER_MAC true, ERASE_PAIRING_KEYS false y ENABLE_SPI true:
+Antes de cargar cada placa, editar solo `PLAYER_ID` en `config.h`:
 
 ```cpp
-// ESP32 jugador 1
+// ESP32 del jugador 1
 #define PLAYER_ID 1
-static const uint8_t CONTROLLER_MAC[6] = {0xA4,0x15,0x66,0x77,0x77,0x51};
 
-// ESP32 jugador 2: reemplazar las dos lineas anteriores por estas
+// ESP32 del jugador 2
 #define PLAYER_ID 2
-static const uint8_t CONTROLLER_MAC[6] = {0x40,0x1B,0x5F,0x88,0xA1,0x4C};
 ```
 
-No declarar ambas configuraciones simultaneamente. Emparejar con SHARE + PS. Monitor Serial a 115200. Direcciones solo de la cruceta; Cruz=salto, Circulo=secundario y Options=inicio.
+Las MAC de ambos controles ya estan guardadas. Emparejar con SHARE + PS. El
+monitor USB permanece disponible a 115200 baudios para diagnostico.
 
-## Pines de cada ESP32
+## Conexion
 
-| Senal | GPIO |
-|---|---|
-| SCK | 18 |
-| MOSI | 23 |
-| MISO | 19 |
-| CS activo bajo | 27 |
-| READY | 26 |
+Cada ESP32 transmite por `GPIO17` (`TX2`) a 115200 baudios, 8 bits, sin
+paridad y un bit de parada. No se conecta un RX al ESP32. No usar `TX0` o
+`GPIO1`: ese pin contiene los mensajes de arranque y diagnostico de Bluepad32.
 
-Las dos placas usan estos mismos GPIO, pero cada enlace debe tener seleccion CS y READY propios. Si se comparte el reloj, no unir salidas MISO sin verificar su aislamiento; la prueba Arduino usaba entradas MISO separadas. Nucleo y ESP32 usan señales de 3.3V y GND comun; no requieren convertidor a 5V.
+| Jugador | ESP32 | STM32 |
+|---|---|---|
+| J1 | GPIO17 / TX2 | PD2 / UART5_RX |
+| J2 | GPIO17 / TX2 | PC11 / USART3_RX |
+| Ambos | GND | GND |
 
-## Recibir en STM32: paquete SPI de 4 bytes
+No conectar los dos TX entre si. Cada uno llega a un RX diferente de la STM32.
+Todas las senales son de 3.3 V.
 
-STM32 maestra, ESP32 esclavo. Modo 0, MSB primero, datos de 8 bits. Consultar READY; al estar alto, bajar solo el CS de ese ESP, transferir **4 bytes enviando ceros en MOSI**, y subir CS. Son 32 pulsos de reloj con CS bajo durante toda la trama.
+## Trama UART
+
+Cada ESP32 envia una trama cada 20 ms desde una tarea periodica independiente
+del procesamiento Bluetooth:
 
 | Byte | Dato |
 |---|---|
-| 0 | ID del jugador: 1 o 2 |
-| 1 | Mascara de botones simultaneos |
-| 2 | 0xA1 conectado / 0xA0 desconectado |
-| 3 | CRC-8/SMBUS de bytes 0..2 |
+| 0 | Sincronizacion `0xA5` |
+| 1 | ID del jugador: 1 o 2 |
+| 2 | Mascara de botones simultaneos |
+| 3 | `0xA1` conectado o `0xA0` desconectado |
+| 4 | CRC-8/SMBUS de bytes 0 a 3 |
 
-CRC: polinomio 0x07, inicial 0, sin reflexion y sin XOR final. Vector ASCII `123456789` produce 0xF4. Usar `gp_valid()` del header para verificar cada trama.
+CRC: polinomio `0x07`, inicial `0x00`, sin reflexion y sin XOR final.
 
-| Bit de la mascara | Accion |
+| Bit | Accion |
 |---|---|
-| 0 / 0x01 | Izquierda |
-| 1 / 0x02 | Derecha |
-| 2 / 0x04 | Arriba |
-| 3 / 0x08 | Abajo |
-| 4 / 0x10 | Cruz / salto |
-| 5 / 0x20 | Circulo / secundario |
-| 6 / 0x40 | Options / inicio |
-| 7 | Reservado, cero |
+| 0 / `0x01` | Izquierda |
+| 1 / `0x02` | Derecha |
+| 2 / `0x04` | Arriba |
+| 3 / `0x08` | Abajo |
+| 4 / `0x10` | Cruz / salto |
+| 5 / `0x20` | Circulo / segundo salto |
+| 6 / `0x40` | Options / inicio |
+| 7 | Reservado, siempre cero |
 
-Evaluar cada bit independientemente, sin else-if entre acciones. Por ejemplo, derecha + salto = 0x12. Mantener estados independientes por jugador.
-
-El ESP32 envia estado inicial, cambios, liberaciones y desconexiones. Mientras hay botones presionados repite el estado; en reposo no necesita repetir. READY indica una trama preparada, no necesariamente un control conectado. Leer cada trama con gp_valid antes de aplicarla. Detener una accion mantenida si no llega otra trama valida por 300ms; neutralizar al recibir desconexion. La cola almacena hasta 16 estados y prioriza los recientes si se llena.
-
-Este formato de 4 bytes sustituye al antiguo de 24. No hay secuencia, ejes, token ni contadores en el paquete; los contadores del monitor local son diagnostico. SPI envia binario, no los comandos ASCII j1i/j2i/x/o/a que mostraba el Arduino de prueba.
+La STM32 reconstruye la trama a partir de `0xA5`, valida ID, formato y CRC, y
+genera eventos solo en el flanco de pulsacion. Si pasan 300 ms sin una trama
+valida, libera cualquier accion mantenida.

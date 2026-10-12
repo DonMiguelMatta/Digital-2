@@ -308,7 +308,7 @@ uint8_t ILI9341_IsReady(const ILI9341_t *lcd)
   return (lcd != 0 && lcd->init_state == ILI9341_INIT_READY) ? 1U : 0U;
 }
 
-void ILI9341_WriteCommand(ILI9341_t *lcd, uint8_t command)
+void ILI9341_WriteCommand(const ILI9341_t *lcd, uint8_t command)
 {
   if (lcd == 0)
   {
@@ -320,7 +320,7 @@ void ILI9341_WriteCommand(ILI9341_t *lcd, uint8_t command)
   ILI9341_SetPin(&lcd->config.chip_select, 1U);
 }
 
-void ILI9341_WriteData(ILI9341_t *lcd, uint8_t data)
+void ILI9341_WriteData(const ILI9341_t *lcd, uint8_t data)
 {
   if (lcd == 0)
   {

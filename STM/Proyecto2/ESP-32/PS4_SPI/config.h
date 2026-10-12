@@ -1,21 +1,23 @@
 #pragma once
 #include <stdint.h>
 // Cambiar a 2 para el segundo ESP32.
-#define PLAYER_ID 1
+#define PLAYER_ID 2
 // Primera prueba: false y conectar un solo ESP32 a la vez.
 // Luego copiar la MAC DEL CONTROL que imprime el monitor y activar true.
 #define FILTER_CONTROLLER_MAC true
+#if PLAYER_ID == 1
 static const uint8_t CONTROLLER_MAC[6] = {0xA4, 0x15, 0x66, 0x77, 0x77, 0x51};
+#elif PLAYER_ID == 2
+static const uint8_t CONTROLLER_MAC[6] = {0x40, 0x1B, 0x5F, 0x88, 0xA1, 0x4C};
+#else
+#error "PLAYER_ID debe ser 1 o 2"
+#endif
 // Activar SOLO para reparar un emparejamiento; volver a false luego.
 #define ERASE_PAIRING_KEYS false
-#define PIN_SCK 18
-#define PIN_MISO 19
-#define PIN_MOSI 23
-#define PIN_CS 27
-#define PIN_READY 26
+#define CONTROL_UART_TX_PIN 17
+#define CONTROL_UART_BAUD_RATE 115200UL
+#define CONTROL_FRAME_PERIOD_MS 20U
 #define STICK_DEADZONE 160
 #define BT_REPORT_TIMEOUT_MS 500u
-// true: mostrar estado solo cuando cambian botones o conexion.
-#define SERIAL_DIAGNOSTICS true
-// false: prueba Bluetooth solamente; true: firmware final Bluetooth + SPI.
-#define ENABLE_SPI true
+// false: prueba Bluetooth solamente; true: firmware final Bluetooth + UART.
+#define ENABLE_CONTROL_UART true

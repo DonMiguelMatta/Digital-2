@@ -63,6 +63,10 @@ void Error_Handler(void);
 #define LCD_RD_GPIO_Port GPIOA
 #define LCD_WR_Pin GPIO_PIN_1
 #define LCD_WR_GPIO_Port GPIOA
+#define DEBUG_UART_TX_Pin GPIO_PIN_2
+#define DEBUG_UART_TX_GPIO_Port GPIOA
+#define DEBUG_UART_RX_Pin GPIO_PIN_3
+#define DEBUG_UART_RX_GPIO_Port GPIOA
 #define LCD_RS_Pin GPIO_PIN_4
 #define LCD_RS_GPIO_Port GPIOA
 #define btn_arriba_Pin GPIO_PIN_5
@@ -71,6 +75,10 @@ void Error_Handler(void);
 #define LCD_CS_GPIO_Port GPIOB
 #define LCD_D6_Pin GPIO_PIN_10
 #define LCD_D6_GPIO_Port GPIOB
+#define ESP1_CS_Pin GPIO_PIN_12
+#define ESP1_CS_GPIO_Port GPIOB
+#define ESP1_READY_Pin GPIO_PIN_14
+#define ESP1_READY_GPIO_Port GPIOB
 #define btn_derecha_Pin GPIO_PIN_6
 #define btn_derecha_GPIO_Port GPIOC
 #define LCD_D1_Pin GPIO_PIN_7
@@ -87,6 +95,10 @@ void Error_Handler(void);
 #define btn_salto2_GPIO_Port GPIOA
 #define btn_salto_Pin GPIO_PIN_12
 #define btn_salto_GPIO_Port GPIOA
+#define ESP2_UART_RX_Pin GPIO_PIN_11
+#define ESP2_UART_RX_GPIO_Port GPIOC
+#define ESP1_UART_RX_Pin GPIO_PIN_2
+#define ESP1_UART_RX_GPIO_Port GPIOD
 #define LCD_D3_Pin GPIO_PIN_3
 #define LCD_D3_GPIO_Port GPIOB
 #define LCD_D5_Pin GPIO_PIN_4

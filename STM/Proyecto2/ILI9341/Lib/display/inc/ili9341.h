@@ -58,8 +58,8 @@ void ILI9341_BeginInit(ILI9341_t *lcd,
 uint8_t ILI9341_UpdateInit(ILI9341_t *lcd, uint32_t now_ms);
 uint8_t ILI9341_IsReady(const ILI9341_t *lcd);
 
-void ILI9341_WriteCommand(ILI9341_t *lcd, uint8_t command);
-void ILI9341_WriteData(ILI9341_t *lcd, uint8_t data);
+void ILI9341_WriteCommand(const ILI9341_t *lcd, uint8_t command);
+void ILI9341_WriteData(const ILI9341_t *lcd, uint8_t data);
 void ILI9341_SetWindow(ILI9341_t *lcd,
                        uint16_t x0,
                        uint16_t y0,
