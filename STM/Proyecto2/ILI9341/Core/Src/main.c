@@ -117,6 +117,12 @@ typedef struct
 #define START_PROMPT_BLINK_MS 250U
 #define START_PROMPT_TEXT "PRESIONA START"
 
+/* Comandos enviados a la STM que reproduce la música. */
+#define GAME_MUSIC_COMMAND_MENU ((uint8_t)'M')
+#define GAME_MUSIC_COMMAND_THEME ((uint8_t)'T')
+#define GAME_MUSIC_RESEND_MS 1000U
+#define GAME_MUSIC_SPI_TIMEOUT_MS 5U
+
 /* Tamaño de colisión y ajuste del sprite sobre el jugador. */
 #define GAME_PLAYER_WIDTH 18U
 #define GAME_PLAYER_HEIGHT 14U
@@ -267,6 +273,7 @@ typedef struct
 
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi2;
 
 UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart2;
@@ -312,6 +319,11 @@ static uint16_t game_overlay_row[ILI9341_WIDTH];
 static uint16_t game_composed_row[ILI9341_WIDTH];
 static uint8_t game_collision_map[GAME_COLLISION_MAP_SIZE];
 static uint16_t game_scores[GAME_PLAYER_COUNT];
+static uint8_t game_music_command = GAME_MUSIC_COMMAND_MENU;
+static uint8_t game_music_command_sent = 0U;
+static uint32_t game_music_last_tx_ms = 0U;
+static volatile uint32_t game_music_tx_ok_count = 0U;
+static volatile uint32_t game_music_tx_error_count = 0U;
 
 /* USER CODE END PV */
 
@@ -322,6 +334,7 @@ static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_UART5_Init(void);
+static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 extern uint8_t __level_cache_start__;
 extern uint8_t __level_cache_end__;
@@ -330,6 +343,59 @@ extern uint8_t __level_cache_end__;
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* Envía el comando y libera NSS al terminar la transferencia. */
+static void GameMusic_Transmit(uint32_t now_ms)
+{
+  HAL_StatusTypeDef status = HAL_SPI_Transmit(&hspi2,
+                                               &game_music_command,
+                                               1U,
+                                               GAME_MUSIC_SPI_TIMEOUT_MS);
+
+  __HAL_SPI_DISABLE(&hspi2); /* PB9 vuelve a alto entre comandos. */
+
+  if (status == HAL_OK)
+  {
+    game_music_command_sent = 1U;
+    game_music_last_tx_ms = now_ms;
+    game_music_tx_ok_count++;
+  }
+  else
+  {
+    game_music_tx_error_count++;
+  }
+}
+
+/* Cambia la canción únicamente cuando cambia el estado del juego. */
+static void GameMusic_Select(uint8_t command, uint32_t now_ms)
+{
+  if (command != GAME_MUSIC_COMMAND_MENU &&
+      command != GAME_MUSIC_COMMAND_THEME)
+  {
+    return;
+  }
+
+  if (command != game_music_command)
+  {
+    game_music_command = command;
+    game_music_command_sent = 0U;
+  }
+
+  if (game_music_command_sent == 0U)
+  {
+    GameMusic_Transmit(now_ms);
+  }
+}
+
+/* Repite el estado para recuperar la conexión después de un reinicio. */
+static void GameMusic_Update(uint32_t now_ms)
+{
+  if (game_music_command_sent == 0U ||
+      (now_ms - game_music_last_tx_ms) >= GAME_MUSIC_RESEND_MS)
+  {
+    GameMusic_Transmit(now_ms);
+  }
+}
+
 /* Dibuja el aviso que parpadea en la pantalla inicial. */
 static void StartScreen_DrawPrompt(void)
 {
@@ -1837,6 +1903,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   MX_UART5_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   lcd_config.reset.port = LCD_RST_GPIO_Port;
   lcd_config.reset.pin = LCD_RST_Pin;
@@ -1859,8 +1926,9 @@ int main(void)
   lcd_config.memory_access_control = 0x48U;
 
   ILI9341_BeginInit(&lcd, &lcd_config, HAL_GetTick());
-  Controles_SetDebugUart(&huart2);
+  Controles_SetDebugUart(0);
   Controles_Init();
+  GameMusic_Select(GAME_MUSIC_COMMAND_MENU, HAL_GetTick());
   Game_ConfigurePlayer(&players[0],
                        CONTROLES_JUGADOR_1,
                        CelesteJ1,
@@ -1883,6 +1951,7 @@ int main(void)
       uint8_t start_j1;
       uint8_t start_j2;
 
+      GameMusic_Update(now_ms);
       Controles_Update(now_ms);
       start_j1 = Controles_TakePressed(CONTROLES_JUGADOR_1,
                                        CONTROLES_INICIO);
@@ -1935,6 +2004,7 @@ int main(void)
         results_screen = 0U;
         start_requested = 0U;
         game_started = 1U;
+        GameMusic_Select(GAME_MUSIC_COMMAND_THEME, HAL_GetTick());
         continue;
       }
 
@@ -2029,6 +2099,7 @@ int main(void)
           game_screen_drawn = 0U;
           start_requested = 0U;
           prompt_visible = 0U;
+          GameMusic_Select(GAME_MUSIC_COMMAND_MENU, HAL_GetTick());
           continue;
         }
 
@@ -2167,35 +2238,40 @@ static void MX_SPI1_Init(void)
 }
 
 /**
-  * @brief USART2 Initialization Function
+  * @brief SPI2 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_USART2_UART_Init(void)
+static void MX_SPI2_Init(void)
 {
 
-  /* USER CODE BEGIN USART2_Init 0 */
+  /* USER CODE BEGIN SPI2_Init 0 */
 
-  /* USER CODE END USART2_Init 0 */
+  /* USER CODE END SPI2_Init 0 */
 
-  /* USER CODE BEGIN USART2_Init 1 */
+  /* USER CODE BEGIN SPI2_Init 1 */
 
-  /* USER CODE END USART2_Init 1 */
-  huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
-  huart2.Init.WordLength = UART_WORDLENGTH_8B;
-  huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_NONE;
-  huart2.Init.Mode = UART_MODE_TX_RX;
-  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart2) != HAL_OK)
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_HARD_OUTPUT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN USART2_Init 2 */
+  /* USER CODE BEGIN SPI2_Init 2 */
 
-  /* USER CODE END USART2_Init 2 */
+  /* USER CODE END SPI2_Init 2 */
 
 }
 
@@ -2233,6 +2309,39 @@ static void MX_UART5_Init(void)
 }
 
 /**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
   * @brief USART3 Initialization Function
   * @param None
   * @retval None
@@ -2252,7 +2361,7 @@ static void MX_USART3_UART_Init(void)
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;
-  huart3.Init.Mode = UART_MODE_RX;
+  huart3.Init.Mode = UART_MODE_TX_RX;
   huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart3) != HAL_OK)
@@ -2295,7 +2404,7 @@ static void MX_GPIO_Init(void)
                           |LCD_D4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, ESP1_CS_Pin|SD_SS_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, MUSIC_CS_Pin|SD_SS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : LCD_RST_Pin LCD_D1_Pin */
   GPIO_InitStruct.Pin = LCD_RST_Pin|LCD_D1_Pin;
@@ -2319,9 +2428,9 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LCD_CS_Pin LCD_D6_Pin ESP1_CS_Pin LCD_D3_Pin
+  /*Configure GPIO pins : LCD_CS_Pin LCD_D6_Pin MUSIC_CS_Pin LCD_D3_Pin
                            LCD_D5_Pin LCD_D4_Pin SD_SS_Pin */
-  GPIO_InitStruct.Pin = LCD_CS_Pin|LCD_D6_Pin|ESP1_CS_Pin|LCD_D3_Pin
+  GPIO_InitStruct.Pin = LCD_CS_Pin|LCD_D6_Pin|MUSIC_CS_Pin|LCD_D3_Pin
                           |LCD_D5_Pin|LCD_D4_Pin|SD_SS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;

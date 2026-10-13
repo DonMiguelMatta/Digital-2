@@ -75,8 +75,8 @@ void Error_Handler(void);
 #define LCD_CS_GPIO_Port GPIOB
 #define LCD_D6_Pin GPIO_PIN_10
 #define LCD_D6_GPIO_Port GPIOB
-#define ESP1_CS_Pin GPIO_PIN_12
-#define ESP1_CS_GPIO_Port GPIOB
+#define MUSIC_CS_Pin GPIO_PIN_12
+#define MUSIC_CS_GPIO_Port GPIOB
 #define ESP1_READY_Pin GPIO_PIN_14
 #define ESP1_READY_GPIO_Port GPIOB
 #define btn_derecha_Pin GPIO_PIN_6
