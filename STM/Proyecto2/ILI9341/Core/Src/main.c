@@ -93,10 +93,12 @@ typedef struct
   uint8_t wall_jump_lock_frames;
   uint8_t was_on_ground;
   uint8_t jump_limit_active;
+  uint8_t second_jump_horizontal_active;
   int8_t wall_jump_direction;
   uint16_t x;
   uint16_t y;
   uint16_t jump_apex_y;
+  uint16_t second_jump_target_x;
   int32_t x_fixed;
   int32_t y_fixed;
   int32_t velocity_x;
@@ -169,7 +171,7 @@ typedef struct
 #define GAME_SECOND_JUMP_HEIGHT \
   ((uint16_t)GAME_SCALE_ROUNDED(GAME_PLAYER_HEIGHT, \
                                 GAME_SECOND_JUMP_HEIGHT_MULTIPLIER))
-#define GAME_SECOND_JUMP_SIDE_SPEED_MULTIPLIER 3.0f
+#define GAME_SECOND_JUMP_SIDE_SPEED_MULTIPLIER 3.5f
 #define GAME_SECOND_JUMP_DIAGONAL_SPEED_MULTIPLIER 2.0f
 #define GAME_SECOND_JUMP_SIDE_SPEED \
   GAME_SCALE_ROUNDED(GAME_FIXED_POINT_ONE, \
@@ -1425,19 +1427,48 @@ static void Game_StartJump(uint16_t player_y,
   *jump_limit_active = 1U;
 }
 
-/* El segundo salto conserva su altura y agrega impulso hacia donde se apunta. */
-static void Game_StartSecondJump(uint16_t player_y,
+/* El segundo salto usa solamente los ejes indicados por el control. */
+static void Game_StartSecondJump(uint16_t player_x,
+                                 uint16_t player_y,
                                  int8_t horizontal_input,
                                  uint8_t aiming_up,
+                                 int32_t *player_x_fixed,
                                  int32_t *player_y_fixed,
                                  int32_t *player_velocity_x,
                                  int32_t *player_velocity_y,
                                  uint16_t *jump_apex_y,
-                                 uint8_t *jump_limit_active)
+                                 uint8_t *jump_limit_active,
+                                 uint16_t *second_jump_target_x,
+                                 uint8_t *second_jump_horizontal_active)
 {
-  int32_t side_speed = (aiming_up != 0U)
-                           ? GAME_SECOND_JUMP_DIAGONAL_SPEED
-                           : GAME_SECOND_JUMP_SIDE_SPEED;
+  if (horizontal_input != 0 && aiming_up == 0U)
+  {
+    int32_t target_x = (int32_t)player_x +
+                       ((int32_t)horizontal_input *
+                        (int32_t)GAME_SECOND_JUMP_HEIGHT);
+
+    if (target_x < 0L)
+    {
+      target_x = 0L;
+    }
+    else if (target_x > (int32_t)GAME_PLAYER_X_MAX)
+    {
+      target_x = (int32_t)GAME_PLAYER_X_MAX;
+    }
+
+    *player_x_fixed = (int32_t)player_x * GAME_FIXED_POINT_ONE;
+    *player_y_fixed = (int32_t)player_y * GAME_FIXED_POINT_ONE;
+    *player_velocity_x =
+        (int32_t)horizontal_input * GAME_SECOND_JUMP_SIDE_SPEED;
+    *player_velocity_y = 0L;
+    *jump_limit_active = 0U;
+    *second_jump_target_x = (uint16_t)target_x;
+    *second_jump_horizontal_active =
+        ((uint16_t)target_x != player_x) ? 1U : 0U;
+    return;
+  }
+
+  *second_jump_horizontal_active = 0U;
 
   Game_StartJump(player_y,
                  GAME_SECOND_JUMP_HEIGHT,
@@ -1448,12 +1479,12 @@ static void Game_StartSecondJump(uint16_t player_y,
 
   if (horizontal_input != 0)
   {
-    *player_velocity_x = (int32_t)horizontal_input * side_speed;
+    *player_velocity_x =
+        (int32_t)horizontal_input * GAME_SECOND_JUMP_DIAGONAL_SPEED;
+    return;
   }
-  else if (aiming_up != 0U)
-  {
-    *player_velocity_x = 0L;
-  }
+
+  *player_velocity_x = 0L; /* Arriba o sin dirección produce salto vertical. */
 }
 
 /* Salta en sentido opuesto a la pared sin recuperar el segundo salto. */
@@ -1497,21 +1528,43 @@ static void Game_ApplyGravity(uint8_t on_ground, int32_t *player_velocity_y)
 static void Game_MoveHorizontal(uint16_t *player_x,
                                 uint16_t player_y,
                                 int32_t *player_x_fixed,
-                                int32_t *player_velocity_x)
+                                int32_t *player_velocity_x,
+                                uint16_t second_jump_target_x,
+                                uint8_t *second_jump_horizontal_active)
 {
   int32_t desired_fixed = *player_x_fixed + *player_velocity_x;
   int32_t target_x;
   int32_t current_x = (int32_t)*player_x;
+  uint8_t reached_jump_limit = 0U;
+
+  if (*second_jump_horizontal_active != 0U)
+  {
+    int32_t limit_fixed =
+        (int32_t)second_jump_target_x * GAME_FIXED_POINT_ONE;
+
+    if ((*player_velocity_x > 0L && desired_fixed >= limit_fixed) ||
+        (*player_velocity_x < 0L && desired_fixed <= limit_fixed))
+    {
+      desired_fixed = limit_fixed;
+      reached_jump_limit = 1U;
+    }
+    else if (*player_velocity_x == 0L)
+    {
+      *second_jump_horizontal_active = 0U;
+    }
+  }
 
   if (desired_fixed < 0L)
   {
     desired_fixed = 0L;
     *player_velocity_x = 0L;
+    *second_jump_horizontal_active = 0U;
   }
   else if (desired_fixed > (int32_t)GAME_PLAYER_X_MAX * GAME_FIXED_POINT_ONE)
   {
     desired_fixed = (int32_t)GAME_PLAYER_X_MAX * GAME_FIXED_POINT_ONE;
     *player_velocity_x = 0L;
+    *second_jump_horizontal_active = 0U;
   }
 
   target_x = desired_fixed / GAME_FIXED_POINT_ONE; /* Vuelve a píxeles. */
@@ -1522,6 +1575,7 @@ static void Game_MoveHorizontal(uint16_t *player_x,
     if (Game_CollidesAt(next_x, (int32_t)player_y) != 0U)
     {
       *player_velocity_x = 0L;
+      *second_jump_horizontal_active = 0U;
       desired_fixed = current_x * GAME_FIXED_POINT_ONE;
       break;
     }
@@ -1531,6 +1585,12 @@ static void Game_MoveHorizontal(uint16_t *player_x,
 
   *player_x = (uint16_t)current_x;
   *player_x_fixed = desired_fixed;
+
+  if (reached_jump_limit != 0U)
+  {
+    *player_velocity_x = 0L;
+    *second_jump_horizontal_active = 0U;
+  }
 }
 
 /* Aplica altura máxima y colisiones con suelo o techo. */
@@ -1610,6 +1670,7 @@ static void Game_ResetPlayer(GamePlayer_t *player)
   player->velocity_x = 0L;
   player->velocity_y = 0L;
   player->jump_apex_y = start_y;
+  player->second_jump_target_x = start_x;
   player->animation_frame = 0U;
   player->animation_updates = 0U;
   player->facing_left = 0U;
@@ -1618,6 +1679,7 @@ static void Game_ResetPlayer(GamePlayer_t *player)
   player->wall_jump_lock_frames = 0U;
   player->was_on_ground = 0U;
   player->jump_limit_active = 0U;
+  player->second_jump_horizontal_active = 0U;
   player->wall_jump_direction = 0;
 }
 
@@ -1686,16 +1748,21 @@ static uint8_t Game_UpdatePlayer(GamePlayer_t *player)
     /* Aterrizar recupera ambos saltos. */
     player->jump_count = GAME_JUMP_COUNT_NORMAL_READY;
     player->jump_limit_active = 0U;
+    player->second_jump_horizontal_active = 0U;
   }
 
-  Game_UpdateHorizontalVelocity(horizontal_input,
-                                on_ground,
-                                &player->velocity_x);
+  if (player->second_jump_horizontal_active == 0U)
+  {
+    Game_UpdateHorizontalVelocity(horizontal_input,
+                                  on_ground,
+                                  &player->velocity_x);
+  }
 
   /* Cruz da prioridad al salto de pared mientras esta en el aire. */
   if (player->jump_buffer_frames != 0U && on_ground == 0U &&
       wall_side != 0)
   {
+    player->second_jump_horizontal_active = 0U;
     Game_StartWallJump(player->y,
                        wall_side,
                        &player->y_fixed,
@@ -1728,14 +1795,18 @@ static uint8_t Game_UpdatePlayer(GamePlayer_t *player)
   else if (second_jump_just_pressed != 0U &&
            player->jump_count == GAME_JUMP_COUNT_SECOND_READY)
   {
-    Game_StartSecondJump(player->y,
+    Game_StartSecondJump(player->x,
+                         player->y,
                          horizontal_input,
                          held_up,
+                         &player->x_fixed,
                          &player->y_fixed,
                          &player->velocity_x,
                          &player->velocity_y,
                          &player->jump_apex_y,
-                         &player->jump_limit_active);
+                         &player->jump_limit_active,
+                         &player->second_jump_target_x,
+                         &player->second_jump_horizontal_active);
     player->jump_count = GAME_JUMP_COUNT_EXHAUSTED;
     player->jump_buffer_frames = 0U;
     on_ground = 0U;
@@ -1746,11 +1817,16 @@ static uint8_t Game_UpdatePlayer(GamePlayer_t *player)
     player->jump_buffer_frames--;
   }
 
-  Game_ApplyGravity(on_ground, &player->velocity_y);
+  if (player->second_jump_horizontal_active == 0U)
+  {
+    Game_ApplyGravity(on_ground, &player->velocity_y);
+  }
   Game_MoveHorizontal(&player->x,
                       player->y,
                       &player->x_fixed,
-                      &player->velocity_x);
+                      &player->velocity_x,
+                      player->second_jump_target_x,
+                      &player->second_jump_horizontal_active);
   wall_side = Game_GetWallSide(player->x, player->y);
   Game_ApplyWallSlide(on_ground, wall_side, &player->velocity_y);
 
@@ -1790,6 +1866,7 @@ static uint8_t Game_UpdatePlayer(GamePlayer_t *player)
   {
     player->jump_count = GAME_JUMP_COUNT_NORMAL_READY;
     player->jump_limit_active = 0U;
+    player->second_jump_horizontal_active = 0U;
   }
   player->was_on_ground = (airborne == 0U) ? 1U : 0U;
 
