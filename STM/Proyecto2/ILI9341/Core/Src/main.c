@@ -74,8 +74,19 @@ typedef struct
   const char *original_name;
   uint16_t playfield_height;
   uint16_t player_start_y;
+  uint16_t transparent_color;
   GameTextureEncoding_t encoding;
 } GameLevelFile_t;
+
+/* Tamaño y formato de una imagen mostrada al terminar la partida. */
+typedef struct
+{
+  const char *short_name;
+  const char *original_name;
+  uint16_t width;
+  uint16_t height;
+  GameTextureEncoding_t encoding;
+} GameFinalImage_t;
 
 /* Estado de movimiento, saltos y animación de un jugador. */
 typedef struct
@@ -134,7 +145,7 @@ typedef struct
 #define GAME_PLAYER_ANIMATION_STEP_UPDATES 4U
 #define GAME_PLAYER_START_X 15U
 #define GAME_PLAYER_START_Y 170U
-#define GAME_PLAYER_2_START_X 75U
+#define GAME_PLAYER_2_START_X GAME_PLAYER_START_X
 #define GAME_PLAYER_COUNT 2U
 
 /* La física usa 256 unidades internas por cada píxel. */
@@ -231,6 +242,7 @@ typedef struct
 /* Colores RGB565 equivalentes a #FA0300 y #FFEF00. */
 #define GAME_LEVEL_HAZARD_COLOR 0xF800U
 #define GAME_LEVEL_EXIT_COLOR 0xFF60U
+#define GAME_LEVEL_EXIT_COLOR_ALT 0xFFE0U
 #define GAME_LEVEL_HAZARD_REACH 1U
 #define GAME_LEVEL_EXIT_REACH 2U
 #define GAME_SD_BACKGROUND_FILE "0:/FONDOGEN.TXT"
@@ -241,6 +253,16 @@ typedef struct
 #define GAME_SD_LEVEL_2_FILE_ORIGINAL "0:/Nivel2.txt"
 #define GAME_SD_LEVEL_3_FILE "0:/NIVEL3.TXT"
 #define GAME_SD_LEVEL_3_FILE_ORIGINAL "0:/Nivel3.txt"
+#define GAME_SD_LEVEL_4_FILE "0:/NIVEL4.TXT"
+#define GAME_SD_LEVEL_4_FILE_ORIGINAL "0:/Nivel4.txt"
+#define GAME_SD_LEVEL_5_FILE "0:/NIVEL5.TXT"
+#define GAME_SD_LEVEL_5_FILE_ORIGINAL "0:/Nivel5.txt"
+#define GAME_SD_FINAL_1_FILE "0:/FINAL1.TXT"
+#define GAME_SD_FINAL_1_FILE_ORIGINAL "0:/Final1.txt"
+#define GAME_SD_FINAL_2_FILE "0:/FINAL2.TXT"
+#define GAME_SD_FINAL_2_FILE_ORIGINAL "0:/Final2.txt"
+#define GAME_SD_FINAL_3_FILE "0:/FINAL3.TXT"
+#define GAME_SD_FINAL_3_FILE_ORIGINAL "0:/Final3.txt"
 #define GAME_PACKED_WORDS_PER_ROW (ILI9341_WIDTH / 2U)
 #define GAME_LEVEL_FLASH_FIRST_SECTOR FLASH_SECTOR_6
 #define GAME_LEVEL_FLASH_SECTOR_COUNT 2U
@@ -292,20 +314,55 @@ static const GameLevelFile_t game_level_files[] = {
      GAME_SD_LEVEL_1_FILE_ORIGINAL,
      236U,
      GAME_PLAYER_START_Y,
+     LEVEL_1_TEXTURE_TRANSPARENT_COLOR,
      GAME_TEXTURE_PACKED_PAIRS},
     {GAME_SD_LEVEL_2_FILE,
      GAME_SD_LEVEL_2_FILE_ORIGINAL,
      235U,
      207U,
+     LEVEL_1_TEXTURE_TRANSPARENT_COLOR,
      GAME_TEXTURE_PACKED_PAIRS},
     {GAME_SD_LEVEL_3_FILE,
      GAME_SD_LEVEL_3_FILE_ORIGINAL,
      235U,
      192U,
+     LEVEL_1_TEXTURE_TRANSPARENT_COLOR,
+     GAME_TEXTURE_RGB565_VALUES},
+    {GAME_SD_LEVEL_4_FILE,
+     GAME_SD_LEVEL_4_FILE_ORIGINAL,
+     234U,
+     177U,
+     0x37E0U,
+     GAME_TEXTURE_RGB565_VALUES},
+    {GAME_SD_LEVEL_5_FILE,
+     GAME_SD_LEVEL_5_FILE_ORIGINAL,
+     234U,
+     163U,
+     0x1FE0U,
      GAME_TEXTURE_RGB565_VALUES},
 };
 #define GAME_LEVEL_COUNT \
   ((uint8_t)(sizeof(game_level_files) / sizeof(game_level_files[0])))
+
+static const GameFinalImage_t game_final_images[] = {
+    {GAME_SD_FINAL_1_FILE,
+     GAME_SD_FINAL_1_FILE_ORIGINAL,
+     240U,
+     320U,
+     GAME_TEXTURE_PACKED_PAIRS},
+    {GAME_SD_FINAL_2_FILE,
+     GAME_SD_FINAL_2_FILE_ORIGINAL,
+     240U,
+     320U,
+     GAME_TEXTURE_RGB565_VALUES},
+    {GAME_SD_FINAL_3_FILE,
+     GAME_SD_FINAL_3_FILE_ORIGINAL,
+     229U,
+     320U,
+     GAME_TEXTURE_RGB565_VALUES},
+};
+#define GAME_FINAL_IMAGE_COUNT \
+  ((uint8_t)(sizeof(game_final_images) / sizeof(game_final_images[0])))
 static FIL game_background_file;
 static FIL game_overlay_file;
 static uint8_t game_background_file_open = 0U;
@@ -829,13 +886,14 @@ static uint8_t Game_TextReaderNextHex(GameTextReader_t *reader,
   return (digit_count != 0U) ? 1U : 0U;
 }
 
-static uint8_t Game_ReadNextRow(GameTextReader_t *reader,
-                                uint16_t *pixels,
-                                GameTextureEncoding_t encoding)
+static uint8_t Game_ReadTextureRow(GameTextReader_t *reader,
+                                   uint16_t *pixels,
+                                   uint16_t pixel_count,
+                                   GameTextureEncoding_t encoding)
 {
   uint16_t item_count = (encoding == GAME_TEXTURE_RGB565_VALUES)
-                            ? ILI9341_WIDTH
-                            : GAME_PACKED_WORDS_PER_ROW;
+                            ? pixel_count
+                            : (uint16_t)((pixel_count + 1U) / 2U);
   uint8_t max_digits = (encoding == GAME_TEXTURE_RGB565_VALUES) ? 4U : 8U;
   uint16_t item_index;
 
@@ -855,7 +913,10 @@ static uint8_t Game_ReadNextRow(GameTextReader_t *reader,
     else
     {
       pixels[item_index * 2U] = (uint16_t)(value >> 16U);
-      pixels[item_index * 2U + 1U] = (uint16_t)value;
+      if ((item_index * 2U + 1U) < pixel_count)
+      {
+        pixels[item_index * 2U + 1U] = (uint16_t)value;
+      }
     }
   }
 
@@ -888,6 +949,75 @@ static void Game_CloseLevelFiles(void)
     (void)f_close(&game_overlay_file);
     game_overlay_file_open = 0U;
   }
+}
+
+/* Lee una imagen final desde la SD y la dibuja fila por fila. */
+static uint8_t Game_DrawFinalImage(uint8_t image_index)
+{
+  const GameFinalImage_t *image;
+  uint16_t image_x;
+  uint16_t image_y;
+  uint16_t row;
+
+  if (image_index >= GAME_FINAL_IMAGE_COUNT)
+  {
+    return 0U;
+  }
+
+  game_load_error = GAME_LOAD_ERROR_NONE;
+  game_load_error_row = 0U;
+  if (game_sd_mounted == 0U)
+  {
+    if (f_mount(&USERFatFS, USERPath, 1U) != FR_OK)
+    {
+      game_load_error = GAME_LOAD_ERROR_MOUNT;
+      Game_DrawLoadError();
+      return 0U;
+    }
+    game_sd_mounted = 1U;
+  }
+
+  Game_CloseLevelFiles();
+  image = &game_final_images[image_index];
+  if (Game_OpenTextureFile(&game_overlay_file,
+                           image->short_name,
+                           image->original_name) == 0U)
+  {
+    game_load_error = GAME_LOAD_ERROR_OVERLAY_OPEN;
+    Game_DrawLoadError();
+    return 0U;
+  }
+
+  game_overlay_file_open = 1U;
+  Game_TextReaderInit(&game_overlay_reader, &game_overlay_file);
+  image_x = (uint16_t)((ILI9341_WIDTH - image->width) / 2U);
+  image_y = (uint16_t)((ILI9341_HEIGHT - image->height) / 2U);
+  ILI9341_Clear(&lcd, 0x0000U);
+
+  for (row = 0U; row < image->height; row++)
+  {
+    game_load_error_row = row;
+    if (Game_ReadTextureRow(&game_overlay_reader,
+                            game_composed_row,
+                            image->width,
+                            image->encoding) == 0U)
+    {
+      game_load_error = GAME_LOAD_ERROR_OVERLAY_READ;
+      Game_CloseLevelFiles();
+      Game_DrawLoadError();
+      return 0U;
+    }
+
+    ILI9341_DrawBitmap(&lcd,
+                       image_x,
+                       (uint16_t)(image_y + row),
+                       image->width,
+                       1U,
+                       game_composed_row);
+  }
+
+  Game_CloseLevelFiles();
+  return 1U;
 }
 
 /* Descarta el nivel activo antes de cargar el siguiente. */
@@ -924,9 +1054,10 @@ static uint8_t Game_GetCollision(uint16_t x, uint16_t y)
 }
 
 /* Convierte el color de la textura a un tipo de colisión. */
-static uint8_t Game_CollisionTypeForColor(uint16_t color)
+static uint8_t Game_CollisionTypeForColor(uint16_t color,
+                                          uint16_t transparent_color)
 {
-  if (color == LEVEL_1_TEXTURE_TRANSPARENT_COLOR)
+  if (color == transparent_color)
   {
     return GAME_COLLISION_FREE;
   }
@@ -934,7 +1065,7 @@ static uint8_t Game_CollisionTypeForColor(uint16_t color)
   {
     return GAME_COLLISION_HAZARD;
   }
-  if (color == GAME_LEVEL_EXIT_COLOR)
+  if (color == GAME_LEVEL_EXIT_COLOR || color == GAME_LEVEL_EXIT_COLOR_ALT)
   {
     return GAME_COLLISION_EXIT;
   }
@@ -943,7 +1074,9 @@ static uint8_t Game_CollisionTypeForColor(uint16_t color)
 }
 
 /* Combina fondo, nivel y marcador una fila a la vez. */
-static void Game_ComposeRow(uint16_t y, uint16_t playfield_height)
+static void Game_ComposeRow(uint16_t y,
+                            uint16_t playfield_height,
+                            uint16_t transparent_color)
 {
   uint16_t x;
 
@@ -962,10 +1095,13 @@ static void Game_ComposeRow(uint16_t y, uint16_t playfield_height)
     uint16_t overlay_color = game_overlay_row[x];
 
     game_composed_row[x] =
-        (overlay_color == LEVEL_1_TEXTURE_TRANSPARENT_COLOR)
+        (overlay_color == transparent_color)
             ? game_background_row[x]
             : overlay_color;
-    Game_SetCollision(x, y, Game_CollisionTypeForColor(overlay_color));
+    Game_SetCollision(x,
+                      y,
+                      Game_CollisionTypeForColor(overlay_color,
+                                                 transparent_color));
   }
 }
 
@@ -1136,9 +1272,10 @@ static uint8_t Game_LoadLevel(uint8_t level)
   for (y = 0U; y < ILI9341_HEIGHT; y++)
   {
     game_load_error_row = y;
-    if (Game_ReadNextRow(&game_background_reader,
-                         game_background_row,
-                         GAME_TEXTURE_PACKED_PAIRS) == 0U)
+    if (Game_ReadTextureRow(&game_background_reader,
+                            game_background_row,
+                            ILI9341_WIDTH,
+                            GAME_TEXTURE_PACKED_PAIRS) == 0U)
     {
       game_load_error = GAME_LOAD_ERROR_BACKGROUND_READ;
       goto load_failed;
@@ -1146,15 +1283,18 @@ static uint8_t Game_LoadLevel(uint8_t level)
 
     if (y < level_file->playfield_height)
     {
-      if (Game_ReadNextRow(&game_overlay_reader,
-                           game_overlay_row,
-                           level_file->encoding) == 0U)
+      if (Game_ReadTextureRow(&game_overlay_reader,
+                              game_overlay_row,
+                              ILI9341_WIDTH,
+                              level_file->encoding) == 0U)
       {
         game_load_error = GAME_LOAD_ERROR_OVERLAY_READ;
         goto load_failed;
       }
     }
-    Game_ComposeRow(y, level_file->playfield_height);
+    Game_ComposeRow(y,
+                    level_file->playfield_height,
+                    level_file->transparent_color);
     expected_hash = Game_UpdateLevelHash(expected_hash,
                                          game_composed_row,
                                          ILI9341_WIDTH);
@@ -1951,6 +2091,7 @@ int main(void)
   uint8_t game_screen_drawn = 0U;
   uint8_t start_requested = 0U;
   uint8_t results_screen = 0U;
+  uint8_t final_image_step = 0U;
   GamePlayer_t players[GAME_PLAYER_COUNT];
   uint32_t last_prompt_blink_ms = 0U;
   uint32_t last_game_update_ms = 0U;
@@ -2063,6 +2204,27 @@ int main(void)
       }
 
       if (game_started == 0U && start_requested != 0U) {
+        if (results_screen != 0U)
+        {
+          start_requested = 0U;
+          prompt_visible = 0U;
+
+          if (final_image_step < GAME_FINAL_IMAGE_COUNT)
+          {
+            if (Game_DrawFinalImage(final_image_step) != 0U)
+            {
+              final_image_step++;
+            }
+            continue;
+          }
+
+          /* Después de la última imagen se regresa al menú principal. */
+          results_screen = 0U;
+          final_image_step = 0U;
+          start_screen_drawn = 0U;
+          continue;
+        }
+
         if (prompt_visible != 0U) {
           StartScreen_RestorePromptBackground();
           prompt_visible = 0U;
@@ -2079,6 +2241,7 @@ int main(void)
         Game_ResetPlayer(&players[1]);
         game_screen_drawn = 0U;
         results_screen = 0U;
+        final_image_step = 0U;
         start_requested = 0U;
         game_started = 1U;
         GameMusic_Select(GAME_MUSIC_COMMAND_THEME, HAL_GetTick());
@@ -2172,6 +2335,7 @@ int main(void)
           Game_UnloadLevel();
           game_started = 0U;
           results_screen = 1U;
+          final_image_step = 0U;
           start_screen_drawn = 0U;
           game_screen_drawn = 0U;
           start_requested = 0U;
@@ -2194,7 +2358,7 @@ int main(void)
         }
       }
 
-      if (game_started == 0U &&
+      if (game_started == 0U && final_image_step == 0U &&
           Nieve_Update(&nieve,
                        &lcd,
                        start_background,
@@ -2211,7 +2375,7 @@ int main(void)
         }
       }
 
-      if (game_started == 0U &&
+      if (game_started == 0U && final_image_step == 0U &&
           (HAL_GetTick() - last_prompt_blink_ms) >= START_PROMPT_BLINK_MS) {
         last_prompt_blink_ms = HAL_GetTick();
         if (prompt_visible != 0U) {
