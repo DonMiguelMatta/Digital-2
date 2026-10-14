@@ -743,6 +743,7 @@ static uint16_t Game_PlayerSpriteX(uint16_t player_x)
   return (uint16_t)(player_x + GAME_PLAYER_SPRITE_OFFSET_X);
 }
 
+/* Evita que el desplazamiento superior saque el sprite de la pantalla. */
 static uint16_t Game_PlayerSpriteY(uint16_t player_y)
 {
   return (player_y >= GAME_PLAYER_SPRITE_OFFSET_Y)
@@ -818,6 +819,7 @@ static void Game_TextReaderInit(GameTextReader_t *reader, FIL *file)
   reader->result = FR_OK;
 }
 
+/* Entrega un carácter y recarga el bloque cuando se termina. */
 static uint8_t Game_TextReaderGetChar(GameTextReader_t *reader,
                                       char *character)
 {
@@ -886,6 +888,7 @@ static uint8_t Game_TextReaderNextHex(GameTextReader_t *reader,
   return (digit_count != 0U) ? 1U : 0U;
 }
 
+/* Convierte una fila en píxeles, sin importar el formato del archivo. */
 static uint8_t Game_ReadTextureRow(GameTextReader_t *reader,
                                    uint16_t *pixels,
                                    uint16_t pixel_count,
@@ -923,6 +926,7 @@ static uint8_t Game_ReadTextureRow(GameTextReader_t *reader,
   return 1U;
 }
 
+/* Prueba primero el nombre corto FAT y luego el nombre original. */
 static uint8_t Game_OpenTextureFile(FIL *file,
                                     const char *short_name,
                                     const char *original_name)
@@ -937,6 +941,7 @@ static uint8_t Game_OpenTextureFile(FIL *file,
              : 0U;
 }
 
+/* Cierra únicamente los archivos que alcanzaron a abrirse. */
 static void Game_CloseLevelFiles(void)
 {
   if (game_background_file_open != 0U)
@@ -2084,6 +2089,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+  /* Estados que controlan las pantallas y el ritmo de actualización. */
   ILI9341_Parallel8Config lcd_config;
   uint8_t start_screen_drawn = 0U;
   uint8_t prompt_visible = 0U;
@@ -2144,6 +2150,7 @@ int main(void)
   lcd_config.memory_access_control = 0x48U;
 
   ILI9341_BeginInit(&lcd, &lcd_config, HAL_GetTick());
+  /* Prepara controles, música y datos independientes de cada jugador. */
   Controles_SetDebugUart(0);
   Controles_Init();
   GameMusic_Select(GAME_MUSIC_COMMAND_MENU, HAL_GetTick());
@@ -2169,6 +2176,7 @@ int main(void)
       uint8_t start_j1;
       uint8_t start_j2;
 
+      /* Estas comunicaciones se atienden en cada vuelta del ciclo. */
       GameMusic_Update(now_ms);
       Controles_Update(now_ms);
       start_j1 = Controles_TakePressed(CONTROLES_JUGADOR_1,
@@ -2185,6 +2193,7 @@ int main(void)
       }
 
       if (start_screen_drawn == 0U) {
+        /* El menú completo sólo se dibuja al entrar a este estado. */
         ILI9341_DrawBitmap(&lcd,
                             0U,
                             0U,
@@ -2204,6 +2213,7 @@ int main(void)
       }
 
       if (game_started == 0U && start_requested != 0U) {
+        /* En resultados, Start recorre imágenes antes de volver al menú. */
         if (results_screen != 0U)
         {
           start_requested = 0U;
@@ -2225,6 +2235,7 @@ int main(void)
           continue;
         }
 
+        /* Una partida nueva limpia puntajes y vuelve al primer nivel. */
         if (prompt_visible != 0U) {
           StartScreen_RestorePromptBackground();
           prompt_visible = 0U;
@@ -2251,6 +2262,7 @@ int main(void)
       if (game_started != 0U && game_screen_drawn == 0U) {
         uint8_t player_index;
 
+        /* La escena se carga una vez; luego sólo cambian los sprites. */
         game_level_ready = Game_DrawScene(players);
         game_screen_drawn = 1U;
         for (player_index = 0U;
@@ -2283,7 +2295,7 @@ int main(void)
 
         last_game_update_ms = HAL_GetTick();
 
-        /* Primero se actualiza la fisica de ambos jugadores. */
+        /* Primero se actualiza la física de ambos jugadores. */
         for (player_index = 0U;
              player_index < GAME_PLAYER_COUNT;
              player_index++)
@@ -2365,6 +2377,7 @@ int main(void)
                        START_BACKGROUND_WIDTH,
                        START_BACKGROUND_HEIGHT,
                        HAL_GetTick()) != 0U) {
+        /* Nieve puede borrar partes del resultado; se repone esta capa. */
         if (results_screen != 0U)
         {
           Game_DrawResultScreen();
@@ -2377,6 +2390,7 @@ int main(void)
 
       if (game_started == 0U && final_image_step == 0U &&
           (HAL_GetTick() - last_prompt_blink_ms) >= START_PROMPT_BLINK_MS) {
+        /* Alterna el aviso sin detener la animación del menú. */
         last_prompt_blink_ms = HAL_GetTick();
         if (prompt_visible != 0U) {
           StartScreen_RestorePromptBackground();
@@ -2696,11 +2710,13 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+/* Redirige el byte recibido al canal de control correspondiente. */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   Controles_UART_RxCpltCallback(huart);
 }
 
+/* La librería reinicia la recepción después de un error UART. */
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
   Controles_UART_ErrorCallback(huart);

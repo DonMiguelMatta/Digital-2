@@ -25,13 +25,18 @@ typedef struct
   uint8_t initialized;
 } Nieve_t;
 
+/* Crea una distribución reproducible a partir de una semilla. */
 void Nieve_Init(Nieve_t *nieve, uint32_t seed, uint32_t now_ms);
+
+/* Mueve la nieve cuando vence su periodo y avisa si redibujó. */
 uint8_t Nieve_Update(Nieve_t *nieve,
                      ILI9341_t *lcd,
                      const uint16_t *background,
                      uint16_t background_width,
                      uint16_t background_height,
                      uint32_t now_ms);
+
+/* Restaura el fondo ocupado antes de abandonar el menú. */
 void Nieve_Clear(Nieve_t *nieve,
                  ILI9341_t *lcd,
                  const uint16_t *background,

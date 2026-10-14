@@ -370,6 +370,7 @@ int main(void)
   MX_TIM6_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
+  /* Inicia la salida de audio y selecciona el tema del menú. */
   Music_Init();
 
   /* USER CODE END 2 */
@@ -381,6 +382,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    /* Recibe cambios de tema y avanza la canción sin bloquear. */
     Music_ReadSpi();
     Music_Update(HAL_GetTick());
   }

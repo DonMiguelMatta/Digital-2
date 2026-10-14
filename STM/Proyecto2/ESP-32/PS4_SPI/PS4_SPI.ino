@@ -15,12 +15,14 @@
 static_assert(PLAYER_ID == 1 || PLAYER_ID == 2, "PLAYER_ID debe ser 1 o 2");
 static_assert(GP_FRAME_SIZE == 5, "El protocolo UART debe tener 5 bytes");
 
+// Control Bluetooth activo y UART de salida hacia la STM32.
 ControllerPtr pad = nullptr;
 HardwareSerial controlUart(2);
 
 // Protege el estado porque Bluetooth y UART trabajan en tareas distintas.
 portMUX_TYPE stateMux = portMUX_INITIALIZER_UNLOCKED;
 
+// Copia mínima del control compartida entre las dos tareas.
 struct PadState {
     uint16_t buttons;
     int16_t x;
@@ -41,6 +43,7 @@ void neutral() {
     portEXIT_CRITICAL(&stateMux);
 }
 
+// Acepta sólo el control asignado a este jugador.
 void onConnected(ControllerPtr ctl) {
     auto properties = ctl->getProperties();
 
@@ -60,6 +63,7 @@ void onConnected(ControllerPtr ctl) {
                      PLAYER_ID == 1 ? 255 : 0);
 }
 
+// Limpia el estado cuando Bluepad32 informa la desconexión.
 void onDisconnected(ControllerPtr ctl) {
     if (ctl == pad) {
         pad = nullptr;
@@ -67,6 +71,7 @@ void onDisconnected(ControllerPtr ctl) {
     }
 }
 
+// Convierte el reporte Bluetooth a la máscara común del proyecto.
 void readPad() {
     int16_t x = (int16_t)pad->axisX();
     int16_t y = (int16_t)pad->axisY();
@@ -97,6 +102,7 @@ void readPad() {
     lastReportMs = millis();
 }
 
+// Empaqueta y transmite una copia estable del estado.
 void sendControlFrame(const PadState& snapshot) {
     uint8_t frame[GP_FRAME_SIZE];
 
@@ -126,6 +132,7 @@ void controlUartTask(void*) {
     }
 }
 
+// Configura Bluetooth, filtro por MAC y envío periódico.
 void setup() {
     // UART2 del ESP32: solamente transmite por GPIO17/TX2.
     if (ENABLE_CONTROL_UART) {
@@ -164,6 +171,7 @@ void setup() {
     }
 }
 
+// Actualiza Bluepad32 y libera controles si dejan de llegar reportes.
 void loop() {
     bool updated = BP32.update();
     uint32_t now = millis();

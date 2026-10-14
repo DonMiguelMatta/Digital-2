@@ -1,0 +1,496 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{hyperref}
+
+\geometry{margin=2.4cm}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlist[itemize]{leftmargin=1.4em,itemsep=0.2em,topsep=0.3em}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue!55!black}
+
+\definecolor{codegreen}{RGB}{0,105,70}
+\definecolor{codegray}{RGB}{90,90,90}
+\definecolor{codebackground}{RGB}{247,247,247}
+\lstset{
+  language=C,
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebackground},
+  keywordstyle=\color{blue!65!black},
+  commentstyle=\color{codegreen},
+  stringstyle=\color{red!60!black},
+  numbers=left,
+  numberstyle=\tiny\color{codegray},
+  frame=single,
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2
+}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\title{\textbf{Proyecto 2 - Celeste}}
+\author{Miguel Donis -- 22993\\Ian Farrington -- -----}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\vfill
+
+\begin{center}
+  \large Diseño e implementación de un videojuego embebido\\[0.5em]
+  \normalsize STM32F446RE, ESP32, pantalla ILI9341 y audio por DAC
+\end{center}
+
+\vfill
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Resumen}
+
+El proyecto implementa un videojuego de plataformas para dos jugadores inspirado en
+\textit{Celeste Classic}. La lógica principal se ejecuta en una STM32F446RE y se
+muestra en una pantalla ILI9341 de $240\times320$ píxeles. Dos ESP32 reciben los
+controles por Bluetooth y transmiten el estado de cada jugador a la STM principal.
+Una segunda STM32 genera la música mediante DAC, DMA y un temporizador.
+
+Los niveles se almacenan como texto RGB565 en una tarjeta microSD. Al entrar a un
+nivel, la STM compone el fondo y la geometría, guarda el resultado en una región
+reservada de su Flash interna y crea un mapa compacto de colisiones en RAM. Esta
+distribución evita leer la SD durante el movimiento y permite restaurar únicamente
+la región ocupada por cada sprite.
+
+\section{Arquitectura del sistema}
+
+El sistema se dividió por función para que el procesamiento gráfico, los controles y
+el audio no compitan por el mismo periférico ni bloqueen el ciclo del juego.
+
+\begin{table}[h]
+\centering
+\caption{Funciones de los componentes principales.}
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\toprule
+\textbf{Componente} & \textbf{Función} \\
+\midrule
+STM32 principal & Ejecuta el juego, carga niveles, calcula física y colisiones,
+controla la ILI9341 y mantiene el puntaje. \\
+ESP32 J1 y J2 & Reciben cada control Bluetooth con Bluepad32 y envían tramas UART
+independientes. \\
+STM32 de música & Recibe el estado del juego por SPI2 y genera las notas por DAC. \\
+MicroSD & Almacena el fondo general, cinco niveles y tres imágenes finales. \\
+ILI9341 & Presenta el escenario, los sprites, el marcador y los resultados. \\
+Amplificador & Adapta la señal analógica del DAC para manejar la bocina. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La pantalla utiliza un bus paralelo de 8 bits. La SD se conecta a SPI1, los ESP32 a
+UART5 y USART3, y la STM de música a SPI2. Esto evita compartir buses entre cargas
+con requisitos distintos.
+
+\section{Organización del programa principal}
+
+El programa usa un ciclo principal sin sistema operativo. Cada tarea revisa el
+tiempo con \texttt{HAL\_GetTick()} y se ejecuta cuando corresponde. La física se
+actualiza cada 20 ms, equivalente a 50 actualizaciones por segundo. En cada vuelta se
+realizan las siguientes operaciones:
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.2em]
+  \item Actualizar la recepción de los dos controles.
+  \item Revisar eventos de inicio y el estado de la pantalla actual.
+  \item Actualizar la física de ambos jugadores cuando vence el periodo de 20 ms.
+  \item Procesar peligro, salida, puntaje y cambio de nivel.
+  \item Restaurar el fondo anterior y dibujar los sprites en su nueva posición.
+  \item Reenviar periódicamente a la STM de música el tema que debe reproducir.
+\end{enumerate}
+
+El flujo general tiene cuatro estados visibles: menú, partida, resultados e imágenes
+finales. \texttt{START} inicia la partida; después del último nivel muestra el
+resultado y nuevas pulsaciones recorren las tres imágenes finales.
+
+\section{Gráficos y administración de memoria}
+
+\subsection{Formato de texturas}
+
+Los colores se guardan en RGB565, por lo que cada píxel ocupa 16 bits. Los archivos
+de la SD conservan el formato hexadecimal original y pueden contener dos píxeles
+empaquetados en una palabra de 32 bits o valores RGB565 individuales. Una tabla de
+niveles registra el nombre, altura jugable, posición inicial, color transparente y
+formato de cada archivo. El número de niveles se calcula con \texttt{sizeof}, por lo
+que la lógica de progresión no contiene un límite escrito manualmente.
+
+La composición se hace una fila a la vez:
+
+\begin{equation}
+C(x,y)=
+\begin{cases}
+B(x,y), & L(x,y)=T,\\
+L(x,y), & L(x,y)\neq T,
+\end{cases}
+\end{equation}
+
+donde $B$ es el fondo general, $L$ es la textura del nivel y $T$ es su color
+transparente. Debajo del área jugable se genera una franja de marcador de color
+RGB565 \texttt{0x5E7B}.
+
+\subsection{Caché del nivel activo}
+
+Una imagen completa requiere
+
+\begin{equation}
+240\cdot320\cdot2=153\,600\ \text{bytes}.
+\end{equation}
+
+La STM32F446RE tiene 128 KiB de RAM, por lo que el cuadro completo no cabe junto con
+el resto del programa. Se reservaron los sectores 6 y 7 de Flash, desde
+\texttt{0x08040000}, como una caché de 256 KiB. El enlazador limita el firmware a los
+primeros 256 KiB y evita que el código invada esa zona.
+
+Durante la carga se leen el fondo y el nivel desde la SD, se compone cada fila, se
+genera su colisión y se escribe el resultado en Flash. Al finalizar se compara un
+hash FNV-1a de los datos producidos con el contenido almacenado. La SD queda fuera
+del ciclo de juego hasta el siguiente cambio de nivel.
+
+Para mover un jugador no se redibuja toda la pantalla. Primero se recupera desde la
+Flash la región que ocupaba su sprite y después se dibuja el nuevo cuadro con
+transparencia. Esto reduce transferencia a la ILI9341 y evita rastros visibles.
+
+\section{Colisiones y lógica del escenario}
+
+El mapa de colisiones utiliza dos bits por píxel. Para los 76,800 píxeles ocupa
+19,200 bytes de RAM y admite cuatro tipos:
+
+\begin{table}[h]
+\centering
+\caption{Tipos guardados en el mapa de colisiones.}
+\begin{tabular}{@{}cll@{}}
+\toprule
+\textbf{Valor} & \textbf{Tipo} & \textbf{Comportamiento} \\
+\midrule
+0 & Libre & El jugador puede ocupar el píxel. \\
+1 & Sólido & Suelo, pared, techo y franja del marcador. \\
+2 & Peligro & Rojo \texttt{0xF800}; reinicia la posición del jugador. \\
+3 & Salida & Amarillo \texttt{0xFF60} o \texttt{0xFFE0}; completa el nivel. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Un píxel transparente es libre. Cualquier otro color de la textura es sólido, salvo
+los colores reservados para peligro y salida. Los límites de la pantalla también se
+consideran sólidos.
+
+La caja de colisión del jugador mide $18\times14$ píxeles. Para verificar una
+posición, el código recorre todo el rectángulo y consulta el mapa. El movimiento se
+resuelve primero en el eje horizontal y luego en el vertical, avanzando un píxel por
+iteración. Si el siguiente paso colisiona, la posición queda en el último punto
+válido y la velocidad de ese eje se anula. Este recorrido evita atravesar superficies
+cuando una velocidad representa varios píxeles por actualización.
+
+El suelo no se almacena como un tipo diferente de la pared. Se reconoce probando la
+misma caja un píxel debajo del jugador. Las paredes se buscan a un píxel de los
+laterales y el techo se detecta cuando el movimiento vertical ascendente encuentra
+una región sólida.
+
+\section{Movimiento de los jugadores}
+
+La posición y velocidad usan punto fijo con 256 unidades internas por píxel. Esto
+permite aceleraciones suaves sin depender de números flotantes durante cada cuadro.
+Los multiplicadores decimales se aplican al compilar para producir constantes
+enteras redondeadas.
+
+Cada jugador conserva su posición, velocidad, orientación, cuadro de animación,
+contador de saltos y estados temporales. La velocidad horizontal se aproxima de
+forma gradual a una velocidad objetivo. Se usan aceleraciones separadas para suelo y
+aire, además de desaceleración cuando se libera la dirección.
+
+El contador de saltos tiene tres estados: salto normal disponible, segundo salto
+disponible y saltos agotados. El salto normal alcanza actualmente 2.5 veces la altura
+del jugador y habilita el segundo. El segundo salto alcanza tres veces la altura y
+depende de la dirección mantenida:
+
+\begin{itemize}
+  \item Sin dirección, o solamente arriba: impulso vertical.
+  \item Dirección lateral sin arriba: desplazamiento horizontal con distancia
+  limitada; la gravedad se pausa hasta alcanzar el límite o chocar.
+  \item Arriba y una dirección lateral: impulso diagonal.
+\end{itemize}
+
+Al aterrizar se restablece el contador. El salto de pared expulsa al jugador hacia el
+lado opuesto y aplica un bloqueo corto de dirección para conservar el impulso. El
+contacto lateral durante una caída limita la velocidad al 55\% de la velocidad
+terminal normal. Un salto de pared no recupera un segundo salto ya consumido.
+
+También se mantiene un búfer de cuatro cuadros para el salto normal. Una pulsación
+recibida ligeramente antes de cumplir la condición puede ejecutarse en las
+actualizaciones siguientes, lo que hace el control menos dependiente del instante
+exacto de recepción.
+
+\section{Controles inalámbricos}
+
+Cada ESP32 ejecuta Bluepad32 y acepta únicamente la dirección Bluetooth registrada
+para su jugador. El estado se convierte en una máscara de siete bits: izquierda,
+derecha, arriba, abajo, Cruz, Círculo y Start. Las combinaciones se conservan porque
+cada bit se procesa de manera independiente.
+
+El ESP32 transmite por UART a 115200 bit/s una trama cada 20 ms:
+
+\begin{center}
+\texttt{[0xA5, ID, botones, estado, CRC-8]}
+\end{center}
+
+El byte de estado es \texttt{0xA1} cuando el control está conectado y
+\texttt{0xA0} cuando está desconectado. El CRC-8 usa polinomio \texttt{0x07} y valor
+inicial \texttt{0x00}. La STM reconstruye las tramas mediante interrupciones de un
+byte, valida sincronización, ID, estado y CRC, y mantiene una cola independiente para
+cada jugador.
+
+Se distinguen botones mantenidos de eventos de pulsación. Las direcciones se leen
+como estado continuo; salto, segundo salto y Start generan un evento únicamente al
+pasar de liberado a presionado. Si no llega una trama válida durante 300 ms, las
+acciones mantenidas se liberan para evitar que el jugador continúe moviéndose por una
+desconexión.
+
+\begin{table}[h]
+\centering
+\caption{Asignación de controles.}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Entrada} & \textbf{Acción} \\
+\midrule
+Cruceta izquierda/derecha & Movimiento horizontal \\
+Cruceta arriba & Dirección del segundo salto \\
+Cruceta abajo & Disponible en el protocolo \\
+Cruz & Salto normal o salto de pared \\
+Círculo & Segundo salto direccional \\
+Start & Iniciar partida o avanzar pantallas finales \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Sistema de sonido}
+
+La STM principal envía un byte por SPI2: \texttt{'M'} para menú y resultados, o
+\texttt{'T'} para la partida. El comando se manda al cambiar de estado y se repite
+cada segundo para recuperar la sincronización si una de las placas se reinicia. La
+STM de música funciona como esclavo SPI en modo 0, con datos de 8 bits y bit más
+significativo primero.
+
+Las canciones se almacenan como dos arreglos paralelos: frecuencia y duración de
+cada nota. Una máquina de estados basada en \texttt{HAL\_GetTick()} avanza la canción
+sin usar \texttt{HAL\_Delay()}, por lo que la recepción SPI permanece activa. Un
+comando repetido no reinicia la melodía.
+
+El audio se genera con una tabla senoidal de 128 muestras. TIM6 produce el disparo
+del DAC y su periodo se calcula para cada frecuencia $f$:
+
+\begin{equation}
+ARR \approx \frac{84\,000\,000}{128f}-1.
+\end{equation}
+
+DMA transfiere la tabla al DAC1 en modo circular. Una frecuencia de cero detiene el
+temporizador y coloca el DAC en 2048, el punto medio de 12 bits. El volumen digital
+se ajusta al 50\% escalando la amplitud respecto a ese punto medio.
+
+\subsection{Circuito de salida}
+
+La salida \texttt{PA4/DAC1\_OUT1} se conecta a un capacitor electrolítico de
+$10\,\mu\text{F}$, con el terminal positivo hacia la STM. El otro terminal entra a
+un canal del amplificador. El capacitor elimina el nivel DC de la señal. La bocina se
+conecta entre las dos terminales de salida del mismo canal del amplificador; ninguna
+terminal de la bocina se conecta a tierra.
+
+\begin{center}
+\texttt{PA4 DAC $\rightarrow$ 10 uF $\rightarrow$ entrada L del amplificador
+$\rightarrow$ L+/L- $\rightarrow$ bocina}
+\end{center}
+
+El amplificador trabaja con 5 V y comparte tierra con ambas STM y los ESP32. Se usa
+una fuente común regulada para evitar que los picos de consumo del amplificador o de
+los radios Bluetooth afecten la lógica digital.
+
+\section{Puntaje y final de partida}
+
+Cada nivel muestra una franja inferior con el identificador y puntaje de ambos
+jugadores. Cuando alguien toca la salida amarilla, el primer evento procesado recibe
+un punto, ambos jugadores se reinician y se carga el nivel siguiente. Los puntajes se
+mantienen en variables de 16 bits durante toda la partida.
+
+Después del quinto nivel se compara el total y se muestra ganador o empate sobre la
+pantalla de inicio. La música cambia al tema de menú. A continuación, cada pulsación
+de Start carga desde la SD una de las tres imágenes finales. Al terminar la secuencia
+se regresa al menú y una partida nueva reinicia ambos puntajes.
+
+\section{Conexiones principales}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Enlaces entre módulos.}
+\begin{tabularx}{\textwidth}{@{}l l Y@{}}
+\toprule
+\textbf{Origen} & \textbf{Destino} & \textbf{Uso} \\
+\midrule
+ESP32 J1 GPIO17 & STM principal PD2 & UART5 RX, control J1 \\
+ESP32 J2 GPIO17 & STM principal PC11 & USART3 RX, control J2 \\
+STM principal PA5/PA6/PA7/PB6 & SD SCK/MISO/MOSI/CS & Lectura de texturas por SPI1 \\
+STM principal PC3 & STM música PC1 & SPI2 MOSI \\
+STM principal PB13 & STM música PB13 & SPI2 SCK \\
+STM principal PB9 & STM música PB12 & SPI2 NSS \\
+STM música PA4 & Capacitor y amplificador & Salida analógica del DAC \\
+Todos los GND & Tierra común & Referencia eléctrica compartida \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La ILI9341 se conecta a la STM principal mediante ocho líneas de datos y las señales
+\texttt{RD}, \texttt{WR}, \texttt{RS}, \texttt{RST} y \texttt{CS}. Todos los
+circuitos lógicos trabajan con señales de 3.3 V. La distribución de alimentación se
+hace en paralelo desde una fuente de 5 V con capacidad suficiente; cada módulo usa
+su entrada o regulador correspondiente.
+
+\section{Análisis de la implementación}
+
+La principal restricción fue la memoria. Leer directamente desde la SD durante el
+juego producía pausas y hacía que la restauración del personaje dependiera del tiempo
+de acceso del sistema de archivos. La caché en Flash resolvió este problema sin
+reservar un cuadro imposible de alojar en RAM. Como costo, cada cambio de nivel
+requiere borrar sectores internos y esperar la carga completa. El desgaste se limita
+porque la Flash no se reescribe al morir, únicamente al cambiar de nivel.
+
+El mapa de dos bits por píxel permite consultar colisiones en tiempo constante y
+distinguir geometría, peligro y salida con un uso moderado de RAM. Separar posición
+subpíxel y colisión por píxel mantiene movimiento suave sin complicar la geometría.
+
+La división del sonido en otra STM evita que la temporización del DAC y el acceso DMA
+afecten la pantalla o la física. Del mismo modo, cada ESP32 tiene su propia UART, por
+lo que los dos jugadores no comparten una línea ni requieren arbitraje.
+
+Entre las limitaciones actuales, una llegada simultánea a la salida favorece al
+primer jugador procesado, las texturas en texto requieren más tiempo de carga que un
+formato binario y la comunicación de música no incluye confirmación de recepción.
+Estas decisiones son aceptables para la escala actual y mantienen el código legible.
+
+\section{Uso de herramientas de inteligencia artificial}
+
+Durante el desarrollo se utilizó \textbf{ChatGPT-5.6 Sol} como herramienta de apoyo
+para analizar problemas relacionados con la física, las colisiones y la organización
+del código. También se utilizó para revisar la redacción de este informe. Las
+decisiones de diseño, la integración del hardware, la adaptación del código y las
+pruebas fueron realizadas y verificadas por los autores.
+
+\subsection{Prompts utilizados}
+
+Algunas de las consultas realizadas durante el proyecto fueron las siguientes:
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=0.35em]
+  \item ``Ayúdame a ajustar la gravedad, la altura de los saltos y el movimiento
+  horizontal para que el personaje se mueva de forma fluida.''
+  \item ``Revisa la lógica de colisiones por píxel y explica cómo evitar que el
+  jugador atraviese paredes, suelo o techo.''
+  \item ``Revisa el informe realizado y adáptalo evitando faltas de ortografía y
+  redundancias para tener un resultado más profesional.''
+  \item ``En base a los comentarios realizados hasta el momento, completa los
+  comentarios del código manteniendo buenas prácticas para que sea fácil de
+  entender.''
+\end{enumerate}
+
+\subsection{Ajuste de la física}
+
+El siguiente fragmento resume el uso de punto fijo y multiplicadores para ajustar el
+movimiento sin ejecutar operaciones de punto flotante en cada cuadro. Este bloque se
+desarrolló con apoyo de IA y después se calibró mediante pruebas en el juego.
+
+\begin{lstlisting}[caption={Parámetros principales de movimiento ajustados con apoyo de IA.}]
+#define GAME_FIXED_POINT_ONE 256L
+#define GAME_JUMP_HEIGHT_MULTIPLIER 2.5f
+#define GAME_SECOND_JUMP_HEIGHT_MULTIPLIER 3.0f
+#define GAME_GRAVITY_MULTIPLIER 2.0f
+
+#define GAME_SCALE_ROUNDED(base, multiplier) \
+  ((int32_t)(((float)(base) * (multiplier)) + 0.5f))
+
+gravity = (velocity_y >= -GAME_APEX_SPEED &&
+           velocity_y <= GAME_APEX_SPEED)
+              ? GAME_APEX_GRAVITY
+              : GAME_GRAVITY;
+velocity_y = Game_Approach(velocity_y,
+                           GAME_MAX_FALL_SPEED,
+                           gravity);
+\end{lstlisting}
+
+La solución separa la gravedad normal de la gravedad cercana al punto más alto del
+salto. Los multiplicadores permiten modificar alturas y aceleración con valores
+decimales, mientras que el resultado final se convierte a las unidades enteras del
+sistema de punto fijo. Esto permitió ajustar el movimiento sin introducir cambios
+bruscos entre cuadros.
+
+\subsection{Colisiones por píxel}
+
+Para impedir que una velocidad alta atraviese una superficie, se revisa el
+rectángulo completo del jugador y el desplazamiento se aplica un píxel a la vez. El
+siguiente bloque también fue desarrollado con apoyo de IA y adaptado al mapa de
+colisiones del proyecto.
+
+\begin{lstlisting}[caption={Comprobación de la caja completa del jugador.}]
+static uint8_t Game_CollidesAt(int32_t x, int32_t y)
+{
+  for (uint16_t row = 0; row < GAME_PLAYER_HEIGHT; row++)
+  {
+    for (uint16_t column = 0; column < GAME_PLAYER_WIDTH; column++)
+    {
+      if (Game_IsSolidPixel(x + column, y + row))
+      {
+        return 1U;
+      }
+    }
+  }
+  return 0U;
+}
+
+while (current_x != target_x)
+{
+  int32_t next_x = current_x + ((target_x > current_x) ? 1L : -1L);
+  if (Game_CollidesAt(next_x, player_y))
+  {
+    velocity_x = 0L;
+    break;
+  }
+  current_x = next_x;
+}
+\end{lstlisting}
+
+La caja completa evita detectar únicamente una esquina del sprite. El recorrido
+intermedio garantiza que cada posición sea validada antes de avanzar. El mismo
+criterio se aplica en el eje vertical, por lo que suelo, techo y paredes se resuelven
+con una sola función de colisión.
+
+\section{Conclusiones}
+
+El proyecto integra gráficos, almacenamiento, comunicación inalámbrica, física y
+audio en una plataforma con recursos limitados. La separación entre imagen compuesta
+en Flash y mapa de colisiones en RAM permitió mantener una actualización estable sin
+consultar la SD durante la partida. La lógica por estados y las tareas basadas en
+tiempo evitan bloqueos entre controles, animación y música.
+
+La implementación queda preparada para agregar niveles mediante su tabla de
+configuración y para ajustar el movimiento mediante multiplicadores definidos en el
+código. La arquitectura de dos controles y dos procesadores STM también mantiene
+separadas las funciones de juego y reproducción de audio.
+
+\end{document}

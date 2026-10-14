@@ -32,14 +32,25 @@ typedef struct
   uint32_t raw_debug_dropped;
 } ControlesDiagnostico_t;
 
+/* Prepara ambos canales y deja armada la recepción por interrupción. */
 void Controles_Init(void);
+
+/* Activa una UART opcional para revisar tramas durante las pruebas. */
 void Controles_SetDebugUart(UART_HandleTypeDef *uart);
+
+/* Procesa las tramas pendientes y aplica el tiempo de seguridad. */
 void Controles_Update(uint32_t now_ms);
+
+/* Callbacks llamados desde las funciones globales de HAL. */
 void Controles_UART_RxCpltCallback(UART_HandleTypeDef *uart);
 void Controles_UART_ErrorCallback(UART_HandleTypeDef *uart);
+
+/* Consultas usadas por la lógica de cada jugador. */
 uint8_t Controles_Held(uint8_t player, uint8_t mask);
 uint8_t Controles_TakePressed(uint8_t player, uint8_t mask);
 uint8_t Controles_IsConnected(uint8_t player);
+
+/* Permite revisar contadores sin exponer el estado interno del canal. */
 const ControlesDiagnostico_t *Controles_GetDiagnostics(uint8_t player);
 
 #endif /* CONTROLES_JUGADORES_H */
