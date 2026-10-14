@@ -13,6 +13,7 @@
 \usepackage{xcolor}
 \usepackage{listings}
 \usepackage{amsmath}
+\usepackage{graphicx}
 \usepackage{hyperref}
 
 \geometry{margin=2.4cm}
@@ -336,33 +337,133 @@ pantalla de inicio. La música cambia al tema de menú. A continuación, cada pu
 de Start carga desde la SD una de las tres imágenes finales. Al terminar la secuencia
 se regresa al menú y una partida nueva reinicia ambos puntajes.
 
-\section{Conexiones principales}
+\section{Esquemáticos}
 
-\begin{table}[h]
+Esta sección resume las conexiones físicas empleadas en el proyecto. Las señales
+lógicas trabajan a 3.3 V y todos los módulos comparten la misma referencia de
+tierra. Los diagramas esquemáticos se agregarán junto a estas tablas.
+
+\subsection{Pantalla ILI9341}
+
+La pantalla utiliza una interfaz paralela de 8 bits. Las líneas de datos y control
+se conectan a la STM principal de la siguiente manera:
+
+\begin{table}[htbp]
 \centering
 \small
-\caption{Enlaces entre módulos.}
-\begin{tabularx}{\textwidth}{@{}l l Y@{}}
+\caption{Conexiones entre la STM principal y la pantalla ILI9341.}
+\begin{tabularx}{0.78\textwidth}{@{}YY@{}}
 \toprule
-\textbf{Origen} & \textbf{Destino} & \textbf{Uso} \\
+\textbf{Señal ILI9341} & \textbf{Pin STM principal} \\
 \midrule
-ESP32 J1 GPIO17 & STM principal PD2 & UART5 RX, control J1 \\
-ESP32 J2 GPIO17 & STM principal PC11 & USART3 RX, control J2 \\
-STM principal PA5/PA6/PA7/PB6 & SD SCK/MISO/MOSI/CS & Lectura de texturas por SPI1 \\
-STM principal PC3 & STM música PC1 & SPI2 MOSI \\
-STM principal PB13 & STM música PB13 & SPI2 SCK \\
-STM principal PB9 & STM música PB12 & SPI2 NSS \\
-STM música PA4 & Capacitor y amplificador & Salida analógica del DAC \\
-Todos los GND & Tierra común & Referencia eléctrica compartida \\
+D0 & PA9 \\
+D1 & PC7 \\
+D2 & PA10 \\
+D3 & PB3 \\
+D4 & PB5 \\
+D5 & PB4 \\
+D6 & PB10 \\
+D7 & PA8 \\
+RD & PA0 \\
+WR & PA1 \\
+RS/DC & PA4 \\
+RST & PC1 \\
+CS & PB0 \\
+VCC y GND & 3.3 V y tierra común \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-La ILI9341 se conecta a la STM principal mediante ocho líneas de datos y las señales
-\texttt{RD}, \texttt{WR}, \texttt{RS}, \texttt{RST} y \texttt{CS}. Todos los
-circuitos lógicos trabajan con señales de 3.3 V. La distribución de alimentación se
-hace en paralelo desde una fuente de 5 V con capacidad suficiente; cada módulo usa
-su entrada o regulador correspondiente.
+\subsection{Tarjeta microSD}
+
+La tarjeta se comunica mediante SPI1 y se utiliza únicamente durante la carga de
+un nivel o de una imagen final.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Conexiones del módulo microSD.}
+\begin{tabularx}{0.78\textwidth}{@{}YY@{}}
+\toprule
+\textbf{Señal microSD} & \textbf{Pin STM principal} \\
+\midrule
+SCK & PA5 / SPI1\_SCK \\
+MISO & PA6 / SPI1\_MISO \\
+MOSI & PA7 / SPI1\_MOSI \\
+CS/SS & PB6 \\
+VCC y GND & 3.3 V y tierra común \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Controles inalámbricos}
+
+Cada ESP32 envía por UART únicamente la trama correspondiente a su jugador. No se
+utiliza la línea de recepción de los ESP32.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Conexiones de los ESP32 con la STM principal.}
+\begin{tabularx}{\textwidth}{@{}l l Y@{}}
+\toprule
+\textbf{Módulo} & \textbf{STM principal} & \textbf{Función} \\
+\midrule
+ESP32 J1 GPIO17/TX2 & PD2/UART5\_RX & Recepción del control del jugador 1 \\
+ESP32 J2 GPIO17/TX2 & PC11/USART3\_RX & Recepción del control del jugador 2 \\
+GND de ambos ESP32 & GND común & Referencia de las señales UART \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{STM de música y salida de audio}
+
+La STM principal actúa como maestro de SPI2 y envía un byte para seleccionar el
+tema. La STM de música funciona como esclavo y solamente recibe, por lo que no se
+requiere una línea MISO.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Comunicación entre la STM principal y la STM de música.}
+\begin{tabularx}{\textwidth}{@{}l l Y@{}}
+\toprule
+\textbf{STM principal} & \textbf{STM de música} & \textbf{Señal} \\
+\midrule
+PC3/SPI2\_MOSI & PC1/SPI2\_MOSI & Comando de selección de tema \\
+PB13/SPI2\_SCK & PB13/SPI2\_SCK & Reloj SPI \\
+PB9/SPI2\_NSS & PB12/SPI2\_NSS & Selección del esclavo \\
+GND & GND & Tierra común \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La salida \texttt{PA4/DAC1\_OUT1} de la STM de música se conecta al terminal
+positivo de un capacitor electrolítico de $10\,\mu\text{F}$. El terminal negativo
+entra al canal izquierdo del amplificador. La bocina se conecta entre
+\texttt{L+} y \texttt{L-}; ninguna de sus terminales se conecta directamente a
+tierra.
+
+\subsection{Alimentación}
+
+La alimentación se distribuye en paralelo desde una fuente regulada de 5 V. Las
+dos placas Nucleo reciben esta tensión por \texttt{E5V}, los ESP32 por
+\texttt{VIN/5V} y el amplificador por su entrada de 5 V. La pantalla y la microSD
+utilizan 3.3 V. Todas las tierras se conectan entre sí.
+
+\begin{figure}[htbp]
+\centering
+% Sustituir el recuadro por, por ejemplo:
+% \includegraphics[width=\textwidth]{figuras/esquematico_general.pdf}
+\fbox{%
+  \parbox[c][5cm][c]{0.88\textwidth}{%
+    \centering
+    Espacio para colocar los esquemáticos del proyecto
+  }%
+}
+\caption{Esquemático general de conexiones del sistema.}
+\label{fig:esquematico-general}
+\end{figure}
 
 \section{Análisis de la implementación}
 
