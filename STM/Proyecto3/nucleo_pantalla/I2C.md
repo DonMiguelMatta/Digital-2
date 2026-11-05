@@ -20,13 +20,13 @@ SDA y SCL requieren pull-ups externos a **3.3 V**; para la prueba a 100 kHz con
 cables cortos puede partirse de **4.7 kohm por linea** y verificar la senal.
 Usar un solo par para el bus completo, considerando las resistencias ya presentes
 en otros modulos. La otra STM se conectara a las mismas lineas y GND; debe usar
-una direccion de 7 bits distinta de `0x20`.
+la direccion de 7 bits `0x20`.
 
 ## Configuracion
 
-- Periferico: I2C1, direccion de 7 bits `0x20` (decimal 32), esclavo 2.
-- `hi2c1.Init.OwnAddress1 = 0x40`: HAL espera la direccion desplazada un bit.
-- En CubeMX, `Own Address 1` se guarda como 64; no poner 32 en ese campo.
+- Periferico: I2C1, direccion de 7 bits `0x21` (decimal 33), esclavo 2.
+- `hi2c1.Init.OwnAddress1 = 0x42`: HAL espera la direccion desplazada un bit.
+- En CubeMX, `Own Address 1` se guarda como 66; no poner 33 en ese campo.
 - El maestro debe generar SCL a **100000 Hz**; el esclavo no genera el reloj.
 - Stretch de reloj habilitado; direccion dual y general call deshabilitados.
 - Interrupciones I2C1 de eventos y errores habilitadas, prioridad 5.
@@ -48,34 +48,34 @@ El ESP32 solicita **exactamente un byte**, sin enviar un registro previamente:
 | 3 | Cuarto parqueo local |
 | 4-7 | Siempre cero |
 
-Se conserva la asignacion visual existente: los cuatro botones de esta STM
-controlan los espacios **1-4**. El numero de esclavo identifica la placa en el bus;
-no cambia automaticamente la numeracion de los parqueos. Los espacios **5-8**
-siguen temporalmente verdes y se cuentan como libres, segun lo acordado.
+Los cuatro sensores o botones locales corresponden a los espacios **5-8**.
+Los espacios **1-4** se actualizan con la mascara de la primera Nucleo que
+reenvia el ESP32.
 
 Ejemplos: `0x00` todos locales libres, `0x01` primero ocupado, `0x05` primero y
 tercero ocupados, `0x0F` los cuatro ocupados. No se transmite el conteo de la TFT;
 el maestro calcula sus totales a partir de las mascaras de cada placa.
 
-Las escrituras de un byte se descartan; aun no se implementan comandos ni
-recepcion del estado de la otra STM. Las sondas de direccion sin datos permiten
-usar un escaner I2C. No solicitar varios bytes ni enviar tramas de varios bytes.
+El ESP32 escribe un byte en `0x21` con la mascara del grupo 1 (`0x00` a
+`0x0F`) o `0xFF` si faltan datos. Si llega `0xFF` o pasan 1.5 s sin una
+escritura valida, los espacios 1-4 quedan grises y el total queda en guion.
+Las sondas sin datos siguen permitiendo usar un escaner I2C.
 
 ## Prueba con el ESP32
 
-En el futuro programa del maestro, despues de inicializar `Wire` con los pines
-fisicamente conectados:
+Usar el firmware actualizado `Parqueo_WebServer` en el ESP32. Una lectura
+independiente de la mascara local se puede hacer asi:
 
 ```cpp
 Wire.setClock(100000);
-if (Wire.requestFrom((uint8_t)0x20, (uint8_t)1) == 1) {
+if (Wire.requestFrom((uint8_t)0x21, (uint8_t)1) == 1) {
   uint8_t ocupados = Wire.read();
   // bitRead(ocupados, 0..3): estados de los cuatro parqueos locales.
 }
 ```
 
-1. Escanear el bus: esta placa debe aparecer en `0x20`.
-2. Sin botones presionados, comprobar `0x00` y `LIBRES: 8 / 8` en TFT.
+1. Escanear el bus: esta placa debe aparecer en `0x21`.
+2. Con ambos grupos conectados y libres, comprobar `0x00` y `LIBRES: 8 / 8` en TFT.
 3. Presionar cada boton mas de 30 ms: comprobar `0x01`, `0x02`, `0x04`, `0x08`.
 4. Presionar primero y tercero: comprobar `0x05`, dos carros y `LIBRES: 6 / 8`.
 5. Presionar los cuatro: comprobar `0x0F` y `LIBRES: 4 / 8`.

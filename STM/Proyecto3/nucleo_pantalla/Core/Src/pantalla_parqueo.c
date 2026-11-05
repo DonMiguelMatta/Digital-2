@@ -1,5 +1,6 @@
 #include "pantalla_parqueo.h"
 #include "parqueo.h"
+#include "parqueo_i2c.h"
 #include "ili9341.h"
 #include "carro_textura.h"
 #include <stdio.h>
@@ -8,6 +9,8 @@
 #define BLANCO 0xFFFFU
 #define VERDE 0x0488U
 #define ROJO 0xB8C3U
+#define GRIS 0x630CU
+#define SIN_DATOS 2U
 
 #define ESPACIOS_PANTALLA 8U
 #define COLUMNAS 4U
@@ -21,28 +24,29 @@
 static uint8_t ultimo_estado[ESPACIOS_PANTALLA];
 static uint8_t ultimos_disponibles;
 
-static uint8_t EstadoEspacio(uint8_t i)
+static uint8_t EstadoEspacio(uint8_t i, uint8_t remota)
 {
-  /* Temporalmente, los espacios 5-8 se consideran libres hasta integrar el grupo 2. */
-  return (i < PARQUEO_CANTIDAD) ? parqueo_ocupado[i] : 0U;
+  if (i >= PARQUEO_CANTIDAD) return parqueo_ocupado[i - PARQUEO_CANTIDAD];
+  if (remota == PARQUEO_GRUPO_SIN_DATOS) return SIN_DATOS;
+  return (remota >> i) & 1U;
 }
 
-static uint8_t ContarDisponibles(void)
+static uint8_t ContarDisponibles(uint8_t remota)
 {
+  if (remota == PARQUEO_GRUPO_SIN_DATOS) return PARQUEO_GRUPO_SIN_DATOS;
   uint8_t disponibles = 0U;
   for (uint8_t i = 0U; i < ESPACIOS_PANTALLA; ++i)
   {
-    disponibles += (EstadoEspacio(i) == 0U) ? 1U : 0U;
+    disponibles += (EstadoEspacio(i, remota) == 0U) ? 1U : 0U;
   }
   return disponibles;
 }
 
-static void DibujarEspacio(uint8_t i)
+static void DibujarEspacio(uint8_t i, uint8_t estado)
 {
   const unsigned int x = MARGEN_X + (i % COLUMNAS) * PASO_X;
   const unsigned int y = FILA_SUPERIOR_Y + (i / COLUMNAS) * PASO_Y;
-  const uint8_t estado = EstadoEspacio(i);
-  const unsigned int color = estado ? ROJO : VERDE;
+  const unsigned int color = estado == SIN_DATOS ? GRIS : (estado ? ROJO : VERDE);
   char numero[4];
 
   FillRect(x, y, ANCHO_ESPACIO, ALTO_ESPACIO, color);
@@ -50,7 +54,7 @@ static void DibujarEspacio(uint8_t i)
   /* El numero queda arriba para no superponerse con el carro centrado. */
   LCD_Print(numero, x + (ANCHO_ESPACIO - fontXSizeSmal) / 2U,
             y + 2U, 1, BLANCO, color);
-  if (estado)
+  if (estado == 1U)
   {
     LCD_BitmapTransparent(x + (ANCHO_ESPACIO - CARRO_ANCHO) / 2U,
                           y + (ALTO_ESPACIO - CARRO_ALTO) / 2U,
@@ -60,13 +64,15 @@ static void DibujarEspacio(uint8_t i)
   ultimo_estado[i] = estado;
 }
 
-static void DibujarContador(void)
+static void DibujarContador(uint8_t disponibles)
 {
   char texto[24];
-  const uint8_t disponibles = ContarDisponibles();
   FillRect(12, 212, 296, 20, FONDO);
-  (void)snprintf(texto, sizeof(texto), "LIBRES: %u / %u", (unsigned int)disponibles,
-                 (unsigned int)ESPACIOS_PANTALLA);
+  if (disponibles == PARQUEO_GRUPO_SIN_DATOS)
+    (void)snprintf(texto, sizeof(texto), "LIBRES: - / 8");
+  else
+    (void)snprintf(texto, sizeof(texto), "LIBRES: %u / %u", (unsigned int)disponibles,
+                   (unsigned int)ESPACIOS_PANTALLA);
   LCD_Print(texto, 56, 214, 2, BLANCO, FONDO);
   ultimos_disponibles = disponibles;
 }
@@ -78,26 +84,30 @@ void PantallaParqueo_Init(void)
   LCD_Clear(FONDO);
   /* Disposicion horizontal de 320 x 240: cuatro espacios por fila. */
   LCD_Print("PARQUEO", 104, 10, 2, BLANCO, FONDO);
+  const uint8_t remota = ParqueoI2C_MascaraRemota();
   for (uint8_t i = 0U; i < ESPACIOS_PANTALLA; ++i)
   {
-    DibujarEspacio(i);
+    DibujarEspacio(i, EstadoEspacio(i, remota));
   }
-  DibujarContador();
+  DibujarContador(ContarDisponibles(remota));
 }
 
 void PantallaParqueo_Update(void)
 {
+  const uint8_t remota = ParqueoI2C_MascaraRemota();
   /* Redibujar solo una tarjeta por vuelta para atender los botones entre cambios. */
   for (uint8_t i = 0U; i < ESPACIOS_PANTALLA; ++i)
   {
-    if (ultimo_estado[i] != EstadoEspacio(i))
+    const uint8_t estado = EstadoEspacio(i, remota);
+    if (ultimo_estado[i] != estado)
     {
-      DibujarEspacio(i);
+      DibujarEspacio(i, estado);
       break;
     }
   }
-  if (ultimos_disponibles != ContarDisponibles())
+  const uint8_t disponibles = ContarDisponibles(remota);
+  if (ultimos_disponibles != disponibles)
   {
-    DibujarContador();
+    DibujarContador(disponibles);
   }
 }

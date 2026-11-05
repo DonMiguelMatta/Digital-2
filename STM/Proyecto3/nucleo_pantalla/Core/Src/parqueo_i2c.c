@@ -9,7 +9,9 @@ volatile uint32_t i2c_lecturas;
 volatile uint32_t i2c_errores;
 volatile uint32_t i2c_ultimo_error;
 static uint8_t byte_tx;
-static uint8_t byte_descartado;
+static uint8_t byte_rx;
+static volatile uint8_t mascara_remota = PARQUEO_GRUPO_SIN_DATOS;
+static volatile uint32_t ultima_escritura;
 static volatile uint8_t recuperar_periferico;
 static uint32_t ultimo_reintento;
 
@@ -54,7 +56,7 @@ void ParqueoI2C_Update(void)
 
 void ParqueoI2C_Init(void)
 {
-  /* HAL guarda 0x40 en OAR1; en Wire.requestFrom se utiliza 0x20. */
+  /* HAL usa la direccion desplazada; Wire usa 0x21. */
   if (hi2c1.Init.OwnAddress1 != (PARQUEO_DIRECCION_I2C << 1U)) Error_Handler();
   ParqueoI2C_Update();
 }
@@ -74,8 +76,7 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t direccion,
   }
   else
   {
-    /* Aceptar sondas de direccion; por ahora no hay comandos de escritura. */
-    resultado = HAL_I2C_Slave_Seq_Receive_IT(hi2c, &byte_descartado, 1U,
+    resultado = HAL_I2C_Slave_Seq_Receive_IT(hi2c, &byte_rx, 1U,
                                             I2C_FIRST_AND_LAST_FRAME);
   }
   if (resultado != HAL_OK)
@@ -83,6 +84,27 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t direccion,
     ++i2c_errores;
     recuperar_periferico = 1U;
   }
+}
+
+void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+  if (hi2c->Instance != I2C1) return;
+  if (byte_rx <= 0x0FU || byte_rx == PARQUEO_GRUPO_SIN_DATOS)
+  {
+    mascara_remota = byte_rx;
+    ultima_escritura = HAL_GetTick();
+  }
+}
+
+uint8_t ParqueoI2C_MascaraRemota(void)
+{
+  const uint32_t primask = __get_PRIMASK();
+  __disable_irq();
+  const uint8_t mascara = mascara_remota;
+  const uint32_t recibido_ms = ultima_escritura;
+  __set_PRIMASK(primask);
+  return (uint32_t)(HAL_GetTick() - recibido_ms) < 1500U
+         ? mascara : PARQUEO_GRUPO_SIN_DATOS;
 }
 
 void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
