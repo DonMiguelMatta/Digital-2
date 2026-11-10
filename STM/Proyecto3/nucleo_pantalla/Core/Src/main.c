@@ -24,6 +24,7 @@
 #include "parqueo.h"
 #include "pantalla_parqueo.h"
 #include "parqueo_i2c.h"
+#include "neopixel_parqueo.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,6 +95,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   Parqueo_Init();
   ParqueoI2C_Init();
+  NeoPixelParqueo_Init();
   PantallaParqueo_Init();
   /* USER CODE END 2 */
 
@@ -106,6 +108,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
     Parqueo_Update();
     ParqueoI2C_Update();
+    NeoPixelParqueo_Update();
     PantallaParqueo_Update();
   }
   /* USER CODE END 3 */
