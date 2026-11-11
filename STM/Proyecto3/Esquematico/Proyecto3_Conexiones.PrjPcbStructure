@@ -1,0 +1,5 @@
+Record=TopLevelDocument|FileName=01_ESP32_Maestro.SchDoc|SheetNumber=1
+Record=NoMainPathDocument|SourceDocument=01_ESP32_Maestro.SchDoc|FileName=02_Nucleo_1.SchDoc|SheetNumber=2
+Record=NoMainPathDocument|SourceDocument=01_ESP32_Maestro.SchDoc|FileName=03_Nucleo_2.SchDoc|SheetNumber=3
+Record=NoMainPathDocument|SourceDocument=01_ESP32_Maestro.SchDoc|FileName=04_TFT_Display_NeoPixel.SchDoc|SheetNumber=4
+Record=NoMainPathDocument|SourceDocument=01_ESP32_Maestro.SchDoc|FileName=05_LEDs_Alimentacion.SchDoc|SheetNumber=5

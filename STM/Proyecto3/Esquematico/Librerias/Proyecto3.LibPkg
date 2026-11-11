@@ -1,0 +1,13 @@
+[Design]
+Version=1.0
+HierarchyMode=0
+OpenOutputs=0
+OutputPath=.
+
+[Document1]
+DocumentPath=Proyecto3.SchLib
+AnnotationEnabled=1
+
+[Generic_EDE]
+OutputDir=.
+

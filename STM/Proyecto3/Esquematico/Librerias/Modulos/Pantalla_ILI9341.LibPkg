@@ -1,0 +1,9 @@
+[Design]
+Version=1.0
+HierarchyMode=0
+OpenOutputs=0
+OutputPath=.
+[Document1]
+DocumentPath=Pantalla_ILI9341.SchLib
+[Generic_EDE]
+OutputDir=.

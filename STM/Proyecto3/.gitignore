@@ -1,1 +1,32 @@
 /Material de clase/
+
+# Herramientas y metadatos de inteligencia artificial
+.codex/
+**/.codex/
+.chatgpt/
+**/.chatgpt/
+.openai/
+**/.openai/
+.agents/
+**/.agents/
+AGENTS.md
+**/AGENTS.md
+
+# Archivos o carpetas identificados como Codex, ChatGPT, OpenAI o GPT
+*[Cc]odex*
+*[Cc]hat[Gg][Pp][Tt]*
+*[Oo]pen[Aa][Ii]*
+*[Gg][Pp][Tt]*
+*[Ii]nteligencia [Aa]rtificial*
+*[Ii]nteligencia_[Aa]rtificial*
+*[Ii]nteligencia-[Aa]rtificial*
+
+# Elementos marcados explícitamente como IA (sin excluir coincidencias parciales)
+IA/
+ia/
+IA.*
+ia.*
+*_IA.*
+*_ia.*
+*-IA.*
+*-ia.*
